@@ -30,6 +30,18 @@ spring:
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 30000
 
+com:
+  cloud:
+    event:
+      publisher:
+        enable: true
+      rocket:
+        ons:
+          access-key:
+          secret-key:
+          publisher:
+            send-timeout-millis: 5000
+
 mybatis-plus:
   mapper-locations: classpath:mappers/*.xml
   configuration:
