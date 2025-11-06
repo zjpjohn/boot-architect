@@ -1,0 +1,2 @@
+com.cloud.arch.rocket.producer.spring.ProducerAutoConfiguration
+com.cloud.arch.rocket.consumer.spring.ConsumerAutoConfiguration

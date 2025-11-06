@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+<!--Configuration后面的status，这个用于设置log4j2自身内部的信息输出，可以不设置，当设置成trace时，会看到log4j2内部各种详细输出 -->
+<!--monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身，设置间隔秒数 -->
+<configuration status="INFO" monitorInterval="600">
+    <!--<contextName>log4j2</contextName>-->
+    <properties>
+        <!--原来用logback时候在统一配置中心也配置一个logging.path=/opt/tomcat-log/${spring.application.name}   LOG_PATH是内置变量-->
+        <property name="LOG_PATH">/logs/bizlog-app-example</property>
+        <!-- 保留日志天数 D H M S 分别对应天 小时 分钟 秒 -->
+        <property name="KEEP_LOG_DAY">7d</property>
+        <property name="KEEP_ERROR_DAY">90d</property>
+        <!-- 日志切割的最小单位 -->
+        <property name="EVERY_FILE_SIZE">64M</property>
+        <!-- 日志文件名 -->
+        <property name="FILE_NAME">bizlog-app-example</property>
+    </properties>
+    <!--先定义所有的appender -->
+    <appenders>
+        <!--这个输出控制台的配置 -->
+        <console name="Console" target="SYSTEM_OUT">
+            <!--输出日志的格式 -->
+            <PatternLayout charset="UTF-8" pattern="[%-5level][%d{yyyy-MM-dd HH:mm:ss}][%t][%l] %m%n"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </console>
+        <!-- 打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档 -->
+        <RollingFile name="RollingFileInfo"
+                     append="true"
+                     fileName="${LOG_PATH}/INFO/${FILE_NAME}-info.log"
+                     filePattern="${LOG_PATH}/INFO/${FILE_NAME}-info-%d{yyyy-MM-dd}-%i.log">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch） -->
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="[%-5level][%d{yyyy-MM-dd HH:mm:ss}][%t][%l] %m%n"/>
+            <Policies>
+                <!-- 归档每天的文件 -->
+                <!--<TimeBasedTriggeringPolicy interval="1" modulate="true"/>-->
+                <TimeBasedTriggeringPolicy/>
+                <!-- 限制单个文件大小 -->
+                <SizeBasedTriggeringPolicy size="${EVERY_FILE_SIZE}"/>
+            </Policies>
+            <!-- 限制每天文件个数 --> <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了100 -->
+            <DefaultRolloverStrategy max="20">
+                <!--滚动删除文件规则 -->
+                <Delete basePath="${LOG_PATH}/INFO/" maxDepth="1">
+                    <IfFileName glob="*info*.log"/>
+                    <IfLastModified age="${KEEP_LOG_DAY}"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="RollingFileWarn"
+                     fileName="${LOG_PATH}/WARN/${FILE_NAME}-warn.log"
+                     filePattern="${LOG_PATH}/WARN/${FILE_NAME}-warn-%d{yyyy-MM-dd}-%i.log">
+            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="[%-5level][%d{yyyy-MM-dd HH:mm:ss}][%t][%l] %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="${EVERY_FILE_SIZE}"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了100 -->
+            <DefaultRolloverStrategy max="20">
+                <Delete basePath="${LOG_PATH}/WARN/" maxDepth="1">
+                    <IfFileName glob="*warn*.log"/>
+                    <IfLastModified age="${KEEP_LOG_DAY}"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="RollingFileError"
+                     fileName="${LOG_PATH}/ERROR/${FILE_NAME}-error.log"
+                     filePattern="${LOG_PATH}/ERROR/${FILE_NAME}-error-%d{yyyy-MM-dd}-%i.log">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <!--<PatternLayout  charset="UTF-8" pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />-->
+            <PatternLayout charset="UTF-8" pattern="[%-5level][%d{yyyy-MM-dd HH:mm:ss}][%t][%l] %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="${EVERY_FILE_SIZE}"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了32 -->
+            <DefaultRolloverStrategy max="20">
+                <Delete basePath="${LOG_PATH}/ERROR/" maxDepth="1">
+                    <IfFileName glob="*error*.log"/>
+                    <IfLastModified age="${KEEP_ERROR_DAY}"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </appenders>
+    <!--定义logger，只有定义了logger并引入的appender，appender才会生效 -->
+    <loggers>
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFileInfo"/>
+            <appender-ref ref="RollingFileWarn"/>
+            <appender-ref ref="RollingFileError"/>
+        </root>
+        <!--过滤掉spring的一些无用的DEBUG信息 -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="com.boot.architect" level="INFO"/>
+        <logger name="com.cloud.arch.web.support" level="INFO"/>
+        <logger name="com.alibaba" level="WARN"/>
+    </loggers>
+</configuration>

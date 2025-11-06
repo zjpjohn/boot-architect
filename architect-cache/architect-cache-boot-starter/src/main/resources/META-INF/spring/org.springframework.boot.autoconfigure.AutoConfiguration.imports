@@ -1,0 +1,3 @@
+com.cloud.arch.cache.boot.CacheAutoConfiguration
+com.cloud.arch.cache.boot.extension.SecondCacheAutoConfiguration
+com.cloud.arch.cache.boot.extension.HotKeyCacheAutoConfiguration

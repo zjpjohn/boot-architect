@@ -1,0 +1,3 @@
+com.cloud.arch.mutex.boot.CloudMutexAutoConfiguration
+com.cloud.arch.mutex.extension.JdbcMutexConfiguration
+com.cloud.arch.mutex.extension.RedisMutexConfiguration

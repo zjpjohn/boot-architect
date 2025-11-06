@@ -1,0 +1,9 @@
+com.cloud.arch.event.boot.CloudEventAutoConfiguration
+com.cloud.arch.event.extension.queue.KafkaEventExtensionConfiguration
+com.cloud.arch.event.extension.queue.PulsarEventExtensionConfiguration
+com.cloud.arch.event.extension.queue.RabbitEventExtensionConfiguration
+com.cloud.arch.event.extension.queue.RocketOnsEventExtensionConfiguration
+com.cloud.arch.event.extension.queue.RocketV4EventExtensionConfiguration
+com.cloud.arch.event.extension.queue.RocketV5EventExtensionConfiguration
+com.cloud.arch.event.extension.storage.JdbcStorageExtensionConfiguration
+com.cloud.arch.event.extension.storage.RocksdbStorageExtensionConfiguration

@@ -1,0 +1,1 @@
+package com.boot.architect.domain;

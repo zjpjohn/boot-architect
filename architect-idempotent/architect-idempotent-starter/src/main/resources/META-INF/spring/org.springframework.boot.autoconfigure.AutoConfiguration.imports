@@ -1,0 +1,3 @@
+com.cloud.arch.idempotent.boot.IdempotentAutoConfiguration
+com.cloud.arch.idempotent.extension.JdbcIdempotentConfiguration
+com.cloud.arch.idempotent.extension.RedisIdempotentConfiguration

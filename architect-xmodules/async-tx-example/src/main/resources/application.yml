@@ -1,0 +1,50 @@
+server:
+  port: 18001
+spring:
+  application:
+    name: async-tx-example
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  jackson:
+    date-format: yyyy/MM/dd HH:mm:ss
+    time-zone: GMT+8
+  datasource:
+    druid:
+      url: jdbc:mysql://localhost:3306/architect_boot?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
+      username: root
+      password: 123456
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      max-active: 10
+      initial-size: 10
+      max-wait: 60000
+      min-idle: 5
+      validation-query: select 'X'
+      test-on-return: false
+      test-on-borrow: false
+      test-while-idle: true
+      pool-prepared-statements: true
+      max-open-prepared-statements: 20
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 30000
+com:
+  cloud:
+    redis:
+      #使用内置的redis自动配置
+      standalone:
+        address: 120.27.121.45:6973
+        password: Zap+{&5ad3avd?$#
+        user-name: default
+#使用自定义redis配置
+#    mutex:
+#      redis:
+#        address: 120.27.121.45:6973
+#        password: Zap+{&5ad3avd?$#
+#        user-name: default
+
+mybatis-plus:
+  mapper-locations: classpath:mappers/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

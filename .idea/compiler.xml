@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="search-example" />
+        <module name="rocketmq-example" />
+      </profile>
+      <profile name="Annotation profile for boot-architect" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.5/spring-boot-configuration-processor-3.5.5.jar" />
+        </processorPath>
+        <module name="architect-event-queue-rabbitmq" />
+        <module name="architect-event-queue-kafka" />
+        <module name="architect-mutex-lock-redis" />
+        <module name="architect-transaction-async-support" />
+        <module name="architect-webmvc-swagger" />
+        <module name="architect-rocketmq-v5x-starter" />
+        <module name="architect-event-queue-rocketmq-v4x" />
+        <module name="architect-webmvc-webtoken-servlet" />
+        <module name="architect-idempotent-support" />
+        <module name="architect-token-boot-starter" />
+        <module name="architect-event-storage-jdbc" />
+        <module name="bizlog-example" />
+        <module name="architect-cache-hotkey" />
+        <module name="architect-hotkey-admin" />
+        <module name="architect-hotkey-worker" />
+        <module name="architect-scheduler-commons" />
+        <module name="architect-mutex-lock-mysql" />
+        <module name="architect-mutex-lock-starter" />
+        <module name="architect-token-gateway" />
+        <module name="architect-webmvc-boot-starter" />
+        <module name="architect-scheduler-client" />
+        <module name="event-example" />
+        <module name="architect-bizlog-commons" />
+        <module name="architect-event-queue-rocketmq-v5x" />
+        <module name="architect-hotkey-client" />
+        <module name="architect-event-watcher-server" />
+        <module name="architect-rocketmq-v4x-starter" />
+        <module name="architect-webmvc-webtoken-gateway" />
+        <module name="architect-aggregate" />
+        <module name="architect-operate-commons" />
+        <module name="architect-aliyun-mobile" />
+        <module name="architect-duplicate" />
+        <module name="architect-token-redis" />
+        <module name="architect-bizlog-mysql" />
+        <module name="architect-bizlog-mongodb" />
+        <module name="architect-idempotent-starter" />
+        <module name="architect-mutex-lock-support" />
+        <module name="architect-event-queue-rocketmq-ons" />
+        <module name="architect-pulsar-boot-starter" />
+        <module name="web-example" />
+        <module name="architect-webmvc-commons" />
+        <module name="architect-webmvc-security" />
+        <module name="architect-webmvc-webtoken-commons" />
+        <module name="architect-scheduler-manager" />
+        <module name="architect-operate-endpoint" />
+        <module name="architect-scheduler-dispatcher" />
+        <module name="architect-mybatis-commons" />
+        <module name="idempotent-example" />
+        <module name="multi-redis-example" />
+        <module name="architect-token-support" />
+        <module name="architect-pulsar-commons" />
+        <module name="architect-event-storage-rocksdb" />
+        <module name="architect-token-jwt" />
+        <module name="architect-event-queue-pulsar" />
+        <module name="architect-transaction-async-starter" />
+        <module name="architect-bizlog-elasticsearch" />
+        <module name="architect-mybatis-extension" />
+        <module name="architect-event-boot-starter" />
+        <module name="architect-bizlog-boot-starter" />
+        <module name="architect-token-servlet" />
+        <module name="architect-cache-boot-starter" />
+        <module name="async-tx-example" />
+        <module name="architect-mybatis-plus-extension" />
+        <module name="architect-search" />
+        <module name="architect-spring" />
+        <module name="cache-example" />
+        <module name="architect-token-temporary" />
+        <module name="architect-rocketmq-ons-starter" />
+        <module name="architect-aliyun-oss" />
+        <module name="architect-scheduler-boot-starter" />
+        <module name="architect-token-webflux" />
+        <module name="architect-event-watcher-client" />
+        <module name="architect-idempotent-mysql" />
+        <module name="architect-redisson" />
+        <module name="architect-rocketmq-commons" />
+        <module name="architect-commons" />
+        <module name="architect-cache-support" />
+        <module name="architect-hotkey-commons" />
+        <module name="architect-event-commons" />
+        <module name="architect-idempotent-redis" />
+        <module name="architect-scheduler-executor" />
+        <module name="architect-webmvc-fastjson2" />
+        <module name="architect-webmvc-jackson" />
+        <module name="architect-ip2region" />
+        <module name="architect-operate-spring-starter" />
+      </profile>
+      <profile name="Annotation profile for aggregate-example" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/openjdk/jmh/jmh-generator-annprocess/1.37/jmh-generator-annprocess-1.37.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar" />
+          <entry name="$MAVEN_REPOSITORY$/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar" />
+        </processorPath>
+        <module name="aggregate-example" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="25" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="aggregate-example" options="-parameters" />
+      <module name="architect-aggregate" options="-parameters" />
+      <module name="architect-aliyun" options="-parameters" />
+      <module name="architect-aliyun-mobile" options="-parameters" />
+      <module name="architect-aliyun-oss" options="-parameters" />
+      <module name="architect-bizlog" options="-parameters" />
+      <module name="architect-bizlog-boot-starter" options="-parameters" />
+      <module name="architect-bizlog-commons" options="-parameters" />
+      <module name="architect-bizlog-elasticsearch" options="-parameters" />
+      <module name="architect-bizlog-mongodb" options="-parameters" />
+      <module name="architect-bizlog-mysql" options="-parameters" />
+      <module name="architect-bom" options="-parameters" />
+      <module name="architect-cache" options="-parameters" />
+      <module name="architect-cache-boot-starter" options="-parameters" />
+      <module name="architect-cache-hotkey" options="-parameters" />
+      <module name="architect-cache-support" options="-parameters" />
+      <module name="architect-commons" options="-parameters" />
+      <module name="architect-duplicate" options="-parameters" />
+      <module name="architect-event" options="-parameters" />
+      <module name="architect-event-boot-starter" options="-parameters" />
+      <module name="architect-event-commons" options="-parameters" />
+      <module name="architect-event-queue" options="-parameters" />
+      <module name="architect-event-queue-kafka" options="-parameters" />
+      <module name="architect-event-queue-pulsar" options="-parameters" />
+      <module name="architect-event-queue-rabbitmq" options="-parameters" />
+      <module name="architect-event-queue-rocketmq-ons" options="-parameters" />
+      <module name="architect-event-queue-rocketmq-v4x" options="-parameters" />
+      <module name="architect-event-queue-rocketmq-v5x" options="-parameters" />
+      <module name="architect-event-storage" options="-parameters" />
+      <module name="architect-event-storage-jdbc" options="-parameters" />
+      <module name="architect-event-storage-rocksdb" options="-parameters" />
+      <module name="architect-event-watcher" options="-parameters" />
+      <module name="architect-event-watcher-client" options="-parameters" />
+      <module name="architect-event-watcher-server" options="-parameters" />
+      <module name="architect-hotkey" options="-parameters" />
+      <module name="architect-hotkey-admin" options="-parameters" />
+      <module name="architect-hotkey-client" options="-parameters" />
+      <module name="architect-hotkey-commons" options="-parameters" />
+      <module name="architect-hotkey-worker" options="-parameters" />
+      <module name="architect-idempotent" options="-parameters" />
+      <module name="architect-idempotent-mysql" options="-parameters" />
+      <module name="architect-idempotent-redis" options="-parameters" />
+      <module name="architect-idempotent-starter" options="-parameters" />
+      <module name="architect-idempotent-support" options="-parameters" />
+      <module name="architect-ip2region" options="-parameters" />
+      <module name="architect-mutex-lock" options="-parameters" />
+      <module name="architect-mutex-lock-mysql" options="-parameters" />
+      <module name="architect-mutex-lock-redis" options="-parameters" />
+      <module name="architect-mutex-lock-starter" options="-parameters" />
+      <module name="architect-mutex-lock-support" options="-parameters" />
+      <module name="architect-mybatis" options="-parameters" />
+      <module name="architect-mybatis-commons" options="-parameters" />
+      <module name="architect-mybatis-extension" options="-parameters" />
+      <module name="architect-mybatis-plus-extension" options="-parameters" />
+      <module name="architect-operate" options="-parameters" />
+      <module name="architect-operate-commons" options="-parameters" />
+      <module name="architect-operate-endpoint" options="-parameters" />
+      <module name="architect-operate-spring-starter" options="-parameters" />
+      <module name="architect-pulsar" options="-parameters" />
+      <module name="architect-pulsar-boot-starter" options="-parameters" />
+      <module name="architect-pulsar-commons" options="-parameters" />
+      <module name="architect-redisson" options="-parameters" />
+      <module name="architect-rocketmq" options="-parameters" />
+      <module name="architect-rocketmq-commons" options="-parameters" />
+      <module name="architect-rocketmq-ons-starter" options="-parameters" />
+      <module name="architect-rocketmq-v4x-starter" options="-parameters" />
+      <module name="architect-rocketmq-v5x-starter" options="-parameters" />
+      <module name="architect-scheduler" options="-parameters" />
+      <module name="architect-scheduler-boot-starter" options="-parameters" />
+      <module name="architect-scheduler-client" options="-parameters" />
+      <module name="architect-scheduler-commons" options="-parameters" />
+      <module name="architect-scheduler-dispatcher" options="-parameters" />
+      <module name="architect-scheduler-executor" options="-parameters" />
+      <module name="architect-scheduler-manager" options="-parameters" />
+      <module name="architect-search" options="-parameters" />
+      <module name="architect-spring" options="-parameters" />
+      <module name="architect-token" options="-parameters" />
+      <module name="architect-token-boot-starter" options="-parameters" />
+      <module name="architect-token-gateway" options="-parameters" />
+      <module name="architect-token-jwt" options="-parameters" />
+      <module name="architect-token-plugin" options="-parameters" />
+      <module name="architect-token-redis" options="-parameters" />
+      <module name="architect-token-servlet" options="-parameters" />
+      <module name="architect-token-support" options="-parameters" />
+      <module name="architect-token-temporary" options="-parameters" />
+      <module name="architect-token-webflux" options="-parameters" />
+      <module name="architect-transaction" options="-parameters" />
+      <module name="architect-transaction-async-starter" options="-parameters" />
+      <module name="architect-transaction-async-support" options="-parameters" />
+      <module name="architect-webmvc" options="-parameters" />
+      <module name="architect-webmvc-boot-starter" options="-parameters" />
+      <module name="architect-webmvc-commons" options="-parameters" />
+      <module name="architect-webmvc-fastjson2" options="-parameters" />
+      <module name="architect-webmvc-jackson" options="-parameters" />
+      <module name="architect-webmvc-security" options="-parameters" />
+      <module name="architect-webmvc-swagger" options="-parameters" />
+      <module name="architect-webmvc-webtoken" options="-parameters" />
+      <module name="architect-webmvc-webtoken-commons" options="-parameters" />
+      <module name="architect-webmvc-webtoken-gateway" options="-parameters" />
+      <module name="architect-webmvc-webtoken-servlet" options="-parameters" />
+      <module name="architect-xmodules" options="-parameters" />
+      <module name="async-tx-example" options="-parameters" />
+      <module name="bizlog-example" options="-parameters" />
+      <module name="boot-architect" options="-parameters" />
+      <module name="cache-example" options="-parameters" />
+      <module name="event-example" options="-parameters" />
+      <module name="idempotent-example" options="-parameters" />
+      <module name="multi-redis-example" options="-parameters" />
+      <module name="web-example" options="-parameters" />
+    </option>
+  </component>
+</project>

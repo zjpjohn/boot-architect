@@ -1,0 +1,45 @@
+server:
+  port: 18000
+spring:
+  application:
+    name: arch-web-example
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  jackson:
+    date-format: yyyy/MM/dd HH:mm:ss
+    time-zone: GMT+8
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: /**
+      packages-to-scan: com.boot.architect.adapter
+
+com:
+  cloud:
+    web:
+      encrypt:
+        header: THA-X-ENCRYPT
+      version:
+        enable: true
+        name: THA-X-VERSION
+      auth:
+        excludes: /v3/**,/web/**,/version/**,/auth/**,/executor/**,/dictionary,/dictionary/**
+        token:
+          expire: 24
+          issuer: thales
+          secret: ba72c1e3556644fb832e8602c7a31a89
+      security:
+        resources:
+          - /security/sec5 | post | manager | permit(write)
+          - /security/sec6 | * | manager | *
+      dictionary:
+        export: true

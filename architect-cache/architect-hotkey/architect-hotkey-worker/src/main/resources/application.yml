@@ -1,0 +1,12 @@
+hotKey:
+  expireThreshold: 5000
+  threadSize: 1
+  cacheTimeout: 60
+  monitor: true
+network:
+  port: 11111
+  heartInterval: 30
+  timeout: 100000
+  #bind: 169.123.23.21
+etcd:
+  server: http://60.205.168.45:12379

@@ -1,0 +1,4 @@
+com.cloud.arch.boot.OperateLogAutoConfiguration
+com.cloud.arch.boot.LoggerElasticConfiguration
+com.cloud.arch.boot.LoggerMongoConfiguration
+com.cloud.arch.boot.LoggerMysqlConfiguration
