@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * 统一枚举接口
+ */
 public interface Value<T extends Comparable<T>> {
 
     /**
@@ -35,7 +38,6 @@ public interface Value<T extends Comparable<T>> {
         Map<String, Object> result = Maps.newHashMap();
         result.put("value", this.value());
         result.put("label", this.label());
-        result.put("description", this.label());
         return result;
     }
 

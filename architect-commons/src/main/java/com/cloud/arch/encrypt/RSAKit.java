@@ -50,7 +50,7 @@ public class RSAKit {
      * 生成密钥对(公钥和私钥)
      * </p>
      */
-    public Map<String, String> genKeyPair() throws Exception {
+    public Map<String, String> keyPair() throws Exception {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
         keyPairGen.initialize(INITIALIZE_LENGTH);
         KeyPair             keyPair    = keyPairGen.generateKeyPair();
