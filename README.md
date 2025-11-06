@@ -3,7 +3,8 @@
 > java应用开发中间件集合，经过多年沉淀，已形成领域驱动、领域事件(
 > 抽象统一各个消息队列：AliYunOns、rabbitmq4/5、rocketmq、pulsar,kafka已实现)、二级缓存、
 > rocketmq消息队列统一封装、springmvc统一规范、 自实现简单易用的权限框架、异步事务以及幂等校验
-> 等中间件
+> 等中间件。本中间件已将依赖sdk升级到最新版本，jdk25,spring boot3.5.5,spring cloud 2025.0.0,
+> spring cloud alibaba2025.0.0.0
 
 # 项目结构说明
 

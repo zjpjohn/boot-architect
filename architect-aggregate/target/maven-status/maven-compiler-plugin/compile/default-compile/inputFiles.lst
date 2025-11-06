@@ -1,0 +1,13 @@
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\Aggregate.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\AggregateException.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\AggregateFactory.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\AggregateRoot.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\DeepCopier.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\Entity.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\ForyDeepCopier.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\Ignore.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\reflection\Converter.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\reflection\DeepEquals.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\reflection\ExceptionUtilities.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\reflection\ReflectionUtils.java
+D:\cloud-lottery\boot-architect\boot-architect\architect-aggregate\src\main\java\com\cloud\arch\aggregate\Repository.java
