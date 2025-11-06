@@ -16,13 +16,13 @@ public class WebMvcController {
 
     @GetMapping("/test1")
     public String test1() {
-        return "web mvc test";
+        return "web mvc test1";
     }
 
     @ApiBody(encrypt = true)
     @GetMapping("/encrypt")
     public String encrypt() {
-        return "encrypt data";
+        return "encrypted data";
     }
 
 }
