@@ -51,16 +51,16 @@ public class CloudSmsExecutor implements InitializingBean {
     public SendResult syncSend(SmsParam param, String channel, Long expire) throws Exception {
         String smsChanel = StringUtils.isNotBlank(channel) ? channel : DEFAULT_CHANNEL;
         if (flowControl.flowLimit(param.getPhone(), smsChanel)) {
-            return SendResult.limitError("验证码未过期");
+            return SendResult.limitError("verify code not expired");
         }
         SendSmsRequest  request  = request(param);
         SendSmsResponse response = this.client.getAcsResponse(request);
         if (!isSuccess(response)) {
             log.error("发送短信验证码[{}]失败，失败原因:{}", response.getCode(), response.getMessage());
-            return SendResult.apiError("短信接口错误");
+            return SendResult.apiError("sms api error");
         }
         flowControl.cacheCode(param.getPhone(), smsChanel, param.getCode(), expire, TimeUnit.SECONDS);
-        return SendResult.success("发送成功");
+        return SendResult.success("send success");
     }
 
     /**
@@ -76,7 +76,7 @@ public class CloudSmsExecutor implements InitializingBean {
         }
         String smsChanel = StringUtils.isNotBlank(channel) ? channel : DEFAULT_CHANNEL;
         if (flowControl.flowLimit(param.getPhone(), smsChanel)) {
-            return SendResult.limitError("验证码未过期");
+            return SendResult.limitError("verify code not expired");
         }
         executor.execute(() -> {
             try {
@@ -91,7 +91,7 @@ public class CloudSmsExecutor implements InitializingBean {
                 log.error("发送短信验证码异常:", e);
             }
         });
-        return SendResult.success("发送成功");
+        return SendResult.success("send success");
     }
 
     private Boolean isSuccess(SendSmsResponse response) {
