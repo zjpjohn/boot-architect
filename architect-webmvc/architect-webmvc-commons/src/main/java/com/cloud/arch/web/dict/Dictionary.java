@@ -16,7 +16,7 @@ public @interface Dictionary {
     String name();
 
     /**
-     * 字典数据类型，如:int,string,double,float等,根据实际数据类型填写
+     * 字典数据类型说明，如:int,string,double,float等,根据实际数据类型填写
      */
     String type() default "";
 
