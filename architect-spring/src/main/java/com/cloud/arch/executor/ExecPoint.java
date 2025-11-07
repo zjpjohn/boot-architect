@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 @IndexAnnotated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface ExecutorPoint {
+public @interface ExecPoint {
 }

@@ -63,7 +63,7 @@ public class ExecutorFactory implements SmartInitializingSingleton, ApplicationC
 
     @Override
     public void afterSingletonsInstantiated() {
-        ClassIndex.getAnnotated(ExecutorPoint.class).forEach(e -> parseAndRegistry((Class<Executor>) e));
+        ClassIndex.getAnnotated(ExecPoint.class).forEach(e -> parseAndRegistry((Class<Executor>) e));
     }
 
     private <K extends Comparable<K>, E extends Executor<K>> void parseAndRegistry(Class<E> executorType) {
