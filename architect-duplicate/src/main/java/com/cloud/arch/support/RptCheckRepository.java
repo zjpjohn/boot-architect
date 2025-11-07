@@ -2,6 +2,7 @@ package com.cloud.arch.support;
 
 import com.cloud.arch.web.error.ApiBizException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -35,6 +36,9 @@ public class RptCheckRepository {
      * 带约束字段的重复校验
      */
     public void check(Object target, Map<String, Object> constraint) {
+        if (noneNull(target)) {
+            return;
+        }
         List<RptFieldValue> valueList = RptMetadataContainer.compute(target);
         for (RptFieldValue fieldValue : valueList) {
             checkField(fieldValue, constraint);
@@ -55,14 +59,21 @@ public class RptCheckRepository {
      * 执行sql查询是否重复存在
      */
     public boolean queryExist(RptFieldValue value, Map<String, Object> constraint) {
-        Pair<String, MapSqlParameterSource> pair = value.buildSql(constraint);
-        Integer exist = jdbcTemplate.query(pair.getKey(), pair.getValue(), (ResultSet resultSet) -> {
+        Pair<String, MapSqlParameterSource> condition = value.buildSql(constraint);
+        Integer exist = jdbcTemplate.query(condition.getKey(), condition.getValue(), (ResultSet resultSet) -> {
             if (resultSet.next()) {
-                return resultSet.getInt("exist");
+                return resultSet.getInt(1);
             }
             return 0;
         });
         return exist != null && exist > 0;
+    }
+
+    private boolean noneNull(Object target) {
+        if (target instanceof String str) {
+            return StringUtils.isNotBlank(str);
+        }
+        return target != null;
     }
 
 }
