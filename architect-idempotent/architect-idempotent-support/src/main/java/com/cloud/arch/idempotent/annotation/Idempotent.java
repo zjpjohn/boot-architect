@@ -43,6 +43,6 @@ public @interface Idempotent {
     /**
      * 自定义消息提示
      */
-    String message() default "重复操作，请稍后再试";
+    String message() default "repeat operate，please try later";
 
 }

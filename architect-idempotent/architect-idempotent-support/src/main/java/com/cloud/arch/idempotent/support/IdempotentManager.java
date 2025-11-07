@@ -14,7 +14,7 @@ public interface IdempotentManager {
      * 获取锁失败回调处理
      */
     default Object acquireFail(IdempotentInfo idempotent) {
-        throw new ApiBizException(HttpStatus.BAD_REQUEST, 400, idempotent.message());
+        throw new ApiBizException(HttpStatus.TOO_MANY_REQUESTS, 429, idempotent.message());
     }
 
     /**
