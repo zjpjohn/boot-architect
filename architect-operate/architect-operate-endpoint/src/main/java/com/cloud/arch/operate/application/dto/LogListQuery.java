@@ -15,7 +15,7 @@ public class LogListQuery extends PageQuery {
     private String    appNo;
     private String    bizGroup;
     private Integer   state;
-    @Enumerable(enums = OperateType.class, message = "操作类型错误")
+    @Enumerable(enums = OperateType.class, message = "operate type error")
     private String    type;
     private Long      opId;
     private LocalDate start;

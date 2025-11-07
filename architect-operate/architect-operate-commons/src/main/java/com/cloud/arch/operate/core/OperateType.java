@@ -25,6 +25,7 @@ public enum OperateType implements Value<String> {
     CANCEL("cancel", "取消"),
     TAKE_UP("take_up", "上架"),
     TAKE_OFF("take_off", "下架"),
+    LOOK("look", "查看"),
     OTHER("other", "其他");
 
     private final String type;

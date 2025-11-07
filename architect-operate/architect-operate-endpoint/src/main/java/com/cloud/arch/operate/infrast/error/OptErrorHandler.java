@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
-public enum OperationHandler implements ErrorHandler {
+public enum OptErrorHandler implements ErrorHandler {
     LOG_NOT_EXIST(HttpStatus.BAD_REQUEST, 404, "操作日志不存在"),
     ;
     private final HttpStatus status;

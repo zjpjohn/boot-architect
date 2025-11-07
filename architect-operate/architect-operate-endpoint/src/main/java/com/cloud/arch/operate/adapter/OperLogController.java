@@ -25,7 +25,7 @@ public class OperLogController {
     private final ILogQueryService logQueryService;
 
     @GetMapping
-    public OperationLog operationLog(@NotNull(message = "日志流水号为空") Long id) {
+    public OperationLog operationLog(@NotNull(message = "log id must not be null") Long id) {
         return logQueryService.operationLog(id);
     }
 

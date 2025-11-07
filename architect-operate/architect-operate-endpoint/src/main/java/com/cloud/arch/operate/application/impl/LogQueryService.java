@@ -3,7 +3,7 @@ package com.cloud.arch.operate.application.impl;
 import com.cloud.arch.operate.application.ILogQueryService;
 import com.cloud.arch.operate.application.dto.LogListQuery;
 import com.cloud.arch.operate.core.OperationLog;
-import com.cloud.arch.operate.infrast.error.OperationHandler;
+import com.cloud.arch.operate.infrast.error.OptErrorHandler;
 import com.cloud.arch.operate.infrast.repository.LogRepository;
 import com.cloud.arch.page.Page;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class LogQueryService implements ILogQueryService {
     @Override
     public OperationLog operationLog(Long id) {
         OperationLog log = repository.query(id);
-        OperationHandler.LOG_NOT_EXIST.check(log);
+        OptErrorHandler.LOG_NOT_EXIST.check(log);
         return log;
     }
 
