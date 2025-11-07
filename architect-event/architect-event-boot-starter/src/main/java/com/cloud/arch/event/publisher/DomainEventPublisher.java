@@ -2,7 +2,10 @@ package com.cloud.arch.event.publisher;
 
 import com.cloud.arch.event.codec.EventCodec;
 import com.cloud.arch.event.commons.ApplicationContextHolder;
-import com.cloud.arch.event.core.publish.*;
+import com.cloud.arch.event.core.publish.EventMetadataFactory;
+import com.cloud.arch.event.core.publish.GenericEvent;
+import com.cloud.arch.event.core.publish.MessageQueuePublisher;
+import com.cloud.arch.event.core.publish.PublishEvent;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -77,13 +80,14 @@ public class DomainEventPublisher {
             boolean transactionActive = TransactionSynchronizationManager.isActualTransactionActive();
             Assert.state(transactionActive, "领域事件未处于事务中，请配置spring事务.");
             //注册当前领域上下文的事务同步器，一次方法调用只需要注册一次
-            EventPublisherSynchronization eventSynchronization = ApplicationContextHolder.getBean(EventPublisherSynchronization.class);
+            EventPublisherSynchronization eventSynchronization = ApplicationContextHolder.getBean(
+                    EventPublisherSynchronization.class);
             TransactionSynchronizationManager.registerSynchronization(eventSynchronization);
             synchronization.set(Boolean.TRUE);
         }
         //领域事件上下文存储泛化事件,泛化事件只支持远程事件
-        if ((event instanceof GenericEvent) && enableRemoteQueue()) {
-            addGenericEvent((GenericEvent) event);
+        if ((event instanceof GenericEvent genericEvent) && enableRemoteQueue()) {
+            addGenericEvent(genericEvent);
             return;
         }
         //领域上下文存储领域事件
@@ -113,8 +117,8 @@ public class DomainEventPublisher {
      */
     private static void addGenericEvent(GenericEvent event) {
         EventCodec         eventCodec = ApplicationContextHolder.getBean(EventCodec.class);
-        PublishEventEntity entity     = GenericEventConverter.toEntity(event, eventCodec);
-        //如果事件自定义shardingKey为空,使用全局shardingKey
+        PublishEventEntity entity     = GenericEvent.toEntity(event, eventCodec);
+        //事件自定义shardingKey为空,使用全局shardingKey
         if (StringUtils.isBlank(entity.getShardingKey())) {
             entity.setShardingKey(shardingKey());
         }

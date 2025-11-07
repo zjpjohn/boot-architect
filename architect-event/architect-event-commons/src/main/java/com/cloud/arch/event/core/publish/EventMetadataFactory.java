@@ -84,6 +84,7 @@ public class EventMetadataFactory implements EmbeddedValueResolverAware, Initial
         return metadata.remoteEvents(null, event);
     }
 
+
     /**
      * 构造领域事件
      *

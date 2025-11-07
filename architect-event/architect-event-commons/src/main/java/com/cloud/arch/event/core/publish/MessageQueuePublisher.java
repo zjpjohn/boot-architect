@@ -40,6 +40,7 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
                                                       Threads.threadFactory("domain-event-publisher-"));
     }
 
+
     /**
      * 直接异步发送非事务事件消息
      *

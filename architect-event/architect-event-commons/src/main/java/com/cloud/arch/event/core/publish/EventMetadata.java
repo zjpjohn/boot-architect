@@ -50,8 +50,9 @@ public class EventMetadata {
      * 解析领域事件注解信息
      */
     private void parseMeta(StringValueResolver resolver) {
-        Set<Publish> annotations
-                = AnnotatedElementUtils.findMergedRepeatableAnnotations(type, Publish.class, Publishes.class);
+        Set<Publish> annotations = AnnotatedElementUtils.findMergedRepeatableAnnotations(type,
+                                                                                         Publish.class,
+                                                                                         Publishes.class);
         if (CollectionUtils.isEmpty(annotations)) {
             return;
         }
@@ -67,7 +68,9 @@ public class EventMetadata {
             }
             //远程消息事件元数据,最佳配置不需要重复配置name:filter的事件
             if (remoteMetas.contains(metadata.getName(), metadata.getFilter())) {
-                log.warn("remote event meta name[{}],filter:[{}] has duplicate,please confirm your config.", metadata.getName(), metadata.getFilter());
+                log.warn("remote event meta name[{}],filter:[{}] has duplicate,please confirm your config.",
+                         metadata.getName(),
+                         metadata.getFilter());
                 continue;
             }
             remoteMetas.put(metadata.getName(), metadata.getFilter(), metadata);
@@ -99,7 +102,10 @@ public class EventMetadata {
         if (remoteMetas.isEmpty()) {
             return Collections.emptyList();
         }
-        return remoteMetas.cellSet().stream().map(Table.Cell::getValue).filter(Objects::nonNull)
+        return remoteMetas.cellSet()
+                          .stream()
+                          .map(Table.Cell::getValue)
+                          .filter(Objects::nonNull)
                           .map(metadata -> PublishEvent.remoteEvent(shardingKey, metadata, eventCodec.encode(result)))
                           .collect(Collectors.toList());
     }
