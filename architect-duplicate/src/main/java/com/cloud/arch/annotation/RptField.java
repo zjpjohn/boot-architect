@@ -27,6 +27,6 @@ public @interface RptField {
     /**
      * 重复时提示消息
      */
-    String message() default "数据已存在";
+    String message() default "has duplicated data";
 
 }
