@@ -18,9 +18,9 @@ import static com.cloud.arch.page.PageConstant.*;
 public class PageQuery implements Serializable {
 
     private Integer sort  = 1;
-    @Min(value = 1, message = "分页页码为正整数")
+    @Min(value = 1, message = "page must greater than 1")
     private Integer page  = 1;
-    @Range(min = 1, max = 1000, message = "每页返回数量错误")
+    @Range(min = 1, max = 1000, message = "page size range in 1-1000")
     private Integer limit = 10;
 
     public PageCondition from() {
@@ -33,9 +33,9 @@ public class PageQuery implements Serializable {
         final PageCondition condition = new PageCondition();
         fields.stream()
               .filter(v -> Modifier.isPrivate(v.getModifiers())
-                           && !Modifier.isStatic(v.getModifiers())
-                           && !Modifier.isFinal(v.getModifiers())
-                           && Objects.isNull(v.getAnnotation(Ignore.class)))
+                      && !Modifier.isStatic(v.getModifiers())
+                      && !Modifier.isFinal(v.getModifiers())
+                      && Objects.isNull(v.getAnnotation(Ignore.class)))
               .forEach(v -> {
                   v.setAccessible(true);
                   switch (v.getName()) {
