@@ -29,7 +29,7 @@ public class GenericHandlerAdvice implements Ordered {
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
         String                   requestURI        = requestAttributes.getRequest().getRequestURI();
         log.error("request '{}' handle error", requestURI, error);
-        return ApiReturn.serverError("系统服务异常.");
+        return ApiReturn.serverError("system service error.");
     }
 
 }

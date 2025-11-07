@@ -43,7 +43,7 @@ public class TimeConverterFactory {
             try {
                 return LocalDate.parse(source, formatter);
             } catch (Exception error) {
-                throw new ConvertParseException("日期格式因为'" + this.pattern + "'.");
+                throw new ConvertParseException("date pattern '" + this.pattern + "'.");
             }
         }
     }
@@ -62,7 +62,7 @@ public class TimeConverterFactory {
             try {
                 return LocalTime.parse(source, formatter);
             } catch (Exception error) {
-                throw new ConvertParseException("时间格式因为'" + this.pattern + "'.");
+                throw new ConvertParseException("time pattern '" + this.pattern + "'.");
             }
         }
     }
@@ -81,7 +81,7 @@ public class TimeConverterFactory {
             try {
                 return LocalDateTime.parse(source, formatter);
             } catch (Exception error) {
-                throw new ConvertParseException("日期时间格式因为'" + this.pattern + "'.");
+                throw new ConvertParseException("datetime pattern '" + this.pattern + "'.");
             }
         }
     }
@@ -99,7 +99,7 @@ public class TimeConverterFactory {
             try {
                 return DateUtils.parseDate(source, pattern);
             } catch (Exception e) {
-                throw new ConvertParseException("日期格式应为'" + pattern + "'.");
+                throw new ConvertParseException("datetime pattern '" + pattern + "'.");
             }
         }
     }

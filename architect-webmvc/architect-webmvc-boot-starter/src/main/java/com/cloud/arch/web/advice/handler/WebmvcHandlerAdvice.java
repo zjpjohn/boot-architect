@@ -143,7 +143,7 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = DuplicateKeyException.class)
     public ApiReturn<String> exception(DuplicateKeyException error) {
-        return ApiReturn.badRequest("Has duplicated data.", 400);
+        return ApiReturn.badRequest("has duplicated data.", 400);
     }
 
     @ResponseBody

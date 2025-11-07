@@ -12,7 +12,7 @@ public class RequestVersion implements Comparable<RequestVersion> {
 
     public RequestVersion(String version) {
         if (!StringUtils.hasText(version)) {
-            throw new IllegalArgumentException("无效的版本参数，版本格式为'x.x.x'.");
+            throw new IllegalArgumentException("illegal version params，version pattern must be 'x.x.x'.");
         }
         String[] segments = version.split("\\.");
         cells = new Integer[segments.length];

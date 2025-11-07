@@ -50,7 +50,7 @@ public class Assert {
 
     public static void state(boolean expression) {
         if (!expression) {
-            throw new ApiBizException(400, "参数不满足条件");
+            throw new ApiBizException(400, "illegal params");
         }
     }
 
@@ -69,7 +69,7 @@ public class Assert {
 
     public static <T> T notNull(T reference) {
         if (reference == null) {
-            throw new ApiBizException(400, "参数不允许为空");
+            throw new ApiBizException(400, "data must not be null");
         }
         return reference;
     }

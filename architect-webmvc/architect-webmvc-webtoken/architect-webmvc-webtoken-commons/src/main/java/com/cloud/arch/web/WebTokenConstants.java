@@ -10,39 +10,39 @@ public abstract class WebTokenConstants {
     /**
      * token签名错误提示
      */
-    public static final String   TOKEN_SIGNATURE_ERROR = "token签名错误.";
+    public static final String   TOKEN_SIGNATURE_ERROR = "token signature error.";
     /**
      * token过期错误提示
      */
-    public static final String   TOKEN_EXPIRED_ERROR   = "token已过期.";
+    public static final String   TOKEN_EXPIRED_ERROR   = "token has expired.";
     /**
      * token不合规错误提示
      */
-    public static final String   TOKEN_ILLEGAL_ERROR   = "token不合规.";
+    public static final String   TOKEN_ILLEGAL_ERROR   = "token is illegal.";
     /**
      * token校验错误提示
      */
-    public static final String   TOKEN_VERIFIED_ERROR  = "token校验错误.";
+    public static final String   TOKEN_VERIFIED_ERROR  = "token checked error.";
     /**
      * token无效提示
      */
-    public static final String   TOKEN_INVALID_ERROR   = "授权token无效.";
+    public static final String   TOKEN_INVALID_ERROR   = "invalid token.";
     /**
      * 登录错误提示消息
      */
-    public static final String   LOGIN_ERROR_MESSAGE   = "登录错误，请重试.";
+    public static final String   LOGIN_ERROR_MESSAGE   = "login error，please try again.";
     /**
      * 无权访问提示
      */
-    public static final String   FORBIDDEN_MESSAGE     = "无权访问该地址";
+    public static final String   FORBIDDEN_MESSAGE     = "forbidden request";
     /**
      * 系统错误提示
      */
-    public static final String   SERVER_EXCEPTION      = "系统错误，请稍后再试";
+    public static final String   SERVER_EXCEPTION      = "system error,please try later";
     /**
      * 未授权提示消息
      */
-    public static final String   UNAUTHORIZED_MESSAGE  = "请您先登录使用.";
+    public static final String   UNAUTHORIZED_MESSAGE  = "please login first.";
     /**
      * 授权header标识
      */

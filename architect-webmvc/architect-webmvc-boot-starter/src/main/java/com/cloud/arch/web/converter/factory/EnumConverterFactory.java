@@ -37,9 +37,9 @@ public class EnumConverterFactory implements ConverterFactory<String, Value> {
         }
 
         private ConvertParseException buildException(String value) {
-            String message = "枚举值'" + value + "'错误,";
+            String message = "enum value '" + value + "' error,";
             String ranges  = this.enumValue.values().toString();
-            return new ConvertParseException(message + "参数可选范围" + ranges);
+            return new ConvertParseException(message + "params ranges " + ranges);
         }
     }
 

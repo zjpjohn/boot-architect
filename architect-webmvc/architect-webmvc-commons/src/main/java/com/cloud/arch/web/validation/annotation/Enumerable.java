@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = EnumerableValidator.class)
 public @interface Enumerable {
 
-    String message() default "参数不满足条件";
+    String message() default "invalid argument condition";
 
     Class<?>[] groups() default {};
 
