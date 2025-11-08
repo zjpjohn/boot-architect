@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class BufferedTrigger<E> {
 
@@ -101,7 +102,7 @@ public class BufferedTrigger<E> {
         /**
          * 缓存队列
          */
-        private BlockingQueue<E>    queue;
+        private BlockingQueue<E>    queue     = Queues.newLinkedBlockingQueue();
         /**
          * 消费监听处理器
          */
@@ -109,7 +110,7 @@ public class BufferedTrigger<E> {
         /**
          * 执行线程池
          */
-        private ExecutorService     executor;
+        private ExecutorService     executor  = Executors.newSingleThreadExecutor();
         /**
          * 单次处理数量,默认20
          */
@@ -241,9 +242,9 @@ public class BufferedTrigger<E> {
         protected void runTask() {
             while (!this.trigger.queue.isEmpty()) {
                 try {
-                    List<E> events = Lists.newArrayList();
-                    Queues.drain(this.trigger.queue, events, trigger.batchSize, trigger.interval);
-                    if (CollectionUtils.isNotEmpty(events)) {
+                    List<E> events  = Lists.newArrayList();
+                    int     drained = Queues.drain(this.trigger.queue, events, trigger.batchSize, trigger.interval);
+                    if (drained > 0 && CollectionUtils.isNotEmpty(events)) {
                         this.trigger.consumer.handle(events);
                     }
                 } catch (Exception error) {
