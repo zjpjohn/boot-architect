@@ -40,11 +40,11 @@ public class Lazy<T> implements Supplier<T> {
         return supplier == null;
     }
 
-    public Optional<T> getIfAvailable() {
+    public Optional<T> getNullable() {
         return isAvailable() ? Optional.ofNullable(get()) : Optional.empty();
     }
 
-    public void ifAvailable(Consumer<T> consumer) {
+    public void ifPresent(Consumer<T> consumer) {
         Objects.requireNonNull(consumer, "Consumer of lazy value is <null>.");
         if (isAvailable()) {
             consumer.accept(get());
