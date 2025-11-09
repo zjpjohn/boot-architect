@@ -34,7 +34,7 @@ public class BufferedTrigger<E> {
     /**
      * 触发时间间隔
      */
-    private Duration            interval;
+    private Duration            timeout;
     /**
      * 消费者出发策略
      */
@@ -47,12 +47,12 @@ public class BufferedTrigger<E> {
                             ConsumerListener<E> consumer,
                             ExecutorService executor,
                             int batchSize,
-                            Duration interval) {
+                            Duration timeout) {
         this.queue     = queue;
         this.consumer  = consumer;
         this.executor  = executor;
         this.batchSize = batchSize;
-        this.interval  = interval;
+        this.timeout   = timeout;
     }
 
     /**
@@ -104,10 +104,6 @@ public class BufferedTrigger<E> {
          */
         private BlockingQueue<E>    queue     = Queues.newLinkedBlockingQueue();
         /**
-         * 消费监听处理器
-         */
-        private ConsumerListener<E> listener;
-        /**
          * 执行线程池
          */
         private ExecutorService     executor  = Executors.newSingleThreadExecutor();
@@ -118,11 +114,15 @@ public class BufferedTrigger<E> {
         /**
          * 触发时间间隔，默认5秒
          */
-        private Duration            interval  = Duration.ofSeconds(5);
+        private Duration            timeout   = Duration.ofSeconds(5);
         /**
          * 消费者数量，默认单消费者
          */
         private Integer             consumers = 1;
+        /**
+         * 消费监听处理器
+         */
+        private ConsumerListener<E> listener;
 
         public Builder<E> queue(BlockingQueue<E> queue) {
             this.queue = Preconditions.checkNotNull(queue);
@@ -145,8 +145,8 @@ public class BufferedTrigger<E> {
             return this;
         }
 
-        public Builder<E> interval(Duration interval) {
-            this.interval = Preconditions.checkNotNull(interval);
+        public Builder<E> timeout(Duration interval) {
+            this.timeout = Preconditions.checkNotNull(interval);
             return this;
         }
 
@@ -161,7 +161,7 @@ public class BufferedTrigger<E> {
                                                                this.listener,
                                                                this.executor,
                                                                this.batchSize,
-                                                               this.interval);
+                                                               this.timeout);
             if (consumers == 1) {
                 return trigger.single();
             }
@@ -243,7 +243,7 @@ public class BufferedTrigger<E> {
             while (!this.trigger.queue.isEmpty()) {
                 try {
                     List<E> events  = Lists.newArrayList();
-                    int     drained = Queues.drain(this.trigger.queue, events, trigger.batchSize, trigger.interval);
+                    int     drained = Queues.drain(this.trigger.queue, events, trigger.batchSize, trigger.timeout);
                     if (drained > 0 && CollectionUtils.isNotEmpty(events)) {
                         this.trigger.consumer.handle(events);
                     }

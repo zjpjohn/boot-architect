@@ -27,7 +27,7 @@ public class AsyncLogDispatcher implements DisposableBean {
                                               .executor(this.executor)
                                               .queue(new LinkedBlockingQueue<>())
                                               .batchSize(properties.getBatchSize())
-                                              .interval(properties.getTimeout())
+                                              .timeout(properties.getTimeout())
                                               .build();
     }
 

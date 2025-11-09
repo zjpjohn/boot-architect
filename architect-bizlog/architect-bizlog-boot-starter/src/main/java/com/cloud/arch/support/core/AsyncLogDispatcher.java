@@ -27,7 +27,7 @@ public class AsyncLogDispatcher implements DisposableBean, ConsumerListener<LogR
         this.bufferedTrigger = BufferedTrigger.<LogRecord>builder()
                                               .consumer(this)
                                               .executor(this.executor)
-                                              .interval(properties.getTimeout())
+                                              .timeout(properties.getTimeout())
                                               .queue(new LinkedBlockingQueue<>())
                                               .batchSize(properties.getBatchSize())
                                               .build();
