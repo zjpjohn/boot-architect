@@ -1,0 +1,50 @@
+{
+  "groups": [
+    {
+      "name": "com.cloud.operate",
+      "type": "com.cloud.arch.operate.props.OperateLogProperties",
+      "sourceType": "com.cloud.arch.operate.props.OperateLogProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "com.cloud.operate.batch-size",
+      "type": "java.lang.Integer",
+      "description": "异步批量提交大小",
+      "sourceType": "com.cloud.arch.operate.props.OperateLogProperties",
+      "defaultValue": 20
+    },
+    {
+      "name": "com.cloud.operate.core-threads",
+      "type": "java.lang.Integer",
+      "description": "异步核心线程数",
+      "sourceType": "com.cloud.arch.operate.props.OperateLogProperties",
+      "defaultValue": 1
+    },
+    {
+      "name": "com.cloud.operate.excludes",
+      "type": "java.lang.String",
+      "description": "全局统一提出保存敏感字段",
+      "sourceType": "com.cloud.arch.operate.props.OperateLogProperties",
+      "defaultValue": ""
+    },
+    {
+      "name": "com.cloud.operate.max-threads",
+      "type": "java.lang.Integer",
+      "description": "异步最大线程数",
+      "sourceType": "com.cloud.arch.operate.props.OperateLogProperties",
+      "defaultValue": 2
+    },
+    {
+      "name": "com.cloud.operate.timeout",
+      "type": "java.time.Duration",
+      "description": "异步批量等待超时时间(单位-秒)",
+      "sourceType": "com.cloud.arch.operate.props.OperateLogProperties",
+      "defaultValue": "2s"
+    }
+  ],
+  "hints": [],
+  "ignored": {
+    "properties": []
+  }
+}

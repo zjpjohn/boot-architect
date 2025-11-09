@@ -9,19 +9,19 @@ import java.util.concurrent.Executor;
 @AllArgsConstructor
 public class AsyncTxExecutor {
 
-    private final Executor executor;
+    private final Executor           executor;
     private final IAsyncTxRepository repository;
 
     /**
      * 执行异步任务
-     * 
+     *
      * @param event 异步任务事件
      */
     public void execute(AsyncTxEvent event) {
-        String asyncKey = event.getAsyncKey();
-        AsyncTxInvoker invoker = AsyncTxInvokers.get(asyncKey);
+        String         asyncKey = event.getAsyncKey();
+        AsyncTxInvoker invoker  = AsyncTxInvokers.get(asyncKey);
         if (invoker == null) {
-            log.warn("异步任务key[{}]不存在，请检查任务配置。", asyncKey);
+            log.warn("async task key [{}] not exist，please check config.", asyncKey);
             return;
         }
         executor.execute(() -> {

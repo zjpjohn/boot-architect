@@ -22,7 +22,7 @@ public class AsyncTxSharding {
      * @param shardingKey 分库分表key
      */
     public static void shardingKey(String shardingKey) {
-        Assert.state(StringUtils.isNotBlank(shardingKey), "分库分表key不允许为空.");
+        Assert.state(StringUtils.isNotBlank(shardingKey), "sharding key must not be null.");
         shardingContext.set(shardingKey);
     }
 

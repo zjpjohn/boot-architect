@@ -1,0 +1,16 @@
+com\cloud\arch\aggregate\reflection\ExceptionUtilities.class
+com\cloud\arch\aggregate\reflection\Converter.class
+com\cloud\arch\aggregate\Repository.class
+com\cloud\arch\aggregate\DeepCopier.class
+com\cloud\arch\aggregate\reflection\DeepEquals.class
+com\cloud\arch\aggregate\reflection\ReflectionUtils.class
+com\cloud\arch\aggregate\AggregateRoot.class
+com\cloud\arch\aggregate\ForyDeepCopier$CopierHolder.class
+com\cloud\arch\aggregate\AggregateFactory.class
+com\cloud\arch\aggregate\Lazy.class
+com\cloud\arch\aggregate\Aggregate.class
+com\cloud\arch\aggregate\AggregateException.class
+com\cloud\arch\aggregate\Entity.class
+com\cloud\arch\aggregate\Ignore.class
+com\cloud\arch\aggregate\ForyDeepCopier.class
+com\cloud\arch\aggregate\reflection\DeepEquals$ItemsToCompare.class
