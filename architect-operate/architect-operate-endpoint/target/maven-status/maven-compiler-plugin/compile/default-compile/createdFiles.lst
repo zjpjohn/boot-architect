@@ -1,9 +1,0 @@
-com\cloud\arch\operate\infrast\repository\LogRepository$1.class
-com\cloud\arch\operate\infrast\repository\LogRepository.class
-com\cloud\arch\operate\infrast\error\OptErrorHandler.class
-com\cloud\arch\operate\application\ILogQueryService.class
-com\cloud\arch\operate\application\impl\LogQueryService.class
-com\cloud\arch\operate\adapter\OperLogController.class
-com\cloud\arch\operate\infrast\config\OperateConfiguration.class
-com\cloud\arch\operate\infrast\repository\LogRepository$2.class
-com\cloud\arch\operate\application\dto\LogListQuery.class

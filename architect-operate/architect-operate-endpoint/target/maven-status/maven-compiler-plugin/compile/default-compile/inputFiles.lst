@@ -1,7 +1,0 @@
-D:\cloud-lottery\boot-architect\boot-architect\architect-operate\architect-operate-endpoint\src\main\java\com\cloud\arch\operate\adapter\OperLogController.java
-D:\cloud-lottery\boot-architect\boot-architect\architect-operate\architect-operate-endpoint\src\main\java\com\cloud\arch\operate\application\dto\LogListQuery.java
-D:\cloud-lottery\boot-architect\boot-architect\architect-operate\architect-operate-endpoint\src\main\java\com\cloud\arch\operate\application\ILogQueryService.java
-D:\cloud-lottery\boot-architect\boot-architect\architect-operate\architect-operate-endpoint\src\main\java\com\cloud\arch\operate\application\impl\LogQueryService.java
-D:\cloud-lottery\boot-architect\boot-architect\architect-operate\architect-operate-endpoint\src\main\java\com\cloud\arch\operate\infrast\config\OperateConfiguration.java
-D:\cloud-lottery\boot-architect\boot-architect\architect-operate\architect-operate-endpoint\src\main\java\com\cloud\arch\operate\infrast\error\OptErrorHandler.java
-D:\cloud-lottery\boot-architect\boot-architect\architect-operate\architect-operate-endpoint\src\main\java\com\cloud\arch\operate\infrast\repository\LogRepository.java

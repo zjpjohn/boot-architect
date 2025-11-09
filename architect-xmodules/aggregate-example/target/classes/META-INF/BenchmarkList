@@ -1,3 +1,0 @@
-JMH S 38 com.boot.architect.DeepCopierBenchmark S 69 com.boot.architect.jmh_generated.DeepCopierBenchmark_furyTest_jmhTest S 8 furyTest S 10 Throughput I 2 10 A 1 1 1 E I 1 5 T 3 2 s E I 2 10 T 3 5 s E I 1 1 E E E E E E U 7 SECONDS E E 
-JMH S 38 com.boot.architect.DeepCopierBenchmark S 69 com.boot.architect.jmh_generated.DeepCopierBenchmark_jsonTest_jmhTest S 8 jsonTest S 10 Throughput I 2 10 A 1 1 1 E I 1 5 T 3 2 s E I 2 10 T 3 5 s E I 1 1 E E E E E E U 7 SECONDS E E 
-JMH S 38 com.boot.architect.DeepCopierBenchmark S 69 com.boot.architect.jmh_generated.DeepCopierBenchmark_kyroTest_jmhTest S 8 kyroTest S 10 Throughput I 2 10 A 1 1 1 E I 1 5 T 3 2 s E I 2 10 T 3 5 s E I 1 1 E E E E E E U 7 SECONDS E E 
