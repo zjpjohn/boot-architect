@@ -7,23 +7,28 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
- * 1.L1缓存不会独立于L2缓存存在 2.如果L2缓存激活L1缓存，L2缓存的所有操作代理到L1操作 3.集群环境中，需要RefreshPolicy来清除淘汰缓存
+ * 1.L1缓存不会独立于L2缓存存在
+ * 2.如果L2缓存激活L1缓存，L2缓存的所有操作代理到L1操作
+ * 3.集群环境中，需要RefreshPolicy来清除淘汰缓存
  */
 @Slf4j
 @SuppressWarnings("unchecked")
 public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
 
     private static final Map<Object, Object> KEY_LOCKS = new MapMaker().weakValues().makeMap();
-    private final LocalCacheSettings settings;
-    private final AbstractRemoteCache remoteCache;
-    private final RefreshPolicy refreshPolicy;
+    private final        LocalCacheSettings  settings;
+    private final        AbstractRemoteCache remoteCache;
+    private final        RefreshPolicy       refreshPolicy;
 
-    protected AbstractLocalCache(String name, boolean allowNullValue, LocalCacheSettings settings,
-        RefreshPolicy refreshPolicy, AbstractRemoteCache remoteCache) {
+    protected AbstractLocalCache(String name,
+                                 boolean allowNullValue,
+                                 LocalCacheSettings settings,
+                                 RefreshPolicy refreshPolicy,
+                                 AbstractRemoteCache remoteCache) {
         super(name, allowNullValue);
-        this.settings = settings;
+        this.settings      = settings;
         this.refreshPolicy = refreshPolicy;
-        this.remoteCache = remoteCache;
+        this.remoteCache   = remoteCache;
     }
 
     /**
@@ -36,7 +41,7 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
     /**
      * put local cache value with key
      *
-     * @param key cache key
+     * @param key   cache key
      * @param value cache value
      */
     public abstract void doPut(Object key, Object value);
@@ -63,20 +68,20 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
         if (value != null) {
             // 命中本地缓存
             this.remoteCache.statsCounter().recordHits(1, true);
-            return (T)toValue(value);
+            return (T) toValue(value);
         }
         synchronized (KEY_LOCKS.computeIfAbsent(key, v -> new Object())) {
             value = this.doGet(key);
             if (value != null) {
                 // 命中本地缓存
                 this.remoteCache.statsCounter().recordHits(1, true);
-                return (T)toValue(value);
+                return (T) toValue(value);
             }
             value = remoteCache.doGet(key);
             if (value != null) {
                 this.doPut(key, value);
             }
-            return (T)toValue(value);
+            return (T) toValue(value);
         }
     }
 
@@ -86,27 +91,27 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
         if (value != null) {
             // 命中本地缓存
             this.remoteCache.statsCounter().recordHits(1, true);
-            return (T)toValue(value);
+            return (T) toValue(value);
         }
         synchronized (KEY_LOCKS.computeIfAbsent(key, v -> new Object())) {
             value = this.doGet(key);
             if (value != null) {
                 // 命中本地缓存
                 this.remoteCache.statsCounter().recordHits(1, true);
-                return (T)toValue(value);
+                return (T) toValue(value);
             }
             value = this.remoteCache.doGet(key, valueLoader);
             if (value != null) {
                 this.doPut(key, value);
             }
-            return (T)toValue(value);
+            return (T) toValue(value);
         }
     }
 
     /**
      * 更新缓存
      *
-     * @param key 缓存key
+     * @param key   缓存key
      * @param value 缓存值
      */
     @Override
