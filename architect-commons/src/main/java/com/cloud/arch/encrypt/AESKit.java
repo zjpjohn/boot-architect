@@ -10,7 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class AESKit {
 
@@ -18,8 +18,10 @@ public class AESKit {
     private static final int          KEY_LENGTH       = 24;
     private static final int          IV_LENGTH        = 16;
     private static final String       KEY_ALGORITHM    = "AES";
-    private static final Random       RANDOM           = new Random();
-    private static final List<String> ALPHA_COLLECTION = List.of("0123456789", "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "!@#$%&?*+");
+    private static final List<String> ALPHA_COLLECTION = List.of("0123456789",
+                                                                 "abcdefghijklmnopqrstuvwxyz",
+                                                                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                                                                 "!@#$%&?*+");
 
     private AESKit() {
         throw new UnsupportedOperationException(UNSUPPORTED);
@@ -291,10 +293,11 @@ public class AESKit {
      * 提供生成长度为24的字符串密码
      */
     public static String genKey() {
-        StringBuilder builder = new StringBuilder();
+        ThreadLocalRandom random  = ThreadLocalRandom.current();
+        StringBuilder     builder = new StringBuilder();
         for (int i = 0; i < KEY_LENGTH; i++) {
             String base     = ALPHA_COLLECTION.get(i % 4);
-            int    position = RANDOM.nextInt(base.length());
+            int    position = random.nextInt(base.length());
             builder.append(base.charAt(position));
         }
         return builder.toString();
@@ -304,10 +307,11 @@ public class AESKit {
      * 提供生成16位的加密偏移量
      */
     public static String genIv() {
-        StringBuilder builder = new StringBuilder();
+        ThreadLocalRandom random  = ThreadLocalRandom.current();
+        StringBuilder     builder = new StringBuilder();
         for (int i = 0; i < IV_LENGTH; i++) {
             String base     = ALPHA_COLLECTION.get(i % 3);
-            int    position = RANDOM.nextInt(base.length());
+            int    position = random.nextInt(base.length());
             builder.append(base.charAt(position));
         }
         return builder.toString();
