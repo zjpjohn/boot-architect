@@ -4,6 +4,7 @@ import com.cloud.arch.event.codec.EventCodec;
 import com.cloud.arch.event.core.subscribe.AbsSubscriberProcessor;
 import com.cloud.arch.event.core.subscribe.SubscribeEventMetadata;
 import com.cloud.arch.event.core.subscribe.SubscribeHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.ApplicationContext;
@@ -13,7 +14,6 @@ import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.config.MethodKafkaListenerEndpoint;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -53,7 +53,7 @@ public class KafkaSubscriberProcessor extends AbsSubscriberProcessor implements 
 
     private void registryHandler(SubscribeEventMetadata registration, SubscribeHandler subscribeHandler) {
         String topic = registration.getName();
-        if (StringUtils.hasText(topic)) {
+        if (StringUtils.isBlank(topic)) {
             throw new IllegalArgumentException("消息队列topic为空，请配置topic信息.");
         }
         String                                      groupId  = this.resolveGroup(registration);
@@ -72,7 +72,7 @@ public class KafkaSubscriberProcessor extends AbsSubscriberProcessor implements 
         if (org.apache.commons.lang3.StringUtils.isBlank(group)) {
             group = properties.getConsumer().getGroupId();
         }
-        Assert.state(org.apache.commons.lang3.StringUtils.isNotBlank(group), "请配置消费者群组");
+        Assert.state(StringUtils.isNotBlank(group), "请配置消费者群组");
         return group;
     }
 

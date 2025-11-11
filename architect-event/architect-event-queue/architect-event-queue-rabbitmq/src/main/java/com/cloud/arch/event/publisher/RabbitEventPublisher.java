@@ -43,8 +43,10 @@ public class RabbitEventPublisher implements EventPublisher {
         Assert.state(StringUtils.hasText(message.getKey()), "消息标识不允许为空.");
         Assert.state(StringUtils.hasText(message.getData()), "消息内容不允许为空.");
         MessageProperties properties = MessagePropertiesBuilder.newInstance()
-                                                               .setHeader(RabbitEventConstants.RABBIT_MESSAGE_KEY, message.getKey())
-                                                               .setDeliveryMode(MessageDeliveryMode.PERSISTENT).build();
+                                                               .setHeader(RabbitEventConstants.RABBIT_MESSAGE_KEY,
+                                                                          message.getKey())
+                                                               .setDeliveryMode(MessageDeliveryMode.PERSISTENT)
+                                                               .build();
         Long delay = message.getDelay();
         if (delay != null && delay > 0) {
             properties.setDelayLong(delay);

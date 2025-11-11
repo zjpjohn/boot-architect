@@ -29,13 +29,13 @@ public class OnsSubscriberProcessor extends AbsSubscriberProcessor implements Ap
         this.eventCodec = eventCodec;
     }
 
-    private String resolveGroup(SubscribeEventMetadata registration) {
+    private void resolveGroup(SubscribeEventMetadata registration) {
         String group = registration.getGroup();
         if (StringUtils.isBlank(group)) {
             group = properties.getSubscriber().getGroup();
         }
         Assert.state(StringUtils.isNotBlank(group), "请配置消费者群组");
-        return group;
+        registration.group(group);
     }
 
     /**
@@ -47,11 +47,7 @@ public class OnsSubscriberProcessor extends AbsSubscriberProcessor implements Ap
     public void registerListeners(List<SubscribeEventMetadata> metadataList) {
         Map<String, List<SubscribeEventMetadata>> registrationMap = metadataList.stream()
                                                                                 .distinct()
-                                                                                .peek(registration -> {
-                                                                                    String group = resolveGroup(
-                                                                                            registration);
-                                                                                    registration.group(group);
-                                                                                })
+                                                                                .peek(this::resolveGroup)
                                                                                 .collect(Collectors.groupingBy(
                                                                                         SubscribeEventMetadata::getGroup));
         // 事件实际处理bean

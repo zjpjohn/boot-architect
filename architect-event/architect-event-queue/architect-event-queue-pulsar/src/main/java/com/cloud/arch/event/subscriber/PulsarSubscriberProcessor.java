@@ -31,13 +31,13 @@ public class PulsarSubscriberProcessor extends AbsSubscriberProcessor implements
         this.pulsarClient = pulsarClient;
     }
 
-    private String resolveGroup(SubscribeEventMetadata registration) {
+    private void resolveGroup(SubscribeEventMetadata registration) {
         String group = registration.getGroup();
         if (StringUtils.isBlank(group)) {
             group = properties.getSubscriber().getGroup();
         }
         Assert.state(StringUtils.isNotBlank(group), "请配置消费者群组");
-        return group;
+        registration.group(group);
     }
 
     /**
@@ -47,10 +47,11 @@ public class PulsarSubscriberProcessor extends AbsSubscriberProcessor implements
      */
     @Override
     public void registerListeners(List<SubscribeEventMetadata> metadataList) {
-        Map<String, List<SubscribeEventMetadata>> metadataMap = metadataList.stream().distinct().peek(metadata -> {
-            String group = resolveGroup(metadata);
-            metadata.group(group);
-        }).collect(Collectors.groupingBy(SubscribeEventMetadata::getGroup));
+        Map<String, List<SubscribeEventMetadata>> metadataMap = metadataList.stream()
+                                                                            .distinct()
+                                                                            .peek(this::resolveGroup)
+                                                                            .collect(Collectors.groupingBy(
+                                                                                    SubscribeEventMetadata::getGroup));
         SubscribeHandler          subscribeHandler = this.applicationContext.getBean(SubscribeHandler.class);
         GenericApplicationContext appContext       = (GenericApplicationContext) this.applicationContext;
         for (Map.Entry<String, List<SubscribeEventMetadata>> entry : metadataMap.entrySet()) {

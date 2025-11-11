@@ -6,6 +6,7 @@ import com.cloud.arch.event.core.subscribe.SubscribeEventMetadata;
 import com.cloud.arch.event.core.subscribe.SubscribeHandler;
 import com.cloud.arch.event.props.RocketmqProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -30,20 +31,20 @@ public class RocketmqSubscriberProcessor extends AbsSubscriberProcessor implemen
         this.properties = properties;
     }
 
-    private String resolveGroup(SubscribeEventMetadata registration) {
+    private void resolveGroup(SubscribeEventMetadata registration) {
         String group = registration.getGroup();
-        if (org.apache.commons.lang3.StringUtils.isBlank(group)) {
+        if (StringUtils.isBlank(group)) {
             group = properties.getSubscriber().getGroup();
         }
-        Assert.state(org.apache.commons.lang3.StringUtils.isNotBlank(group), "请配置消费者群组");
-        return group;
+        Assert.state(StringUtils.isNotBlank(group), "请配置消费者群组");
+        registration.group(group);
     }
 
     private Map<String, List<SubscribeEventMetadata>> resolveMetadata(List<SubscribeEventMetadata> metadataList) {
-        return metadataList.stream().distinct().peek(registration -> {
-            String group = resolveGroup(registration);
-            registration.group(group);
-        }).collect(Collectors.groupingBy(SubscribeEventMetadata::getGroup));
+        return metadataList.stream()
+                           .distinct()
+                           .peek(this::resolveGroup)
+                           .collect(Collectors.groupingBy(SubscribeEventMetadata::getGroup));
     }
 
     /**
@@ -58,16 +59,19 @@ public class RocketmqSubscriberProcessor extends AbsSubscriberProcessor implemen
         SubscribeHandler          subscribeHandler = this.context.getBean(SubscribeHandler.class);
         GenericApplicationContext appContext       = (GenericApplicationContext) context;
         for (Map.Entry<String, List<SubscribeEventMetadata>> entry : registrationMap.entrySet()) {
-            RocketEventSubscriber subscriber
-                    = new RocketEventSubscriber(entry.getKey(), eventCodec, properties, entry.getValue(), subscribeHandler);
+            RocketEventSubscriber subscriber = new RocketEventSubscriber(entry.getKey(),
+                                                                         eventCodec,
+                                                                         properties,
+                                                                         entry.getValue(),
+                                                                         subscribeHandler);
             appContext.registerBean(subscriber.identity(), RocketEventSubscriber.class, () -> subscriber);
             appContext.getBean(subscriber.identity(), RocketEventSubscriber.class);
         }
     }
 
     @Override
-    public void setApplicationContext(
-            @Nonnull ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@Nonnull ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
     }
+
 }
