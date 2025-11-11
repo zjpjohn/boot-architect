@@ -90,8 +90,8 @@ public class SenderMetadata {
         this.tag = resolver.resolveStringValue(annotation.tag());
         Assert.state(StringUtils.isNotBlank(tag) && !MESSAGE_ALL_TAG.equals(this.tag), "请设置具体消息tag.");
         Annotation[][] annotations = method.getParameterAnnotations();
-        Assert.state(annotations.length
-                     > 0, String.format("方法%s.%s参数不允许为空", this.getDeclareClassName(), this.getMethodName()));
+        Assert.state(annotations.length > 0,
+                     String.format("方法%s.%s参数不允许为空", this.getDeclareClassName(), this.getMethodName()));
         for (int i = 0; i < annotations.length; i++) {
             Annotation[] annotation = annotations[i];
             if (annotation.length == 0) {
@@ -104,8 +104,7 @@ public class SenderMetadata {
 
     private void parseAnnotation(Annotation[] annotations, Class<?> type, Integer index) {
         for (Annotation annotation : annotations) {
-            MethodParameterProcessor annotatedProcessor
-                    = ParameterProcessorComposite.getAnnotationProcessor(annotation.annotationType());
+            MethodParameterProcessor annotatedProcessor = ParameterProcessorComposite.getAnnotationProcessor(annotation.annotationType());
             if (annotatedProcessor != null) {
                 annotatedProcessor.buildMeta(this, type, index, annotation);
                 return;

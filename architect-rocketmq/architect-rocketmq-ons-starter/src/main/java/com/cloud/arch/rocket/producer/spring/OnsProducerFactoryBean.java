@@ -19,9 +19,7 @@ public class OnsProducerFactoryBean implements FactoryBean<Object>, ApplicationC
     @Override
     public Object getObject() throws Exception {
         ProxyProducerProvider bean = this.context.getBean(ProxyProducerProvider.class);
-        return Proxy.newProxyInstance(type.getClassLoader(),
-                new Class[]{type},
-                bean.newInstance(type));
+        return Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, bean.newInstance(type));
     }
 
     @Override

@@ -73,7 +73,8 @@ public class OnsEventSubscriber implements InitializingBean, DisposableBean, Ord
      */
     private void parseRegisterListeners() {
         Map<String, List<SubscribeEventMetadata>> namedRegistrations = this.registrations.stream()
-                                                                                         .collect(Collectors.groupingBy(SubscribeEventMetadata::getName));
+                                                                                         .collect(Collectors.groupingBy(
+                                                                                                 SubscribeEventMetadata::getName));
         for (Map.Entry<String, List<SubscribeEventMetadata>> entry : namedRegistrations.entrySet()) {
             String topic = entry.getKey();
             Assert.state(StringUtils.hasText(topic), "消息topic不允许为空.");
@@ -81,9 +82,8 @@ public class OnsEventSubscriber implements InitializingBean, DisposableBean, Ord
             entry.getValue().forEach(registration -> {
                 String tagRegex = registration.getFilter();
                 // 消息过滤tag配置规则:不允许为空、不允许为'*'、不允许包含'||'
-                boolean tagValidation = StringUtils.hasText(tagRegex)
-                                        && !OnsEventPublisher.ONS_ALL_TAG_REGEX.equals(tagRegex)
-                                        && !tagRegex.contains(COMPOSITE_TAG_DELIMITER);
+                boolean tagValidation = StringUtils.hasText(tagRegex) && !OnsEventPublisher.ONS_ALL_TAG_REGEX.equals(
+                        tagRegex) && !tagRegex.contains(COMPOSITE_TAG_DELIMITER);
                 Assert.state(tagValidation, "请配置具有业务意义的消息tag.");
                 Assert.state(!typeMapping.containsKey(tagRegex), "同一topic消息主题下不允许配置相同tag.");
                 // 同一个topic下的tag与事件类型映射
@@ -109,7 +109,6 @@ public class OnsEventSubscriber implements InitializingBean, DisposableBean, Ord
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        // 创建并启动消费者
         this.createAndStartConsumer();
     }
 

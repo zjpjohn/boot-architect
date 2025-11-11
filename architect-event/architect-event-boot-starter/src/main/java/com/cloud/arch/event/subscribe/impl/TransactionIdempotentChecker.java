@@ -19,7 +19,7 @@ public class TransactionIdempotentChecker extends AbstractIdempotentChecker {
 
     public TransactionIdempotentChecker(DataSourceTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
-        idempotentChecker       = new JdbcIdempotentChecker(transactionManager.getDataSource());
+        this.idempotentChecker  = new JdbcIdempotentChecker(transactionManager.getDataSource());
     }
 
     @Override
@@ -37,7 +37,7 @@ public class TransactionIdempotentChecker extends AbstractIdempotentChecker {
     public void markSuccess(EventIdempotent idempotent) {
         try {
             TransactionStatus status = localStatus.get();
-            transactionManager.commit(status);
+            this.transactionManager.commit(status);
         } finally {
             localStatus.remove();
         }
