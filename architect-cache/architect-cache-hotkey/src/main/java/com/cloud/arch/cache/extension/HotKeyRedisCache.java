@@ -11,9 +11,9 @@ import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.map.event.EntryExpiredListener;
 
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -37,8 +37,6 @@ public class HotKeyRedisCache extends AbstractValueAdaptCache implements CacheTt
     private final ConcurrentMap<Object, Object> keyLocks = new MapMaker().weakValues().makeMap();
     // 缓存配置信息
     private final CacheSettings                 settings;
-    // 随机时间生成器
-    private final Random                        random;
     // redis缓存
     private final RMapCache<Object, Object>     mapCache;
     // 缓存刷新
@@ -62,7 +60,6 @@ public class HotKeyRedisCache extends AbstractValueAdaptCache implements CacheTt
                             HotKeyCache hotKeyCache) {
         super(name, settings.isAllowNullValue());
         this.settings       = settings;
-        this.random         = new Random();
         this.refreshPolicy  = refreshPolicy;
         this.redissonClient = redissonClient;
         this.mapCache       = redissonClient.getMapCache(this.getName());
@@ -272,7 +269,8 @@ public class HotKeyRedisCache extends AbstractValueAdaptCache implements CacheTt
         Object result = toStoreValue(value);
         if (result != null) {
             // 过期时间=固定时间+随机时间
-            long expireTime = settings.getExpire() + this.random.nextInt(settings.getRandomBound());
+            ThreadLocalRandom random     = ThreadLocalRandom.current();
+            long              expireTime = settings.getExpire() + random.nextInt(settings.getRandomBound());
             /* 缩短空值缓存时间 */
             if (isAllowNullValue() && result instanceof NullValue) {
                 expireTime = expireTime / settings.getMagnification();
@@ -349,9 +347,9 @@ public class HotKeyRedisCache extends AbstractValueAdaptCache implements CacheTt
      */
     private void refreshCacheTtl(Object key, Object value) {
         try {
-            // 重新计算缓存过期时间
-            int  randomBound = this.settings.getRandomBound();
-            long expire      = this.settings.getExpire() + this.random.nextInt(randomBound);
+            int               randomBound = this.settings.getRandomBound();
+            ThreadLocalRandom random      = ThreadLocalRandom.current();
+            long              expire      = this.settings.getExpire() + random.nextInt(randomBound);
             this.mapCache.put(key, value, expire, TimeUnit.MILLISECONDS);
         } catch (Exception error) {
             if (log.isInfoEnabled()) {

@@ -10,17 +10,12 @@ import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class RocksReparationProcessor {
 
     private final HttpRemoting              httpRemoting;
     private final RocksCompensateProperties properties;
-    private final Random                    random;
     private final List<String>              servers;
     private final ExecutorService           pushExecutor;
 
@@ -28,9 +23,12 @@ public class RocksReparationProcessor {
         this.httpRemoting = httpRemoting;
         this.properties   = properties;
         this.servers      = this.parseAndSplit();
-        this.random       = new Random();
-        this.pushExecutor
-                          = new ThreadPoolExecutor(properties.getPushThreads(), properties.getPushMaxThreads(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(properties.getPushQueueSize()), Threads.threadFactory("reparation-http-request"));
+        this.pushExecutor = new ThreadPoolExecutor(properties.getPushThreads(),
+                                                   properties.getPushMaxThreads(),
+                                                   1,
+                                                   TimeUnit.MINUTES,
+                                                   new LinkedBlockingQueue<>(properties.getPushQueueSize()),
+                                                   Threads.threadFactory("reparation-http-request"));
     }
 
     /**
@@ -59,7 +57,8 @@ public class RocksReparationProcessor {
      * 随机选择请求服务器
      */
     private String selectServer() {
-        final int index = random.nextInt(this.servers.size());
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        final int         index  = random.nextInt(this.servers.size());
         return this.servers.get(index);
     }
 

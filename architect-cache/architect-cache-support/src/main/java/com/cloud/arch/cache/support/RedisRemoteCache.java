@@ -8,8 +8,8 @@ import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.map.event.EntryExpiredListener;
 
-import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -27,8 +27,6 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
     private static final long                      CACHE_LOCK_FAIL_LOAD_INTERVAL = 50L;
     // 缓存竞争锁失败重试获取次数
     private static final long                      CACHE_LOCK_FAIL_LOAD_RETRY    = 5;
-    // 随机时间生成器
-    private final        Random                    random;
     // redis缓存
     private final        RMapCache<Object, Object> mapCache;
     // redis操作模板
@@ -45,7 +43,6 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
                             RedissonClient redissonClient,
                             RemoteCacheTtlRefresher ttlRefresher) {
         super(name, settings);
-        this.random         = new Random();
         this.redissonClient = redissonClient;
         this.mapCache       = redissonClient.getMapCache(this.getName());
         this.ttlRefresher   = ttlRefresher;
@@ -229,7 +226,8 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
         if (value != null) {
             CacheSettings settings = this.getSettings();
             // 过期时间=固定时间+随机时间
-            long expireTime = settings.getExpire() + this.random.nextInt(settings.getRandomBound());
+            ThreadLocalRandom random     = ThreadLocalRandom.current();
+            long              expireTime = settings.getExpire() + random.nextInt(settings.getRandomBound());
             /* 缩短空值缓存时间 */
             if (isAllowNullValue() && value instanceof NullValue) {
                 expireTime = expireTime / settings.getMagnification();
@@ -296,8 +294,9 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
      */
     private void refreshCacheTtl(Object key, Object value) {
         try {
-            int  randomBound = this.getSettings().getRandomBound();
-            long expire      = this.getSettings().getExpire() + this.random.nextInt(randomBound);
+            int               randomBound = this.getSettings().getRandomBound();
+            ThreadLocalRandom random      = ThreadLocalRandom.current();
+            long              expire      = this.getSettings().getExpire() + random.nextInt(randomBound);
             this.mapCache.put(key, value, expire, TimeUnit.SECONDS);
         } catch (Exception error) {
             if (log.isWarnEnabled()) {

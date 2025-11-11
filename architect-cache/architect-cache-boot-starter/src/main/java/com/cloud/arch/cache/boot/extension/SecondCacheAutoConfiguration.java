@@ -66,7 +66,9 @@ public class SecondCacheAutoConfiguration {
     public CacheEventListener eventListener(CloudCacheProperties properties,
                                             CacheNodePolicy cacheNodePolicy,
                                             DefaultCachingConfigurer cachingConfigurer) {
-        return new RedisRefreshEventListener(properties.getRefreshTopic(), cachingConfigurer.getCacheManager(), cacheNodePolicy);
+        return new RedisRefreshEventListener(properties.getRefreshTopic(),
+                                             cachingConfigurer.getCacheManager(),
+                                             cacheNodePolicy);
     }
 
 
