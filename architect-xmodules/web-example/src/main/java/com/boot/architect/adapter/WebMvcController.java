@@ -4,6 +4,7 @@ import com.cloud.arch.web.annotation.ApiBody;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +24,11 @@ public class WebMvcController {
     @GetMapping("/encrypt")
     public String encrypt() {
         return "encrypted data";
+    }
+
+    @GetMapping("/test2/{data}")
+    public String test2(@PathVariable String data) {
+        return "web mvc test2 " + data;
     }
 
 }

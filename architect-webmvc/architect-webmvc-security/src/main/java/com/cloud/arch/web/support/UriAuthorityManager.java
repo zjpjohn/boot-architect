@@ -83,14 +83,15 @@ public class UriAuthorityManager implements DisposableBean {
         }
         String requestURI = request.getRequestURI();
         String method     = request.getMethod();
-        authority = resources.stream().filter(resource -> resource.match(requestURI, method)).findFirst().orElse(null);
-        if (authority == null) {
-            //标记请求方法，后续不在进行重复匹配
-            excludes.add(elementKey);
-            return null;
-        }
-        //已匹配成功缓存匹配的权限配置信息
-        return cacheAuthorities.put(elementKey, authority);
+        //已匹配方法的权限校验资源进行缓存，未匹配的方法进行标记
+        return resources.stream()
+                        .filter(r -> r.match(requestURI, method))
+                        .findFirst()
+                        .map(v -> cacheAuthorities.put(elementKey, v))
+                        .orElseGet(() -> {
+                            excludes.add(elementKey);
+                            return null;
+                        });
     }
 
     @Override
