@@ -11,7 +11,7 @@ public class CodecTypeUtils {
     }
 
     public static Class<?>[] typList() {
-        Iterable<Class<?>> iterable = ClassIndex.getAnnotated(CodecTypeMarker.class);
+        Iterable<Class<?>> iterable = ClassIndex.getAnnotated(CodecMarker.class);
         return StreamSupport.stream(iterable.spliterator(), false)
                             .filter(clazz -> !clazz.isInterface())
                             .toArray(Class<?>[]::new);

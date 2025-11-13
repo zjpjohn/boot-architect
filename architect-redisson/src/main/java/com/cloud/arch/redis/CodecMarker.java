@@ -8,5 +8,5 @@ import java.lang.annotation.*;
 @IndexAnnotated
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CodecTypeMarker {
+public @interface CodecMarker {
 }
