@@ -20,6 +20,10 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * 请注意不要使用BodyData作为返回值
+ * 统一响应体处理
+ */
 public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
     private final WebmvcProperties properties;
@@ -86,7 +90,7 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
             Object data = extractBody(body, type);
             return ResponseEncryptor.encrypt(properties, data, message, response);
         }
-        if (ApiReturn.class.isAssignableFrom(type)) {
+        if (ApiReturn.class.isAssignableFrom(type) || body instanceof BodyData) {
             return (BodyData<?>) body;
         }
         return new BodyData<>(message, HttpStatus.OK.value(), body);
@@ -96,7 +100,7 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
      * 提取body内容数据
      */
     private Object extractBody(Object data, Class<?> type) {
-        if (ApiReturn.class.isAssignableFrom(type)) {
+        if (ApiReturn.class.isAssignableFrom(type) || data instanceof BodyData) {
             return ((BodyData<?>) data).data();
         }
         return data;

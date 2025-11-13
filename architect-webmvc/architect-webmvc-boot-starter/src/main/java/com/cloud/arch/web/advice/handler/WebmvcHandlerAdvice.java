@@ -99,8 +99,6 @@ public class WebmvcHandlerAdvice implements Ordered {
 
     /**
      * 空指针异常拦截
-     *
-     * @param error {@link NullPointerException}
      */
     @ResponseBody
     @ExceptionHandler(value = NullPointerException.class)
@@ -111,12 +109,10 @@ public class WebmvcHandlerAdvice implements Ordered {
 
     /**
      * 业务异常处理
-     *
-     * @param exception {@link ApiBizException}
      */
     @ResponseBody
     @ExceptionHandler(value = ApiBizException.class)
-    public ApiReturn<?> exception(ApiBizException exception) {
+    public ApiReturn<?> bizError(ApiBizException exception) {
         return new ApiReturn<>(exception.getStatus(),
                                exception.getCode(),
                                null,
@@ -137,21 +133,25 @@ public class WebmvcHandlerAdvice implements Ordered {
 
     /**
      * 数据库唯一键重复
-     *
-     * @param error {@link DuplicateKeyException}
      */
     @ResponseBody
     @ExceptionHandler(value = DuplicateKeyException.class)
-    public ApiReturn<String> exception(DuplicateKeyException error) {
+    public ApiReturn<String> duplicateError(DuplicateKeyException error) {
         return ApiReturn.badRequest("has duplicated data.", 400);
     }
 
+    /**
+     * 处理415错误
+     */
     @ResponseBody
     @ExceptionHandler(value = {HttpMediaTypeNotSupportedException.class, HttpMediaTypeNotAcceptableException.class})
     public ApiReturn<String> mediaTypeError(Exception error) {
         return ApiReturn.unsupportedMedia(error.getMessage());
     }
 
+    /**
+     * 处理404错误
+     */
     @ResponseBody
     @ExceptionHandler(value = {NoHandlerFoundException.class, NoResourceFoundException.class})
     public ApiReturn<String> notFoundError(Exception exception) {
