@@ -46,7 +46,7 @@ public class UriAuthorityManager implements DisposableBean {
             patternList.addAll(authorities);
             return patternList;
         }
-        List<String> splits = Splitter.on(",").splitToList(patterns);
+        List<String> splits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(patterns);
         patternList.addAll(splits);
         return patternList;
     }
@@ -60,7 +60,7 @@ public class UriAuthorityManager implements DisposableBean {
         if (StringUtils.isBlank(excludeStr)) {
             return values;
         }
-        List<String> appended = Splitter.on(",").trimResults().splitToList(excludeStr);
+        List<String> appended = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(excludeStr);
         values.addAll(appended);
         return values;
     }
