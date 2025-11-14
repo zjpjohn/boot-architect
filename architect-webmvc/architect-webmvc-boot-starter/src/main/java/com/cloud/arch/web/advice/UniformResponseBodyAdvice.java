@@ -2,10 +2,10 @@ package com.cloud.arch.web.advice;
 
 import com.alibaba.fastjson2.JSON;
 import com.cloud.arch.web.annotation.ApiBody;
-import com.cloud.arch.web.domain.ApiReturn;
 import com.cloud.arch.web.domain.BodyData;
 import com.cloud.arch.web.props.WebmvcProperties;
 import com.cloud.arch.web.utils.WebMvcConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
@@ -17,13 +17,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.lang.reflect.Method;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
- * 请注意不要使用BodyData作为返回值
  * 统一响应体处理
  */
+@Slf4j
 public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
     private final WebmvcProperties properties;
@@ -57,10 +56,9 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
                                   ServerHttpResponse response) {
         ApiBody     annotation  = this.getAnnotation(returnType);
         String      message     = message(annotation);
-        Class<?>    type        = Objects.requireNonNull(returnType.getMethod()).getReturnType();
-        BodyData<?> wrappedBody = wrapBody(annotation, body, message, type, response);
+        BodyData<?> wrappedBody = wrapBody(annotation, body, message, response);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        if (type.equals(String.class)) {
+        if (body instanceof String) {
             return JSON.toJSONString(wrappedBody);
         }
         return wrappedBody;
@@ -81,16 +79,12 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
     /**
      * 包装body体数据
      */
-    private BodyData<?> wrapBody(ApiBody annotation,
-                                 Object body,
-                                 String message,
-                                 Class<?> type,
-                                 ServerHttpResponse response) {
+    private BodyData<?> wrapBody(ApiBody annotation, Object body, String message, ServerHttpResponse response) {
         if (annotation.encrypt()) {
-            Object data = extractBody(body, type);
+            Object data = extractBodyData(body);
             return ResponseEncryptor.encrypt(properties, data, message, response);
         }
-        if (ApiReturn.class.isAssignableFrom(type) || body instanceof BodyData) {
+        if (body instanceof BodyData) {
             return (BodyData<?>) body;
         }
         return new BodyData<>(message, HttpStatus.OK.value(), body);
@@ -99,8 +93,8 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
     /**
      * 提取body内容数据
      */
-    private Object extractBody(Object data, Class<?> type) {
-        if (ApiReturn.class.isAssignableFrom(type) || data instanceof BodyData) {
+    private Object extractBodyData(Object data) {
+        if (data instanceof BodyData) {
             return ((BodyData<?>) data).data();
         }
         return data;
