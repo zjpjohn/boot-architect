@@ -62,7 +62,6 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
             return JSON.toJSONString(wrappedBody);
         }
         return wrappedBody;
-
     }
 
     /**
