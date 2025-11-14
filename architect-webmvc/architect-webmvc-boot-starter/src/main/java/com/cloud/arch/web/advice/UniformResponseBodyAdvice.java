@@ -76,7 +76,7 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
     }
 
     /**
-     * 包装body体数据
+     * 包装body数据
      */
     private BodyData<?> wrapBody(ApiBody annotation, Object body, String message, ServerHttpResponse response) {
         if (annotation.encrypt()) {

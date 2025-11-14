@@ -56,12 +56,15 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
         return new ApiReturn<>(HttpStatus.OK, HttpStatus.OK.value(), message, null, data);
     }
 
+    /**
+     * 基于ErrorHandler生成返回值
+     */
     public static <E> ApiReturn<E> from(ErrorHandler error) {
         return new ApiReturn<>(error.getStatus(), error.getCode(), error.getError());
     }
 
     /**
-     * 500返回
+     * 500错误
      *
      * @param code  业务错误码
      * @param error 业务错误提示消息
@@ -71,7 +74,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 500
+     * 500错误
      *
      * @param error 业务错误提示消息
      */
@@ -80,7 +83,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 415
+     * 415错误
      *
      * @param error 业务错误提示消息
      */
@@ -89,7 +92,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 405
+     * 405错误
      *
      * @param error 业务错误提示消息
      */
@@ -98,7 +101,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 400返回
+     * 400错误
      *
      * @param error 业务错误提示消息
      */
@@ -107,7 +110,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 400
+     * 400错误
      *
      * @param code  业务错误码
      * @param error 业务错误提示消息
@@ -117,7 +120,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 401返回
+     * 401错误
      *
      * @param code  业务错误码
      * @param error 业务错误提示消息
@@ -127,7 +130,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 401返回
+     * 401错误
      *
      * @param error 业务错误提示消息
      */
@@ -136,7 +139,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 403返回
+     * 403错误
      *
      * @param code  业务错误码
      * @param error 业务错误提示消息
@@ -146,7 +149,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 403返回
+     * 403错误
      *
      * @param error 业务错误消息
      */
@@ -155,7 +158,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 204返回
+     * 204响应码
      *
      * @param code  业务错误码
      * @param error 业务错误提示消息
@@ -165,7 +168,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 204返回
+     * 204响应码
      *
      * @param error 业务错误提示消息
      */
@@ -184,7 +187,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 404请求
+     * 404错误
      *
      * @param code  业务错误码
      * @param error 业务错误提示消息
@@ -194,7 +197,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 404请求
+     * 404错误
      *
      * @param error 业务错误提示消息
      */
@@ -203,7 +206,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 429限流响应
+     * 429响应
      *
      * @param code  业务错误码
      * @param error 业务错误提示消息
@@ -213,7 +216,7 @@ public class ApiReturn<T> extends ResponseEntity<BodyData<T>> {
     }
 
     /**
-     * 429限流响应
+     * 429响应
      *
      * @param error 业务错误提示信息
      */
