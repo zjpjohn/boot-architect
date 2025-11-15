@@ -2,7 +2,6 @@ package com.cloud.arch.rocket.producer.tx;
 
 import com.cloud.arch.rocket.commons.RocketmqProperties;
 import com.cloud.arch.rocket.producer.core.MessageConverter;
-import com.cloud.arch.rocket.transaction.TransactionChecker;
 import com.cloud.arch.rocket.utils.RocketmqUtils;
 import com.cloud.arch.utils.IdWorker;
 import lombok.SneakyThrows;
@@ -29,17 +28,14 @@ public class TransactionProducerContainer implements SmartInitializingSingleton,
 
     private final TransactionListener   transactionListener;
     private final RocketmqProperties    properties;
-    private final TransactionChecker    transactionChecker;
     private final MessageConverter      converter;
     private       TransactionMQProducer producer;
 
     public TransactionProducerContainer(TransactionListener transactionListener,
                                         RocketmqProperties properties,
-                                        TransactionChecker transactionChecker,
                                         MessageConverter converter) {
         this.transactionListener = transactionListener;
         this.properties          = properties;
-        this.transactionChecker  = transactionChecker;
         this.converter           = converter;
     }
 
@@ -69,8 +65,11 @@ public class TransactionProducerContainer implements SmartInitializingSingleton,
     private void initializeProducer() throws Exception {
         String                                        nameSrv     = properties.getNameSrv();
         RocketmqProperties.RocketmqProducerProperties producerCfg = properties.getProducer();
-        this.producer
-                = RocketmqUtils.creatTransactionProducer(producerCfg.getGroup(), properties.getAccessKey(), properties.getSecretKey(), producerCfg.isEnableTrace(), producerCfg.getTraceTopic());
+        this.producer = RocketmqUtils.creatTransactionProducer(producerCfg.getGroup(),
+                                                               properties.getAccessKey(),
+                                                               properties.getSecretKey(),
+                                                               producerCfg.isEnableTrace(),
+                                                               producerCfg.getTraceTopic());
         this.producer.setNamesrvAddr(nameSrv);
         String accessChannel = properties.getAccessChannel();
         if (StringUtils.isNotBlank(accessChannel)) {
@@ -84,8 +83,11 @@ public class TransactionProducerContainer implements SmartInitializingSingleton,
         this.producer.setRetryAnotherBrokerWhenNotStoreOK(producerCfg.isRetryNextServer());
         //设置事物消息业务处理以及事务回查监听器
         this.producer.setTransactionListener(transactionListener);
-        ExecutorService checkExecutor
-                = new ThreadPoolExecutor(producerCfg.getCheckThreadPoolMinSize(), producerCfg.getCheckThreadPoolMaxSize(), producerCfg.getKeepAliveTime(), TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(producerCfg.getCheckRequestHoldMax()));
+        ExecutorService checkExecutor = new ThreadPoolExecutor(producerCfg.getCheckThreadPoolMinSize(),
+                                                               producerCfg.getCheckThreadPoolMaxSize(),
+                                                               producerCfg.getKeepAliveTime(),
+                                                               TimeUnit.MILLISECONDS,
+                                                               new LinkedBlockingQueue<Runnable>(producerCfg.getCheckRequestHoldMax()));
         this.producer.setExecutorService(checkExecutor);
         this.producer.start();
     }
@@ -101,20 +103,4 @@ public class TransactionProducerContainer implements SmartInitializingSingleton,
         Optional.ofNullable(this.producer).ifPresent(TransactionMQProducer::shutdown);
     }
 
-
-    public TransactionListener getTransactionListener() {
-        return transactionListener;
-    }
-
-    public RocketmqProperties getProperties() {
-        return properties;
-    }
-
-    public TransactionChecker getTransactionChecker() {
-        return transactionChecker;
-    }
-
-    public TransactionMQProducer getProducer() {
-        return producer;
-    }
 }

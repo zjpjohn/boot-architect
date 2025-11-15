@@ -37,13 +37,14 @@ public class TransactionSenderInterceptor implements MethodInterceptor, Embedded
         try {
             //加入本地执行上线文
             TransactionExecutorContext.setInvocation(invocation);
-            //事物消息为同步方法
+            //同步发送事物消息
             producerContainer.sendTransaction(topic, tag, key, payload, null);
             //获取当前执行结果
             return TransactionExecutorContext.getResult();
         } catch (Exception error) {
-            TransactionExecutorContext.clear();
             throw new RuntimeException(error);
+        } finally {
+            TransactionExecutorContext.clear();
         }
     }
 

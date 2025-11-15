@@ -24,12 +24,8 @@ public class TransactionExecutorContext {
         if (invocation == null) {
             return;
         }
-        try {
-            Object result = invocation.proceed();
-            resultHolder.set(new InvokeResult(result));
-        } finally {
-            invocationHolder.remove();
-        }
+        Object result = invocation.proceed();
+        resultHolder.set(new InvokeResult(result));
     }
 
     /**
@@ -38,9 +34,7 @@ public class TransactionExecutorContext {
     public static Object getResult() {
         InvokeResult result = resultHolder.get();
         resultHolder.remove();
-        return Optional.ofNullable(result)
-                .map(InvokeResult::getResult)
-                .orElse(null);
+        return Optional.ofNullable(result).map(InvokeResult::getResult).orElse(null);
     }
 
     /**

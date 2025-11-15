@@ -9,10 +9,8 @@ import com.cloud.arch.rocket.producer.tx.OnsTransactionState;
 import com.cloud.arch.rocket.producer.tx.TransactionBusinessHandler;
 import com.cloud.arch.rocket.serializable.Serialize;
 import com.cloud.arch.rocket.transaction.TransactionChecker;
-import com.cloud.arch.rocket.utils.HashUtil;
 import com.cloud.arch.rocket.utils.RocketOnsConstants;
 import com.google.common.base.Preconditions;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
@@ -119,63 +117,22 @@ public class OnsProducerTemplate implements DisposableBean, SmartInitializingSin
     }
 
     public <T extends Serializable> SendResult sendTransaction(String topic,
-                                                               T payload,
-                                                               TransactionBusinessHandler handler) {
-        return this.sendTransaction(topic, null, payload, handler);
-    }
-
-    public <T extends Serializable> SendResult sendTransaction(String topic,
-                                                               String tag,
-                                                               T payload,
-                                                               TransactionBusinessHandler handler) {
-        return this.sendTransaction(topic, tag, null, payload, handler);
-    }
-
-    public <T extends Serializable> SendResult sendTransaction(String topic,
                                                                String tag,
                                                                String key,
                                                                T payload,
                                                                TransactionBusinessHandler handler) {
-        ResultHolder holder  = new ResultHolder();
-        Message      message = checkAndSet(topic, tag, key, payload);
-        SendResult result = this.transactionProducer.send(message, (msg, arg) -> {
-            String              txId             = msg.getMsgID() + HashUtil.crc32code(msg.getBody());
+        Message message = checkAndSet(topic, tag, key, payload);
+        return this.transactionProducer.send(message, (msg, arg) -> {
             OnsTransactionState transactionState = OnsTransactionState.UNKNOWN;
             try {
-                checker.begin();
-                try {
-                    //执行本地业务
-                    checker.handle(null, args -> handler.handle(msg));
-                    transactionState = OnsTransactionState.COMMIT;
-                } catch (Exception e) {
-                    log.error("handle transaction message msgId:{},exception:", msg.getMsgID(), e);
-                    holder.error     = new RuntimeException(e.getMessage(), e);
-                    transactionState = OnsTransactionState.ROLLBACK;
-                }
-                checker.mark(txId, transactionState.getState());
-                checker.commit();
+                handler.handle(msg);
+                transactionState = OnsTransactionState.COMMIT;
             } catch (Exception e) {
-                log.error("transaction message handle exception,message id:{}", msg.getMsgID());
-                holder.error = new RuntimeException(e.getMessage(), e);
-                checker.rollback();
+                log.error("handle transaction message msgId:{},exception:", msg.getMsgID(), e);
                 transactionState = OnsTransactionState.ROLLBACK;
             }
             return transactionState.getStatus();
         }, null);
-        if (holder.error != null) {
-            throw holder.error;
-        }
-        return result;
-    }
-
-    @Getter
-    public static class ResultHolder {
-
-        private RuntimeException error;
-
-        public void setError(RuntimeException error) {
-            this.error = error;
-        }
     }
 
     /**
