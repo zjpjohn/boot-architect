@@ -60,11 +60,11 @@ public class ListenerMetadata {
         this.topic = resolver.resolveStringValue(listener.topic());
         Assert.state(StringUtils.isNotBlank(this.topic), "消费监听topic不允许为空.");
 
-        //消息过滤tag,配置规则:不予许为空，不允许为'*',不允许包含'||'
+        //消息过滤tag,配置规则:不允许为空，不允许为'*',不允许包含'||'
         this.tag = resolver.resolveStringValue(listener.tag());
         boolean tagValidation = StringUtils.isNotBlank(this.tag)
-                                && !ROCKET_ALL_TAG_REGEX.equals(this.tag)
-                                && !this.tag.contains(ROCKET_TAG_DELIMITER);
+                && !ROCKET_ALL_TAG_REGEX.equals(this.tag)
+                && !this.tag.contains(ROCKET_TAG_DELIMITER);
         Assert.state(tagValidation, "请配置具有业务意义的消息tag.");
 
         //参数个数校验
@@ -75,8 +75,9 @@ public class ListenerMetadata {
         Annotation[][] annotations  = method.getParameterAnnotations();
         Integer        payloadIndex = AnnotationUtils.annotationIndex(annotations, Payload.class);
         payloadIndex = payloadIndex != null ? payloadIndex : 0;
-        if (!(ClassUtils.isAssignableValue(Serializable.class, types[payloadIndex])
-              && !ClassUtils.isAssignableValue(MessageExt.class, types[payloadIndex]))) {
+        if (!(ClassUtils.isAssignableValue(Serializable.class, types[payloadIndex]) && !ClassUtils.isAssignableValue(
+                MessageExt.class,
+                types[payloadIndex]))) {
             throw new IllegalArgumentException("消息内容参数必须实现Serializable接口，且不能为MessageExt类.");
         }
         this.payloadIndex = payloadIndex;
@@ -124,7 +125,9 @@ public class ListenerMetadata {
      * @param message 消息队列原始消息
      */
     public Pair<String, Integer> extractIdempotent(MessageExt message) {
-        return Optional.ofNullable(message.getKeys()).filter(StringUtils::isNotBlank).map(v -> Pair.of(v, 1))
+        return Optional.ofNullable(message.getKeys())
+                       .filter(StringUtils::isNotBlank)
+                       .map(v -> Pair.of(v, 1))
                        .orElseGet(() -> Pair.of(message.getMsgId(), 0));
     }
 

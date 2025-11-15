@@ -320,6 +320,28 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     }
 
     /**
+     * 集合转换为Set
+     */
+    private static <V> Set<V> convertToSet(Collection<V> value) {
+        if (value instanceof Set<V> vSet) {
+            return vSet;
+        }
+        return Sets.newHashSet(value);
+    }
+
+    /**
+     * 比较两个集合的差异
+     */
+    public static <V> CompareResult<V> compare(Collection<V> newValues, Collection<V> oldValues) {
+        Set<V> newSet       = convertToSet(newValues);
+        Set<V> oldSet       = convertToSet(oldValues);
+        Set<V> intersection = Sets.intersection(newSet, oldSet);
+        Set<V> deleted      = Sets.difference(oldSet, intersection);
+        Set<V> added        = Sets.difference(newSet, intersection);
+        return new CompareResult<>(added, deleted);
+    }
+
+    /**
      * 获取实体id集合
      */
     private <I extends Serializable, T extends Entity<I>> Set<I> entityIds(Collection<T> collection) {
