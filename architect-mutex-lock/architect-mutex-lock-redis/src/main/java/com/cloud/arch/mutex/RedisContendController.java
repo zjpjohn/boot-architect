@@ -26,7 +26,7 @@ import java.util.concurrent.*;
 @Slf4j
 public class RedisContendController extends AbsContendController {
 
-    private static final String KEY_PREFIX     = "thales:mutex";
+    private static final String KEY_PREFIX     = "arch:mutex";
     private static final String ACQUIRE_SCRIPT = loadLua("mutex_acquire.lua");
     private static final String GUARD_SCRIPT   = loadLua("mutex_guard.lua");
     private static final String RELEASE_SCRIPT = loadLua("mutex_release.lua");
@@ -79,7 +79,12 @@ public class RedisContendController extends AbsContendController {
     protected void startContend() {
         mutexSubscribe();
         //竞争资源调度器
-        contendScheduler = new ScheduledThreadPoolExecutor(1, Threads.threadFactory(Strings.lenientFormat("redis_contender_%s_%s", getContender().getMutex(), getContender().getContenderId())), new ThreadPoolExecutor.DiscardPolicy());
+        contendScheduler = new ScheduledThreadPoolExecutor(1,
+                                                           Threads.threadFactory(Strings.lenientFormat(
+                                                                   "redis_contender_%s_%s",
+                                                                   getContender().getMutex(),
+                                                                   getContender().getContenderId())),
+                                                           new ThreadPoolExecutor.DiscardPolicy());
         nextSchedule(0L);
     }
 
@@ -122,8 +127,12 @@ public class RedisContendController extends AbsContendController {
     }
 
     private void mutexGuard() {
-        Object[]     values = {this.contender.getContenderId(), String.valueOf(ttl.toMillis())};
-        final String result = this.luaScript.eval(RScript.Mode.READ_WRITE, GUARD_SCRIPT, RScript.ReturnType.STATUS, Arrays.asList(keys), values);
+        Object[] values = {this.contender.getContenderId(), String.valueOf(ttl.toMillis())};
+        final String result = this.luaScript.eval(RScript.Mode.READ_WRITE,
+                                                  GUARD_SCRIPT,
+                                                  RScript.ReturnType.STATUS,
+                                                  Arrays.asList(keys),
+                                                  values);
         if (log.isDebugEnabled()) {
             log.debug("mutex guard result:{}", result);
         }
@@ -131,8 +140,12 @@ public class RedisContendController extends AbsContendController {
     }
 
     private void mutexAcquire() {
-        Object[]     values = {this.contender.getContenderId(), String.valueOf(ttl.toMillis() + transition.toMillis())};
-        final String result = this.luaScript.eval(RScript.Mode.READ_WRITE, ACQUIRE_SCRIPT, RScript.ReturnType.STATUS, Arrays.asList(keys), values);
+        Object[] values = {this.contender.getContenderId(), String.valueOf(ttl.toMillis() + transition.toMillis())};
+        final String result = this.luaScript.eval(RScript.Mode.READ_WRITE,
+                                                  ACQUIRE_SCRIPT,
+                                                  RScript.ReturnType.STATUS,
+                                                  Arrays.asList(keys),
+                                                  values);
         if (log.isDebugEnabled()) {
             log.debug("mutex acquired result:{}", result);
         }
@@ -150,7 +163,11 @@ public class RedisContendController extends AbsContendController {
     }
 
     private void mutexRelease() {
-        final Boolean result = this.luaScript.eval(RScript.Mode.READ_WRITE, RELEASE_SCRIPT, RScript.ReturnType.BOOLEAN, Arrays.asList(keys), this.contender.getContenderId());
+        final Boolean result = this.luaScript.eval(RScript.Mode.READ_WRITE,
+                                                   RELEASE_SCRIPT,
+                                                   RScript.ReturnType.BOOLEAN,
+                                                   Arrays.asList(keys),
+                                                   this.contender.getContenderId());
         if (result) {
             notifyOwner(MutexOwner.NONE);
         }

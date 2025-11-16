@@ -5,7 +5,7 @@ local mutex = KEYS[1];
 local contenderId = ARGV[1];
 local transition = ARGV[2];
 
-local mutexKey = 'thales:mutex:' .. mutex;
+local mutexKey = 'arch:mutex:' .. mutex;
 
 local succeed = redis.call('set', mutexKey, contenderId, 'nx', 'px', transition);
 local result = {};

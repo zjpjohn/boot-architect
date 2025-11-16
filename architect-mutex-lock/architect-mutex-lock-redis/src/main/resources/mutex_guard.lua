@@ -2,7 +2,7 @@ local mutex = KEYS[1];
 local contenderId = ARGV[1];
 local transition = ARGV[2];
 
-local mutexKey = 'thales:mutex:' .. mutex;
+local mutexKey = 'arch:mutex:' .. mutex;
 
 ---定义获取当前持有者信息函数
 local function getCurrentOwner(mKey)

@@ -1,7 +1,7 @@
 local mutex = KEYS[1];
 local contenderId = ARGV[1];
 
-local mutexKey = 'thales:mutex:' .. mutex;
+local mutexKey = 'arch:mutex:' .. mutex;
 local contenderQueueKey = mutexKey .. ':contender';
 
 ---1.获取当前锁是否自己持有，如果没有持有直接退出，返回释放失败
@@ -21,7 +21,7 @@ if #contenderQueue == 0 then
     return succeed;
 end ;
 
----想等待队列中第一个contender发布释放锁通知
+---4.向等待队列中第一个contender发布释放锁通知
 local nextContender = contenderQueue[1];
 redis.call('zrem', contenderQueueKey, nextContender);
 
