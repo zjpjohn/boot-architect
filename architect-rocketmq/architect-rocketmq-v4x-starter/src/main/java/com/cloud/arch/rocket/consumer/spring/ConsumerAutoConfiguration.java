@@ -63,7 +63,6 @@ public class ConsumerAutoConfiguration {
         }
 
         @Bean(name = Idempotent.JDBC_TRANSACTION_IDEMPOTENT_CHECK)
-        @ConditionalOnBean(DataSourceTransactionManager.class)
         public TransactionIdempotentChecker transactionIdempotentChecker(DataSourceTransactionManager transactionManager) {
             return new TransactionIdempotentChecker(transactionManager);
         }

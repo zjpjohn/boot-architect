@@ -14,19 +14,20 @@ import java.util.Optional;
 
 public class TransactionCheckerContainer
         implements SmartInitializingSingleton, ApplicationContextAware, EmbeddedValueResolverAware {
-    private final Table<String, String, TransactionChecker> checkerTable = HashBasedTable.create();
+    
+    private final Table<String, String, TransactionChecker> checkTable = HashBasedTable.create();
     private       ApplicationContext                        context;
     private       StringValueResolver                       resolver;
 
     public TransactionState checkTransaction(String topic, String tag, String key) {
-        return Optional.ofNullable(checkerTable.get(topic, tag))
+        return Optional.ofNullable(checkTable.get(topic, tag))
                        .map(checker -> checker.checkTransaction(topic, tag, key))
                        .orElse(TransactionState.UNKNOWN);
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.context = context;
+        this.context = applicationContext;
     }
 
     @Override
@@ -44,7 +45,7 @@ public class TransactionCheckerContainer
         if (anno != null) {
             String topic = resolver.resolveStringValue(anno.topic());
             String tag   = resolver.resolveStringValue(anno.tag());
-            checkerTable.put(topic, tag, checker);
+            checkTable.put(topic, tag, checker);
         }
     }
 

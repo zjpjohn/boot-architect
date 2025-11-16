@@ -58,12 +58,10 @@ public class ConsumerAutoConfiguration {
 
         @Bean(name = Idempotent.JDBC_IDEMPOTENT_CHECK)
         public JdbcIdempotentChecker jdbcIdempotentChecker(DataSource dataSource) {
-            log.info("ons consumer jdbc idempotent checker...");
             return new JdbcIdempotentChecker(dataSource);
         }
 
         @Bean(name = Idempotent.JDBC_TRANSACTION_IDEMPOTENT_CHECK)
-        @ConditionalOnBean(DataSourceTransactionManager.class)
         public TransactionIdempotentChecker transactionIdempotentChecker(DataSourceTransactionManager transactionManager) {
             return new TransactionIdempotentChecker(transactionManager);
         }
@@ -80,6 +78,5 @@ public class ConsumerAutoConfiguration {
                                                          OnsQueueProperties queueProperties) {
             return new IdempotentCleanScheduler(garbageHandler, queueProperties);
         }
-
     }
 }
