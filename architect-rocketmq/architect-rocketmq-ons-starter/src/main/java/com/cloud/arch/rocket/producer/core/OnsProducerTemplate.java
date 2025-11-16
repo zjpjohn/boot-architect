@@ -8,7 +8,6 @@ import com.cloud.arch.rocket.commons.OnsQueueProperties;
 import com.cloud.arch.rocket.producer.tx.OnsTransactionState;
 import com.cloud.arch.rocket.producer.tx.TransactionBusinessHandler;
 import com.cloud.arch.rocket.serializable.Serialize;
-import com.cloud.arch.rocket.transaction.TransactionChecker;
 import com.cloud.arch.rocket.utils.RocketOnsConstants;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,6 @@ public class OnsProducerTemplate implements DisposableBean, SmartInitializingSin
     private final OnsQueueProperties  properties;
     private final Serialize           serialize;
     private       ApplicationContext  context;
-    private       TransactionChecker  checker;
     private       Producer            producer;
     private       OrderProducer       orderProducer;
     private       TransactionProducer transactionProducer;
@@ -103,7 +101,7 @@ public class OnsProducerTemplate implements DisposableBean, SmartInitializingSin
     }
 
     public <T extends Serializable> SendResult sendOrder(String topic, String tag, T payload, String shardingKey) {
-        return this.orderProducer.send(checkAndSet(topic, tag, null, payload), shardingKey);
+        return this.sendOrder(topic, tag, null, payload, shardingKey);
     }
 
     public <T extends Serializable> SendResult sendOrder(String topic,
@@ -111,6 +109,9 @@ public class OnsProducerTemplate implements DisposableBean, SmartInitializingSin
                                                          String key,
                                                          T payload,
                                                          String shardingKey) {
+        if (this.orderProducer == null) {
+            throw new IllegalStateException("not enable order producer,please check your configuration");
+        }
         Preconditions.checkArgument(this.properties.getProducer().isOrdered(), "未开启顺序消息，请先开启顺序消息");
         Preconditions.checkArgument(StringUtils.isNotBlank(shardingKey), "顺序消息shardingKey不允许为空");
         return this.orderProducer.send(checkAndSet(topic, tag, key, payload), shardingKey);
@@ -121,6 +122,9 @@ public class OnsProducerTemplate implements DisposableBean, SmartInitializingSin
                                                                String key,
                                                                T payload,
                                                                TransactionBusinessHandler handler) {
+        if (this.orderProducer == null) {
+            throw new IllegalStateException("not enable transaction producer,please check your configuration");
+        }
         Message message = checkAndSet(topic, tag, key, payload);
         return this.transactionProducer.send(message, (msg, arg) -> {
             OnsTransactionState transactionState = OnsTransactionState.UNKNOWN;
@@ -177,8 +181,6 @@ public class OnsProducerTemplate implements DisposableBean, SmartInitializingSin
             }
             //事物消息生产者启用
             if (this.properties.getProducer().isTransaction()) {
-                this.checker = Preconditions.checkNotNull(this.context.getBean(RocketOnsConstants.CHECK_SERVICE_BEAN_NAME,
-                                                                               TransactionChecker.class));
                 final LocalTransactionChecker transactionChecker = Preconditions.checkNotNull(this.context.getBean(
                         RocketOnsConstants.LOCAL_TRANSACTION_CHECKER_BEAN_NAME,
                         LocalTransactionChecker.class));

@@ -1,0 +1,2 @@
+org.springframework.context.ApplicationListener=\
+com.boot.architect.infrast.facade.PrepareEventListener

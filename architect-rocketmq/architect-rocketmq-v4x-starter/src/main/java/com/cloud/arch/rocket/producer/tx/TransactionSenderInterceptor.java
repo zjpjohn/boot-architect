@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.EmbeddedValueResolverAware;
+import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
 import javax.annotation.Nonnull;
@@ -29,11 +30,14 @@ public class TransactionSenderInterceptor implements MethodInterceptor, Embedded
         if (metadata == null) {
             return invocation.proceed();
         }
-        Object[]     arguments = invocation.getArguments();
-        String       topic     = metadata.getTopic(resolver);//消息topic
-        Serializable payload   = metadata.getPayload(arguments);//消息内容
-        String       key       = metadata.getKey(arguments);//消息业务key
-        String       tag       = metadata.getTag(resolver);//消息tag
+        Object[] arguments = invocation.getArguments();
+        String   key       = metadata.getKey(arguments);//消息业务key
+        if (!StringUtils.hasText(key)) {
+            throw new IllegalStateException("transaction message key must not be null or empty");
+        }
+        Serializable payload = metadata.getPayload(arguments);//消息内容
+        String       topic   = metadata.getTopic(resolver);//消息topic
+        String       tag     = metadata.getTag(resolver);//消息tag
         try {
             //加入本地执行上线文
             TransactionExecutorContext.setInvocation(invocation);

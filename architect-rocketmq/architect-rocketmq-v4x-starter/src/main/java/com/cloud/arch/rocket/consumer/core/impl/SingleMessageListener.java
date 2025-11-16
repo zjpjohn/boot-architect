@@ -24,13 +24,15 @@ public class SingleMessageListener implements MessageListener {
      * 单条消息处理
      *
      * @param message 消息内容
-     * @throws Exception
      */
     @Override
     public void handle(MessageExt message) throws Exception {
         ListenerMetadata metadata = metadataMap.get(message.getTopic(), message.getTags());
         if (metadata == null) {
-            throw new RuntimeException(String.format("未找到对应消息topic[%s]-tag[{%s}]的消息监听器,", message.getTopic(), message.getTags()));
+            String error = String.format("未找到对应消息topic[%s]-tag[{%s}]的消息监听器,",
+                                         message.getTopic(),
+                                         message.getTags());
+            throw new RuntimeException(error);
         }
         Throwable             error             = null;
         Pair<String, Integer> idempotent        = null;

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.EmbeddedValueResolverAware;
+import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
 import java.io.Serializable;
@@ -35,11 +36,14 @@ public class OnsTransactionInterceptor implements MethodInterceptor, EmbeddedVal
         if (senderMeta == null) {
             return invocation.proceed();
         }
-        Object[]     arguments = invocation.getArguments();
-        String       topic     = senderMeta.getTopic(resolver);//消息topic
-        Serializable payload   = senderMeta.getPayload(arguments);//消息内容
-        String       key       = senderMeta.getKey(arguments);//消息业务key
-        String       tag       = senderMeta.getTag(resolver);//消息tag
+        Object[] arguments = invocation.getArguments();
+        String   key       = senderMeta.getKey(arguments);//消息业务key
+        if (!StringUtils.hasText(key)) {
+            throw new IllegalStateException("transaction message key must not be null or empty");
+        }
+        Serializable payload = senderMeta.getPayload(arguments);//消息内容
+        String       topic   = senderMeta.getTopic(resolver);//消息topic
+        String       tag     = senderMeta.getTag(resolver);//消息tag
 
         ResultHolder holder = new ResultHolder();
         producerTemplate.sendTransaction(topic, tag, key, payload, message -> {
