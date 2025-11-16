@@ -18,11 +18,11 @@ import org.springframework.context.annotation.Role;
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 @ConditionalOnClass(name = "com.cloud.arch.event.props.RocketmqProperties")
-@ConditionalOnProperty(prefix = "com.cloud.event.rocket.v5", name = "name-srv")
+@ConditionalOnProperty(prefix = "com.cloud.event.rocket.v5x", name = "name-srv")
 public class RocketV5EventExtensionConfiguration {
 
     @Bean
-    @ConfigurationProperties(prefix = "com.cloud.event.rocket.v5")
+    @ConfigurationProperties(prefix = "com.cloud.event.rocket.v5x")
     public RocketmqProperties rocketmqProperties() {
         return new RocketmqProperties();
     }
