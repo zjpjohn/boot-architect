@@ -26,6 +26,10 @@ public class UriAuthorityManager implements DisposableBean {
     private final Set<AnnotatedElementKey>                       excludes         = Sets.newConcurrentHashSet();
     //缓存已匹配的权限资源方法
     private final Map<AnnotatedElementKey, UriResourceAuthority> cacheAuthorities = Maps.newConcurrentMap();
+    //字符串分割器
+    private final Splitter                                       splitter         = Splitter.on(",")
+                                                                                            .trimResults()
+                                                                                            .omitEmptyStrings();
 
     public UriAuthorityManager(WebAuthorityProperties properties) {
         this.properties = properties;
@@ -46,7 +50,7 @@ public class UriAuthorityManager implements DisposableBean {
             patternList.addAll(authorities);
             return patternList;
         }
-        List<String> splits = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(patterns);
+        List<String> splits = splitter.splitToList(patterns);
         patternList.addAll(splits);
         return patternList;
     }
@@ -55,14 +59,13 @@ public class UriAuthorityManager implements DisposableBean {
      * 获取拦截器排除的请求uri集合
      */
     public List<String> getExcudeList() {
-        List<String> values     = Lists.newArrayList(WebTokenConstants.STATIC_RESOURCES);
-        String       excludeStr = properties.getExcludes();
-        if (StringUtils.isBlank(excludeStr)) {
-            return values;
+        Set<String> values     = Sets.newHashSet(WebTokenConstants.STATIC_RESOURCES);
+        String      excludeStr = properties.getExcludes();
+        if (StringUtils.isNotBlank(excludeStr)) {
+            List<String> appended = splitter.splitToList(excludeStr);
+            values.addAll(appended);
         }
-        List<String> appended = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(excludeStr);
-        values.addAll(appended);
-        return values;
+        return Lists.newArrayList(values);
     }
 
     /**

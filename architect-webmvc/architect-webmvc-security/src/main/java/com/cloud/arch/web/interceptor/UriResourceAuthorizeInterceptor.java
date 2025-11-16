@@ -35,6 +35,7 @@ public class UriResourceAuthorizeInterceptor implements AsyncHandlerInterceptor 
                 }
                 apiReturn = ApiReturn.forbidden(AuthorizationErrorHandler.AUTHORITY_FORBIDDEN.getError());
             } catch (Exception error) {
+                log.error("URI资源权限校验异常", error);
                 apiReturn = ApiReturn.serverError(AuthorizationErrorHandler.AUTH_INTERNAL_ERROR.getError());
             }
             writeError(response, apiReturn);
