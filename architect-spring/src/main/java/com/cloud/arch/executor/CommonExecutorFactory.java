@@ -17,14 +17,14 @@ import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
-public class ComparableExecutorFactory<K extends Comparable<K>, E extends Executor<K>>
+public class CommonExecutorFactory<K extends Comparable<K>, E extends Executor<K>>
         implements SmartInitializingSingleton, ApplicationContextAware {
 
     private final Map<K, E>          executors = Maps.newHashMap();
     private final Class<E>           executorType;
     private       ApplicationContext applicationContext;
 
-    public ComparableExecutorFactory(@NonNull Class<E> executorType) {
+    public CommonExecutorFactory(@NonNull Class<E> executorType) {
         Preconditions.checkState(executorType.isInterface(), "executor type must be interface.");
         this.executorType = executorType;
     }

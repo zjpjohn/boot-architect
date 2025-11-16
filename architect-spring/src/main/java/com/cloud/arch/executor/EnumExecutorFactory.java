@@ -13,7 +13,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 
 @Slf4j
-public class EnumerableExecutorFactory<K extends Enum<K>, E extends Executor<K>>
+public class EnumExecutorFactory<K extends Enum<K>, E extends Executor<K>>
         implements SmartInitializingSingleton, ApplicationContextAware {
 
 
@@ -21,7 +21,7 @@ public class EnumerableExecutorFactory<K extends Enum<K>, E extends Executor<K>>
     private final Class<E>           executorType;
     private       ApplicationContext applicationContext;
 
-    public EnumerableExecutorFactory(@NonNull Class<K> keyType, @NonNull Class<E> executorType) {
+    public EnumExecutorFactory(@NonNull Class<K> keyType, @NonNull Class<E> executorType) {
         Preconditions.checkState(executorType.isInterface(), "executor type must be interface.");
         this.executorType = executorType;
         this.executors    = new EnumMap<>(keyType);

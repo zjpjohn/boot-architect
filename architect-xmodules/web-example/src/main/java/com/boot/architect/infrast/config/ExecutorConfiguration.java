@@ -4,7 +4,7 @@ import com.boot.architect.domain.ability.GenderExecutor;
 import com.boot.architect.domain.ability.StateExecutor;
 import com.boot.architect.infrast.persist.enums.Gender;
 import com.boot.architect.infrast.persist.enums.State;
-import com.cloud.arch.executor.EnumerableExecutorFactory;
+import com.cloud.arch.executor.EnumExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,13 +15,13 @@ public class ExecutorConfiguration {
 
 
     @Bean
-    public EnumerableExecutorFactory<Gender, GenderExecutor> genderEnumerableExecutorFactory() {
-        return new EnumerableExecutorFactory<>(Gender.class, GenderExecutor.class);
+    public EnumExecutorFactory<Gender, GenderExecutor> genderEnumerableExecutorFactory() {
+        return new EnumExecutorFactory<>(Gender.class, GenderExecutor.class);
     }
 
     @Bean
-    public EnumerableExecutorFactory<State, StateExecutor> stateEnumerableExecutorFactory() {
-        return new EnumerableExecutorFactory<>(State.class, StateExecutor.class);
+    public EnumExecutorFactory<State, StateExecutor> stateEnumerableExecutorFactory() {
+        return new EnumExecutorFactory<>(State.class, StateExecutor.class);
     }
 
 }
