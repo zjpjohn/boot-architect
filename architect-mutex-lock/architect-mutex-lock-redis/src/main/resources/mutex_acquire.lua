@@ -10,15 +10,15 @@ local mutexKey = 'arch:mutex:' .. mutex;
 local succeed = redis.call('set', mutexKey, contenderId, 'nx', 'px', transition);
 local result = {};
 if succeed then
-    local message = {};
-    message['event'] = 'acquired';
-    message['ownerId'] = contenderId;
-    --推送竞争获得锁事件
-    redis.call('publish', mutexKey, cjson.encode(message));
-    -- 返回锁持有者信息
-    result['ownerId'] = contenderId;
-    result['ttl'] = transition;
-    return cjson.encode(result);
+	local message = {};
+	message['event'] = 'acquired';
+	message['ownerId'] = contenderId;
+	--推送竞争获得锁事件
+	redis.call('publish', mutexKey, cjson.encode(message));
+	-- 返回锁持有者信息
+	result['ownerId'] = contenderId;
+	result['ttl'] = transition;
+	return cjson.encode(result);
 end ;
 
 local contenderQueueKey = mutexKey .. ':contender';
