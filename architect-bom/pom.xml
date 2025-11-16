@@ -44,8 +44,6 @@
         <aliyun-mobile.version>1.2.3</aliyun-mobile.version>
         <aliyun-sms.version>2.2.1</aliyun-sms.version>
         <ons.version>1.9.1.Final</ons.version>
-        <rocketmq-v5.version>5.1.0</rocketmq-v5.version>
-        <rocketmq-v4.version>4.9.8</rocketmq-v4.version>
         <pulsar.version>3.3.1</pulsar.version>
         <auto-service.version>1.1.1</auto-service.version>
         <elastic.version>8.3.2</elastic.version>
@@ -239,21 +237,6 @@
                 <groupId>com.aliyun.openservices</groupId>
                 <artifactId>ons-client</artifactId>
                 <version>${ons.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-client-java</artifactId>
-                <version>${rocketmq-v5.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-client</artifactId>
-                <version>${rocketmq-v4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-tools</artifactId>
-                <version>${rocketmq-v4.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.pulsar</groupId>

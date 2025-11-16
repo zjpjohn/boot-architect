@@ -16,7 +16,6 @@
         <module>architect-event-queue-kafka</module>
         <module>architect-event-queue-pulsar</module>
         <module>architect-event-queue-rabbitmq</module>
-        <module>architect-event-queue-rocketmq-v4x</module>
         <module>architect-event-queue-rocketmq-v5x</module>
         <module>architect-event-queue-rocketmq-ons</module>
     </modules>

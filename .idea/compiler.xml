@@ -26,7 +26,6 @@
         <module name="architect-transaction-async-support" />
         <module name="architect-webmvc-swagger" />
         <module name="architect-rocketmq-v5x-starter" />
-        <module name="architect-event-queue-rocketmq-v4x" />
         <module name="architect-webmvc-webtoken-servlet" />
         <module name="architect-idempotent-support" />
         <module name="architect-token-boot-starter" />
@@ -46,7 +45,6 @@
         <module name="architect-event-queue-rocketmq-v5x" />
         <module name="architect-hotkey-client" />
         <module name="architect-event-watcher-server" />
-        <module name="architect-rocketmq-v4x-starter" />
         <module name="architect-webmvc-webtoken-gateway" />
         <module name="architect-aggregate" />
         <module name="architect-operate-commons" />
@@ -122,7 +120,10 @@
         <module name="aggregate-example" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="25" />
+    <bytecodeTargetLevel target="25">
+      <module name="architect-event-queue-rocketmq-v4x" target="25" />
+      <module name="architect-rocketmq-v4x-starter" target="25" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

@@ -15,7 +15,6 @@
     <modules>
         <module>architect-rocketmq-commons</module>
         <module>architect-rocketmq-ons-starter</module>
-        <module>architect-rocketmq-v4x-starter</module>
         <module>architect-rocketmq-v5x-starter</module>
     </modules>
 

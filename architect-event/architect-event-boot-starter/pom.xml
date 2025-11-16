@@ -70,12 +70,6 @@
         </dependency>
         <dependency>
             <groupId>com.cloud.arch</groupId>
-            <artifactId>architect-event-queue-rocketmq-v4x</artifactId>
-            <version>${revision}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.cloud.arch</groupId>
             <artifactId>architect-event-queue-rocketmq-v5x</artifactId>
             <version>${revision}</version>
             <optional>true</optional>
