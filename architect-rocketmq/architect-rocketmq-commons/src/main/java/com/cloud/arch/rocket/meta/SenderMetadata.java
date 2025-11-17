@@ -17,18 +17,11 @@ import org.springframework.util.StringValueResolver;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Data
 public class SenderMetadata {
-
-    /**
-     * 参数处理器集合
-     */
-    private final Map<Integer, MethodParameterProcessor> processors = new HashMap<>(4);
 
     /**
      * ${}占位符解析器

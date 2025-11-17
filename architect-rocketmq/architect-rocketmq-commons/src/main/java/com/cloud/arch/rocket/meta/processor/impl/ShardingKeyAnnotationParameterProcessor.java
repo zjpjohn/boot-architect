@@ -29,7 +29,6 @@ public class ShardingKeyAnnotationParameterProcessor implements MethodParameterP
                                     metadata.getDeclareClassName(),
                                     metadata.getMethodName(),
                                     index));
-        metadata.getProcessors().put(index, this);
         metadata.setShardingKey(index);
     }
 }

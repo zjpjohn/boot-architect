@@ -36,7 +36,6 @@ public class DelayAnnotationParameterProcessor implements MethodParameterProcess
                                     metadata.getMethod().getDeclaringClass().getSimpleName(),
                                     metadata.getMethod().getName(),
                                     index));
-        metadata.getProcessors().put(index, this);
         metadata.setDelay(meta);
     }
 

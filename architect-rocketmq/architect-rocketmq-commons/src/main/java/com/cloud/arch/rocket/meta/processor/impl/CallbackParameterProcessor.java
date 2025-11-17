@@ -22,7 +22,6 @@ public class CallbackParameterProcessor implements MethodParameterProcessor {
                       String.format("方法%s.%s中有多个SendCallBack参数",
                                     method.getDeclaringClass().getSimpleName(),
                                     method.getName()));
-        metadata.getProcessors().put(index, this);
         metadata.setAsync(index);
     }
 }

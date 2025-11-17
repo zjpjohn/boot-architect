@@ -29,7 +29,6 @@ public class KeyAnnotationParameterProcessor implements MethodParameterProcessor
                                     metadata.getDeclareClassName(),
                                     metadata.getMethodName(),
                                     index));
-        metadata.getProcessors().put(index, this);
         metadata.setKey(index);
     }
 
