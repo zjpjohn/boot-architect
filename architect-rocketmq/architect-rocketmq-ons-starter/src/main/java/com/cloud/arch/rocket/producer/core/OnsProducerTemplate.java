@@ -8,7 +8,7 @@ import com.cloud.arch.rocket.commons.OnsQueueProperties;
 import com.cloud.arch.rocket.producer.tx.OnsTransactionState;
 import com.cloud.arch.rocket.producer.tx.TransactionBusinessHandler;
 import com.cloud.arch.rocket.serializable.Serialize;
-import com.cloud.arch.rocket.utils.RocketOnsConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -182,7 +182,7 @@ public class OnsProducerTemplate implements DisposableBean, SmartInitializingSin
             //事物消息生产者启用
             if (this.properties.getProducer().isTransaction()) {
                 final LocalTransactionChecker transactionChecker = Preconditions.checkNotNull(this.context.getBean(
-                        RocketOnsConstants.LOCAL_TRANSACTION_CHECKER_BEAN_NAME,
+                        RocketmqUtils.CHECK_SERVICE_BEAN_NAME,
                         LocalTransactionChecker.class));
                 this.transactionProducer = ONSFactory.createTransactionProducer(props, transactionChecker);
                 this.transactionProducer.start();

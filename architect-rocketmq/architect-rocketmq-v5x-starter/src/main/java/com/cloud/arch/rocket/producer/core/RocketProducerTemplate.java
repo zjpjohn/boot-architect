@@ -3,7 +3,7 @@ package com.cloud.arch.rocket.producer.core;
 import com.cloud.arch.rocket.commons.RocketmqProperties;
 import com.cloud.arch.rocket.domain.DelayMessage;
 import com.cloud.arch.rocket.utils.RocketmqCloudException;
-import com.cloud.arch.rocket.utils.RocketmqConstants;
+import com.cloud.arch.rocket.utils.RocketmqProducerUtils;
 import com.cloud.arch.rocket.utils.RocketmqUtils;
 import com.cloud.arch.utils.IdWorker;
 import com.google.common.collect.Maps;
@@ -480,7 +480,7 @@ public class RocketProducerTemplate implements InitializingBean, DisposableBean 
         Assert.state(!CollectionUtils.isEmpty(payloads), "消息内容集合为空");
         Map<String, String> headers = Maps.newHashMap();
         return payloads.stream().map(v -> {
-            headers.put(RocketmqConstants.KEYS, IdWorker.uuid());
+            headers.put(RocketmqUtils.KEYS, IdWorker.uuid());
             return converter.convert(topic, tag, null, v, headers);
         }).collect(Collectors.toList());
     }
@@ -510,11 +510,11 @@ public class RocketProducerTemplate implements InitializingBean, DisposableBean 
     @Override
     public void afterPropertiesSet() throws Exception {
         RocketmqProperties.RocketmqProducerProperties producerCfg = properties.getProducer();
-        this.producer = RocketmqUtils.createProducer(producerCfg.getGroup(),
-                                                     properties.getAccessKey(),
-                                                     properties.getSecretKey(),
-                                                     producerCfg.isEnableTrace(),
-                                                     producerCfg.getTraceTopic());
+        this.producer = RocketmqProducerUtils.createProducer(producerCfg.getGroup(),
+                                                             properties.getAccessKey(),
+                                                             properties.getSecretKey(),
+                                                             producerCfg.isEnableTrace(),
+                                                             producerCfg.getTraceTopic());
         this.producer.setNamesrvAddr(properties.getNameSrv());
         String accessChannel = properties.getAccessChannel();
         if (StringUtils.isNotBlank(accessChannel)) {

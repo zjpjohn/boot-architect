@@ -18,8 +18,10 @@ public class CallbackParameterProcessor implements MethodParameterProcessor {
     @Override
     public void buildMeta(SenderMetadata metadata, Class<?> type, int index) {
         Method method = metadata.getMethod();
-        Assert.isNull(metadata.getAsync(), String.format("方法%s.%s中有多个SendCallBack参数", method.getDeclaringClass()
-                                                                                                    .getSimpleName(), method.getName()));
+        Assert.isNull(metadata.getAsync(),
+                      String.format("方法%s.%s中有多个SendCallBack参数",
+                                    method.getDeclaringClass().getSimpleName(),
+                                    method.getName()));
         metadata.getProcessors().put(index, this);
         metadata.setAsync(index);
     }

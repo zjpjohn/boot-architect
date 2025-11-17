@@ -11,9 +11,9 @@ import java.lang.reflect.Method;
 public class RocketSendHandler implements MessageSendHandler {
 
     private final RocketProducerTemplate producerTemplate;
-    private final SendModel           sendModel;
-    private final SenderMetadata      metadata;
-    private final StringValueResolver resolver;
+    private final SendModel              sendModel;
+    private final SenderMetadata         metadata;
+    private final StringValueResolver    resolver;
 
     public RocketSendHandler(Method method,
                              RocketProducerTemplate producerTemplate,

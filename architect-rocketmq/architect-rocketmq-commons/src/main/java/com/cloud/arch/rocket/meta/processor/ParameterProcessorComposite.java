@@ -13,11 +13,9 @@ import java.util.Map;
 
 public class ParameterProcessorComposite {
 
-    private static final CallbackParameterProcessor                                 callbackProcessor
-                                                                                                  = new CallbackParameterProcessor();
-    private static final BodyParameterProcessor                                     bodyProcessor
-                                                                                                  = new BodyParameterProcessor();
-    private static final Map<Class<? extends Annotation>, MethodParameterProcessor> processors    = new HashMap<>(4);
+    private static final CallbackParameterProcessor                                 callbackProcessor = new CallbackParameterProcessor();
+    private static final BodyParameterProcessor                                     bodyProcessor     = new BodyParameterProcessor();
+    private static final Map<Class<? extends Annotation>, MethodParameterProcessor> processors        = new HashMap<>(4);
 
     static {
         processors.put(Key.class, new KeyAnnotationParameterProcessor());

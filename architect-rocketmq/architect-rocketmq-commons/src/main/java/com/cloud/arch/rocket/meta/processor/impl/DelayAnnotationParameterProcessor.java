@@ -25,13 +25,17 @@ public class DelayAnnotationParameterProcessor implements MethodParameterProcess
      */
     @Override
     public void buildMeta(SenderMetadata metadata, Class<?> type, int index, Annotation annotation) {
-        Assert.isNull(metadata.getDelay(), String.format("方法%s.%s中存在多个延迟时间参数.", metadata.getDeclareClassName(), metadata.getMethodName()));
+        Assert.isNull(metadata.getDelay(),
+                      String.format("方法%s.%s中存在多个延迟时间参数.",
+                                    metadata.getDeclareClassName(),
+                                    metadata.getMethodName()));
         Delay                        delay = (Delay) annotation;
         SenderMetadata.DelayMetadata meta  = new SenderMetadata.DelayMetadata(index, delay.deliver(), delay.timeUnit());
-        Assert.isTrue(checkDelay(meta, metadata.getMethod(), type, index), String.format("方法%s.%s第%d个参数必须为Long或者Collection<Long>类型", metadata.getMethod()
-                                                                                                                                                          .getDeclaringClass()
-                                                                                                                                                          .getSimpleName(), metadata.getMethod()
-                                                                                                                                                                                    .getName(), index));
+        Assert.isTrue(checkDelay(meta, metadata.getMethod(), type, index),
+                      String.format("方法%s.%s第%d个参数必须为Long或者Collection<Long>类型",
+                                    metadata.getMethod().getDeclaringClass().getSimpleName(),
+                                    metadata.getMethod().getName(),
+                                    index));
         metadata.getProcessors().put(index, this);
         metadata.setDelay(meta);
     }
@@ -55,8 +59,8 @@ public class DelayAnnotationParameterProcessor implements MethodParameterProcess
         }
         Type[] actualTypeArguments = ((ParameterizedType) parameterType).getActualTypeArguments();
         boolean checked = ClassUtils.isAssignable(Collection.class, type)
-                          && actualTypeArguments.length == 1
-                          && TypeUtils.isAssignable(Long.class, actualTypeArguments[0]);
+                && actualTypeArguments.length == 1
+                && TypeUtils.isAssignable(Long.class, actualTypeArguments[0]);
         if (checked) {
             meta.setCollection(true);
         }

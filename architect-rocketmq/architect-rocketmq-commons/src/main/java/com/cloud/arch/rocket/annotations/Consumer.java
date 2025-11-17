@@ -22,6 +22,7 @@ public @interface Consumer {
 
     /**
      * 消息消费模式:集群消费，广播消费
+     * 默认集群消费模式
      */
     MessageModel model() default MessageModel.CLUSTERING;
 

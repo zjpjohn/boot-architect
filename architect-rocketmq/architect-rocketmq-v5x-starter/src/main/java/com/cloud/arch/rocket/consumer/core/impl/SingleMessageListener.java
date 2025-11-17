@@ -32,13 +32,14 @@ public class SingleMessageListener implements MessageListener {
             String error = String.format("未找到对应消息topic[%s]-tag[{%s}]的消息监听器,",
                                          message.getTopic(),
                                          message.getTags());
+            log.warn(error);
             throw new RuntimeException(error);
         }
         Throwable             error             = null;
         Pair<String, Integer> idempotent        = null;
         IdempotentChecker     idempotentChecker = metadata.getIdempotentChecker();
         try {
-            if (metadata.idempotent() && idempotentChecker != null) {
+            if (metadata.idempotent()) {
                 idempotent = metadata.extractIdempotent(message);
                 if (idempotentChecker.isProcessed(idempotent.getKey(), idempotent.getValue())) {
                     return;
@@ -49,14 +50,10 @@ public class SingleMessageListener implements MessageListener {
             log.error("消息监听消费处理错误:", exception);
             throw new RuntimeException(exception);
         } finally {
-            if (metadata.idempotent() && idempotentChecker != null && idempotent != null) {
+            if (metadata.idempotent() && idempotent != null) {
                 idempotentChecker.markProcessed(idempotent.getKey(), idempotent.getValue(), error);
             }
         }
-    }
-
-    public Serialize getSerialize() {
-        return serialize;
     }
 
 }

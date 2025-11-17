@@ -20,8 +20,15 @@ public class ShardingKeyAnnotationParameterProcessor implements MethodParameterP
      */
     @Override
     public void buildMeta(SenderMetadata metadata, Class<?> type, int index, Annotation annotation) {
-        Assert.isNull(metadata.getShardingKey(), String.format("方法%s.%s中存在多个shardingKey参数.", metadata.getDeclareClassName(), metadata.getMethodName()));
-        Assert.isTrue(ClassUtils.isAssignable(String.class, type), String.format("方法%s.%s第%d个参数作为shardingKey必须为String类型", metadata.getDeclareClassName(), metadata.getMethodName(), index));
+        Assert.isNull(metadata.getShardingKey(),
+                      String.format("方法%s.%s中存在多个shardingKey参数.",
+                                    metadata.getDeclareClassName(),
+                                    metadata.getMethodName()));
+        Assert.isTrue(ClassUtils.isAssignable(String.class, type),
+                      String.format("方法%s.%s第%d个参数作为shardingKey必须为String类型",
+                                    metadata.getDeclareClassName(),
+                                    metadata.getMethodName(),
+                                    index));
         metadata.getProcessors().put(index, this);
         metadata.setShardingKey(index);
     }

@@ -1,6 +1,6 @@
 package com.cloud.arch.rocket.commons;
 
-import com.cloud.arch.rocket.utils.RocketOnsConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -44,9 +44,9 @@ public class OnsQueueProperties {
         //是否开启顺序消息
         private boolean ordered       = false;
         //默认7天前的事务状态表数据清理
-        private Integer cleanInterval = RocketOnsConstants.DEFAULT_INTERVAL;
+        private Integer cleanInterval = RocketmqUtils.DEFAULT_INTERVAL;
         //事务状态回收cron表达式
-        private String  cleanCron     = RocketOnsConstants.DEFAULT_CLEAN_CRON;
+        private String  cleanCron     = RocketmqUtils.DEFAULT_CLEAN_CRON;
     }
 
     @Data
@@ -61,9 +61,9 @@ public class OnsQueueProperties {
         //是否开启消费者消息幂等
         private boolean idempotent     = false;
         //默认7天前的幂等信息表数据清理
-        private Integer cleanInterval  = RocketOnsConstants.DEFAULT_INTERVAL;
+        private Integer cleanInterval  = RocketmqUtils.DEFAULT_INTERVAL;
         //幂等信息回收cron表达式
-        private String  cleanCron      = RocketOnsConstants.DEFAULT_CLEAN_CRON;
+        private String  cleanCron      = RocketmqUtils.DEFAULT_CLEAN_CRON;
 
     }
 }

@@ -5,7 +5,7 @@ import com.cloud.arch.rocket.producer.core.RocketProducerTemplate;
 import com.cloud.arch.rocket.producer.core.RocketRecogniseHandler;
 import com.cloud.arch.rocket.producer.core.RocketSendHandler;
 import com.cloud.arch.rocket.utils.MethodUtils;
-import com.cloud.arch.rocket.utils.RocketmqConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import com.google.common.collect.Maps;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -37,15 +37,18 @@ public class ProxyProducerProvider implements EmbeddedValueResolverAware, Applic
         if (handler != null) {
             return handler;
         }
-        RocketRecogniseHandler recogniseHandler
-                = context.getBean(RocketmqConstants.SENDER_RECOGNISE_BEAN_NAME, RocketRecogniseHandler.class);
+        RocketRecogniseHandler recogniseHandler = context.getBean(RocketmqUtils.SENDER_RECOGNISE_BEAN_NAME,
+                                                                  RocketRecogniseHandler.class);
         Map<Method, RocketSendHandler> handlers = Arrays.stream(type.getMethods())
                                                         .filter(m -> !this.shouldFilterMethod(m))
                                                         .filter(m -> m.getAnnotation(Sender.class) != null)
-                                                        .map(m -> new RocketSendHandler(m, producerTemplate, resolver, recogniseHandler))
+                                                        .map(m -> new RocketSendHandler(m,
+                                                                                        producerTemplate,
+                                                                                        resolver,
+                                                                                        recogniseHandler))
                                                         .peek(RocketSendHandler::validate)
-                                                        .collect(Collectors.toMap(key -> key.getMetadata()
-                                                                                            .getMethod(), Function.identity()));
+                                                        .collect(Collectors.toMap(key -> key.getMetadata().getMethod(),
+                                                                                  Function.identity()));
         RocketMethodsSendHandler sendHandler = new RocketMethodsSendHandler(handlers);
         return this.senders.put(type, sendHandler);
     }
@@ -62,7 +65,7 @@ public class ProxyProducerProvider implements EmbeddedValueResolverAware, Applic
 
     private boolean shouldFilterMethod(Method method) {
         return method.getDeclaringClass() == Object.class
-               || (method.getModifiers() & Modifier.STATIC) != 0
-               || MethodUtils.isDefault(method);
+                || (method.getModifiers() & Modifier.STATIC) != 0
+                || MethodUtils.isDefault(method);
     }
 }

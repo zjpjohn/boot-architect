@@ -1,6 +1,6 @@
 package com.cloud.arch.rocket.commons;
 
-import com.cloud.arch.rocket.utils.RocketmqConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import lombok.Data;
 import org.apache.rocketmq.common.topic.TopicValidator;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -80,11 +80,11 @@ public class RocketmqProperties {
         /**
          * 事务检查事件默认7天回收一次，回收cron表达式
          */
-        private String  cleanCron                     = RocketmqConstants.DEFAULT_CLEAN_CRON;
+        private String  cleanCron                     = RocketmqUtils.DEFAULT_CLEAN_CRON;
         /**
          * 默认为每隔7天进行事务状态表数据清理
          */
-        private Integer cleanInterval                 = RocketmqConstants.DEFAULT_INTERVAL;
+        private Integer cleanInterval                 = RocketmqUtils.DEFAULT_INTERVAL;
         /**
          * 事务检查线程池核心线程数
          */
@@ -129,11 +129,11 @@ public class RocketmqProperties {
         /**
          * 幂等检查时间默认7天回收一次
          */
-        private String  cleanCron         = RocketmqConstants.DEFAULT_CLEAN_CRON;
+        private String  cleanCron         = RocketmqUtils.DEFAULT_CLEAN_CRON;
         /**
          * 默认为每隔7天进行幂等表数据清理
          */
-        private Integer cleanInterval     = RocketmqConstants.DEFAULT_INTERVAL;
+        private Integer cleanInterval     = RocketmqUtils.DEFAULT_INTERVAL;
         /**
          * 消费者线程池最大线程数量
          */

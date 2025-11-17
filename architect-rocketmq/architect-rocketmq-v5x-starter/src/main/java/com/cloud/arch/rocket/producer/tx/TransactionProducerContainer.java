@@ -2,7 +2,7 @@ package com.cloud.arch.rocket.producer.tx;
 
 import com.cloud.arch.rocket.commons.RocketmqProperties;
 import com.cloud.arch.rocket.producer.core.MessageConverter;
-import com.cloud.arch.rocket.utils.RocketmqUtils;
+import com.cloud.arch.rocket.utils.RocketmqProducerUtils;
 import com.cloud.arch.utils.IdWorker;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -65,11 +65,11 @@ public class TransactionProducerContainer implements SmartInitializingSingleton,
     private void initializeProducer() throws Exception {
         String                                        nameSrv     = properties.getNameSrv();
         RocketmqProperties.RocketmqProducerProperties producerCfg = properties.getProducer();
-        this.producer = RocketmqUtils.creatTransactionProducer(producerCfg.getGroup(),
-                                                               properties.getAccessKey(),
-                                                               properties.getSecretKey(),
-                                                               producerCfg.isEnableTrace(),
-                                                               producerCfg.getTraceTopic());
+        this.producer = RocketmqProducerUtils.creatTxProducer(producerCfg.getGroup(),
+                                                              properties.getAccessKey(),
+                                                              properties.getSecretKey(),
+                                                              producerCfg.isEnableTrace(),
+                                                              producerCfg.getTraceTopic());
         this.producer.setNamesrvAddr(nameSrv);
         String accessChannel = properties.getAccessChannel();
         if (StringUtils.isNotBlank(accessChannel)) {

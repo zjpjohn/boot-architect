@@ -2,7 +2,7 @@ package com.cloud.arch.rocket.consumer.core;
 
 import com.cloud.arch.rocket.commons.RocketmqProperties;
 import com.cloud.arch.rocket.idempotent.IdempotentCleanHandler;
-import com.cloud.arch.rocket.utils.RocketmqConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 
 public class IdempotentCleanScheduler {
@@ -21,7 +21,7 @@ public class IdempotentCleanScheduler {
     public void garbage() {
         Integer interval = properties.getConsumer().getCleanInterval();
         if (interval <= 0) {
-            interval = RocketmqConstants.DEFAULT_INTERVAL;
+            interval = RocketmqUtils.DEFAULT_INTERVAL;
         }
         cleanHandler.handle(interval);
     }

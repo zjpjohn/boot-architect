@@ -1,6 +1,8 @@
 package com.cloud.arch.rocket.utils;
 
-public class RocketmqConstants {
+import org.apache.commons.lang3.StringUtils;
+
+public class RocketmqUtils {
 
     public static final String  PREFIX                         = "rocketmq_";
     public static final String  KEYS                           = "KEYS";
@@ -27,9 +29,17 @@ public class RocketmqConstants {
     public static final String  IDEMPOTENT_GARBAGE_JOB         = "rocket_idempotent_garbage_job";
     public static final String  ROCKET_CONSUMER_PROCESSOR      = "rocket_consumer_processor_bean";
     public static final String  CHECK_SERVICE_BEAN_NAME        = "rocket-check-executor";
+    public static final String  LOCAL_CHECK_BEAN_NAME          = "rocket-transaction-checker";
     public static final String  TRANSACTION_EXECUTOR_KEY       = "rocket_tx_executor";
     public static final String  SENDER_RECOGNISE_BEAN_NAME     = "sender-recognise-handler";
     public static final String  ROCKET_ALL_TAG_REGEX           = "*";
     public static final String  ROCKET_TAG_DELIMITER           = "||";
+
+    /**
+     * 校验tag是否符合业务意义，不包含通配符和复合标签
+     */
+    public static boolean isValidTag(String tag) {
+        return StringUtils.isNotBlank(tag) && !ROCKET_ALL_TAG_REGEX.equals(tag) && !tag.contains(ROCKET_TAG_DELIMITER);
+    }
 
 }

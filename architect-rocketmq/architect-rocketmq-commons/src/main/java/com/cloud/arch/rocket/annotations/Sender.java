@@ -18,6 +18,7 @@ public @interface Sender {
     /**
      * 消息过滤tag
      * 支持${}占位符
+     * 推荐tag使用具有明确业务意义的字符串，避免使用通配符*
      */
     String tag() default "";
 
@@ -34,7 +35,6 @@ public @interface Sender {
 
     /**
      * 批量发送消息
-     * <p>
      * 最多支持一次发送100条消息
      */
     boolean batch() default false;
@@ -51,17 +51,13 @@ public @interface Sender {
 
     /**
      * 是否异步发送消息
-     * <p>
      * 对于响应时间敏感的业务场景，无需等待broker响应
-     * </p>
      */
     boolean async() default false;
 
     /**
      * 单向模式发送消息
-     * <p>
      * 无需关心发送结果的场景，如发送日志消息
-     * </p>
      */
     boolean oneWay() default false;
 

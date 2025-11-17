@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Role;
 import org.springframework.core.Ordered;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import static com.cloud.arch.rocket.utils.RocketmqConstants.*;
+import static com.cloud.arch.rocket.utils.RocketmqUtils.*;
 
 
 @Configuration

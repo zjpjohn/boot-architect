@@ -22,11 +22,15 @@ public class BodyParameterProcessor implements MethodParameterProcessor {
      */
     @Override
     public void buildMeta(SenderMetadata metadata, Class<?> type, int index) {
-        Assert.isNull(metadata.getPayload(), String.format("方法%s.%s有多个消息体参数", metadata.getDeclareClassName(), metadata.getMethodName()));
-        Assert.isTrue(checkBody(metadata, type, index), String.format("方法%s.%s第%d个参数作为消息内容必须为Serializable或者Collection<Serializable>类型", metadata.getMethod()
-                                                                                                                                                                   .getDeclaringClass()
-                                                                                                                                                                   .getSimpleName(), metadata.getMethod()
-                                                                                                                                                                                             .getName(), index));
+        Assert.isNull(metadata.getPayload(),
+                      String.format("方法%s.%s有多个消息体参数",
+                                    metadata.getDeclareClassName(),
+                                    metadata.getMethodName()));
+        Assert.isTrue(checkBody(metadata, type, index),
+                      String.format("方法%s.%s第%d个参数作为消息内容必须为Serializable或者Collection<Serializable>类型",
+                                    metadata.getMethod().getDeclaringClass().getSimpleName(),
+                                    metadata.getMethod().getName(),
+                                    index));
         metadata.getProcessors().put(index, this);
         metadata.setPayload(index);
     }
@@ -50,8 +54,8 @@ public class BodyParameterProcessor implements MethodParameterProcessor {
         }
         Type[] actualTypeArguments = ((ParameterizedType) parameterType).getActualTypeArguments();
         return ClassUtils.isAssignable(Collection.class, type)
-               && actualTypeArguments.length == 1
-               && TypeUtils.isAssignable(Serializable.class, actualTypeArguments[0]);
+                && actualTypeArguments.length == 1
+                && TypeUtils.isAssignable(Serializable.class, actualTypeArguments[0]);
     }
 
 }

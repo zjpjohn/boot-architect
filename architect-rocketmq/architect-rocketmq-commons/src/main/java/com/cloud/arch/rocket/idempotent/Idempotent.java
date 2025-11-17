@@ -1,5 +1,9 @@
 package com.cloud.arch.rocket.idempotent;
 
+/**
+ * 消费幂等类型
+ * 后续考虑增加自定义模式
+ */
 public enum Idempotent {
 
     JDBC("jdbc_idempotent_check"),

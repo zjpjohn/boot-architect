@@ -9,7 +9,7 @@ import org.apache.rocketmq.client.producer.TransactionMQProducer;
 import org.apache.rocketmq.remoting.RPCHook;
 
 @Slf4j
-public class RocketmqUtils {
+public class RocketmqProducerUtils {
 
     public static DefaultMQProducer createProducer(String group,
                                                    String ak,
@@ -26,7 +26,7 @@ public class RocketmqUtils {
         return producer;
     }
 
-    public static TransactionMQProducer creatTransactionProducer(String group,
+    public static TransactionMQProducer creatTxProducer(String group,
                                                                  String ak,
                                                                  String sk,
                                                                  boolean enableTrace,

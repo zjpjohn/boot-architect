@@ -8,7 +8,7 @@ import com.cloud.arch.rocket.consumer.core.ListenerMetadata;
 import com.cloud.arch.rocket.consumer.core.SingleMessageListener;
 import com.cloud.arch.rocket.domain.MessageModel;
 import com.cloud.arch.rocket.serializable.Serialize;
-import com.cloud.arch.rocket.utils.RocketOnsConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
@@ -82,10 +82,11 @@ public class OnsConsumerContainer implements InitializingBean, DisposableBean, O
             Map<String, ListenerMetadata> metadataMap = Maps.newHashMap();
             entry.getValue().forEach(metadata -> {
                 String listenerTag = metadata.tag();
-                Assert.state(!metadataMap.containsKey(listenerTag), "同一个topic消费主题下不允许存在相同tag的Listener.");
+                Assert.state(!metadataMap.containsKey(listenerTag),
+                             "同一个topic消费主题下不允许存在相同tag的Listener.");
                 metadataMap.put(listenerTag, metadata);
             });
-            String                compositeTag    = String.join(RocketOnsConstants.ONS_COMPOSITE_TAG_DELIMITER, metadataMap.keySet());
+            String compositeTag = String.join(RocketmqUtils.ROCKET_TAG_DELIMITER, metadataMap.keySet());
             SingleMessageListener messageListener = new SingleMessageListener(metadataMap, serialize);
             this.consumer.subscribe(topic, compositeTag, messageListener);
         }

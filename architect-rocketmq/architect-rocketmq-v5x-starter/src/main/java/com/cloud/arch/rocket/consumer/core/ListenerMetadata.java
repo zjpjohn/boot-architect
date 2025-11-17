@@ -7,6 +7,8 @@ import com.cloud.arch.rocket.idempotent.Idempotent;
 import com.cloud.arch.rocket.idempotent.IdempotentChecker;
 import com.cloud.arch.rocket.serializable.Serialize;
 import com.cloud.arch.rocket.utils.AnnotationUtils;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -19,10 +21,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import static com.cloud.arch.rocket.utils.RocketmqConstants.ROCKET_ALL_TAG_REGEX;
-import static com.cloud.arch.rocket.utils.RocketmqConstants.ROCKET_TAG_DELIMITER;
-
-
+@Getter
 public class ListenerMetadata {
 
     private final StringValueResolver resolver;
@@ -62,10 +61,7 @@ public class ListenerMetadata {
 
         //消息过滤tag,配置规则:不允许为空，不允许为'*',不允许包含'||'
         this.tag = resolver.resolveStringValue(listener.tag());
-        boolean tagValidation = StringUtils.isNotBlank(this.tag)
-                && !ROCKET_ALL_TAG_REGEX.equals(this.tag)
-                && !this.tag.contains(ROCKET_TAG_DELIMITER);
-        Assert.state(tagValidation, "请配置具有业务意义的消息tag.");
+        Assert.state(RocketmqUtils.isValidTag(tag), "请配置具有业务意义的消息tag.");
 
         //参数个数校验
         this.types = method.getParameterTypes();
@@ -74,6 +70,7 @@ public class ListenerMetadata {
         //消息体参数校验
         Annotation[][] annotations  = method.getParameterAnnotations();
         Integer        payloadIndex = AnnotationUtils.annotationIndex(annotations, Payload.class);
+        //如果没有使用@Payload注解，则默认第一个参数为消息体参数
         payloadIndex = payloadIndex != null ? payloadIndex : 0;
         if (!(ClassUtils.isAssignableValue(Serializable.class, types[payloadIndex]) && !ClassUtils.isAssignableValue(
                 MessageExt.class,
@@ -85,6 +82,7 @@ public class ListenerMetadata {
         if (types.length == 2 && ClassUtils.isAssignable(MessageExt.class, types[1 - payloadIndex])) {
             this.msgIndex = 1 - payloadIndex;
         }
+
     }
 
     /**
@@ -116,7 +114,7 @@ public class ListenerMetadata {
     }
 
     public Boolean idempotent() {
-        return listener.idempotent() != Idempotent.NONE;
+        return listener.idempotent() != Idempotent.NONE && idempotentChecker != null;
     }
 
     /**
@@ -131,35 +129,5 @@ public class ListenerMetadata {
                        .orElseGet(() -> Pair.of(message.getMsgId(), 0));
     }
 
-    public Listener getListener() {
-        return listener;
-    }
 
-    public String getTopic() {
-        return topic;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public MessageModel getModel() {
-        return model;
-    }
-
-    public Integer getPayloadIndex() {
-        return payloadIndex;
-    }
-
-    public Integer getMsgIndex() {
-        return msgIndex;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public IdempotentChecker getIdempotentChecker() {
-        return idempotentChecker;
-    }
 }

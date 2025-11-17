@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.Ordered;
 
-import static com.cloud.arch.rocket.utils.RocketOnsConstants.*;
+import static com.cloud.arch.rocket.utils.RocketmqUtils.*;
 
 
 @Slf4j
@@ -39,7 +39,7 @@ public class ProducerAutoConfiguration {
         return new JsonSerialize();
     }
 
-    @Bean(name = ONS_RECOGNISE_BEAN_NAME)
+    @Bean(name = SENDER_RECOGNISE_BEAN_NAME)
     public OnsRecogniseHandler recogniseHandler() {
         return new OnsRecogniseHandler();
     }
@@ -67,7 +67,7 @@ public class ProducerAutoConfiguration {
             return new TransactionCheckerContainer();
         }
 
-        @Bean(name = LOCAL_TRANSACTION_CHECKER_BEAN_NAME)
+        @Bean(name = LOCAL_CHECK_BEAN_NAME)
         public LocalTransactionChecker localTransactionChecker(TransactionCheckerContainer transactionCheckerContainer) {
             return new LocalTransactionCheckerImpl(transactionCheckerContainer);
         }
@@ -77,7 +77,7 @@ public class ProducerAutoConfiguration {
             return new OnsTransactionInterceptor(onsProducerTemplate);
         }
 
-        @Bean(name = TRANSACTION_SENDER_ADVISOR_BEAN_NAME)
+        @Bean(name = ROCKET_TRANSACTION_ADVISOR)
         public TxSenderAnnotationPointcutAdvisor onsTransactionAdvisor(OnsTransactionInterceptor onsTransactionInterceptor) {
             TxSenderAnnotationPointcutAdvisor pointcutAdvisor = new TxSenderAnnotationPointcutAdvisor();
             pointcutAdvisor.setAdvice(onsTransactionInterceptor);

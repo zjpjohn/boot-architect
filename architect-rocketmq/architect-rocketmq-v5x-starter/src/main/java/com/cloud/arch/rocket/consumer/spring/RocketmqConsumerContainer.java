@@ -7,7 +7,7 @@ import com.cloud.arch.rocket.consumer.core.impl.SingleMessageListener;
 import com.cloud.arch.rocket.domain.MessageModel;
 import com.cloud.arch.rocket.serializable.Serialize;
 import com.cloud.arch.rocket.utils.MessageModeUtils;
-import com.cloud.arch.rocket.utils.RocketmqConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.HashBasedTable;
 import lombok.extern.slf4j.Slf4j;
@@ -81,9 +81,8 @@ public class RocketmqConsumerContainer implements InitializingBean, DisposableBe
         MessageListener messageListener = new SingleMessageListener(this.metaTable, serialize);
         this.consumer.setMessageListener(new DefaultMessageListenerConcurrently(messageListener));
         for (String topic : this.metaTable.rowKeySet()) {
-            Map<String, ListenerMetadata> column       = metaTable.column(topic);
-            String                        compositeTag = String.join(RocketmqConstants.ROCKET_TAG_DELIMITER,
-                                                                     column.keySet());
+            Map<String, ListenerMetadata> column = metaTable.column(topic);
+            String compositeTag = String.join(RocketmqUtils.ROCKET_TAG_DELIMITER, column.keySet());
             this.consumer.subscribe(topic, compositeTag);
         }
     }

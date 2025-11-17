@@ -8,7 +8,7 @@ import com.cloud.arch.rocket.idempotent.Idempotent;
 import com.cloud.arch.rocket.idempotent.IdempotentChecker;
 import com.cloud.arch.rocket.serializable.Serialize;
 import com.cloud.arch.rocket.utils.AnnotationUtils;
-import com.cloud.arch.rocket.utils.RocketOnsConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
@@ -63,10 +63,7 @@ public class ListenerMetadata {
 
         //消息tag解析校验,配置规则:不允许为空，不允许为'*',不允许包含'||'
         this.tag = resolver.resolveStringValue(listener.tag());
-        boolean tagValidated = StringUtils.isNotBlank(tag)
-                               && !RocketOnsConstants.ONS_ALL_TAG_REGEX.equals(this.tag)
-                               && !this.tag.contains(RocketOnsConstants.ONS_COMPOSITE_TAG_DELIMITER);
-        Assert.state(tagValidated, "请配置具有业务意义的消息tag.");
+        Assert.state(RocketmqUtils.isValidTag(tag), "请配置具有业务意义的消息tag.");
 
         //参数个数校验
         this.types = method.getParameterTypes();
@@ -75,8 +72,9 @@ public class ListenerMetadata {
         Annotation[][] annotations  = method.getParameterAnnotations();
         Integer        payloadIndex = AnnotationUtils.annotationIndex(annotations, Payload.class);
         payloadIndex = payloadIndex != null ? payloadIndex : 0;
-        if (!(ClassUtils.isAssignableValue(Serializable.class, types[payloadIndex])
-              && !ClassUtils.isAssignableValue(Message.class, types[payloadIndex]))) {
+        if (!(ClassUtils.isAssignableValue(Serializable.class, types[payloadIndex]) && !ClassUtils.isAssignableValue(
+                Message.class,
+                types[payloadIndex]))) {
             throw new IllegalArgumentException("消息内容参数必须实现Serializable接口，且不能为Message类.");
         }
         this.payloadIndex = payloadIndex;

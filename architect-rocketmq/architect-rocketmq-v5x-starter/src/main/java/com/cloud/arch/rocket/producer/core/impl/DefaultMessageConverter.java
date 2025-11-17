@@ -2,7 +2,7 @@ package com.cloud.arch.rocket.producer.core.impl;
 
 import com.cloud.arch.rocket.producer.core.MessageConverter;
 import com.cloud.arch.rocket.serializable.Serialize;
-import com.cloud.arch.rocket.utils.RocketmqConstants;
+import com.cloud.arch.rocket.utils.RocketmqUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.common.message.Message;
@@ -45,12 +45,12 @@ public class DefaultMessageConverter implements MessageConverter {
             message.setKeys(key);
         }
         if (!CollectionUtils.isEmpty(headers)) {
-            String keys = headers.get(RocketmqConstants.KEYS);
+            String keys = headers.get(RocketmqUtils.KEYS);
             if (StringUtils.isNotBlank(keys)) {
                 message.setKeys(keys);
             }
             int    flag    = 0;
-            String flagStr = Optional.ofNullable(headers.get(RocketmqConstants.FLAG)).orElse("0");
+            String flagStr = Optional.ofNullable(headers.get(RocketmqUtils.FLAG)).orElse("0");
             try {
                 flag = Integer.parseInt(flagStr);
             } catch (NumberFormatException e) {
@@ -59,12 +59,15 @@ public class DefaultMessageConverter implements MessageConverter {
                 }
             }
             message.setFlag(flag);
-            Boolean waitStoreOkStr = Optional.ofNullable(headers.get(RocketmqConstants.WAIT_STORE_MSG_OK))
-                                             .map(Boolean::valueOf).orElse(true);
+            Boolean waitStoreOkStr = Optional.ofNullable(headers.get(RocketmqUtils.WAIT_STORE_MSG_OK))
+                                             .map(Boolean::valueOf)
+                                             .orElse(true);
             message.setWaitStoreMsgOK(Boolean.TRUE.equals(waitStoreOkStr));
-            headers.entrySet().stream().filter(entry -> !Objects.equals(entry.getKey(), RocketmqConstants.FLAG)
-                                                        && !Objects.equals(entry.getKey(), RocketmqConstants.WAIT_STORE_MSG_OK)
-                                                        && !MessageConst.STRING_HASH_SET.contains(entry.getKey())) // exclude "FLAG", "WAIT_STORE_MSG_OK"
+            headers.entrySet()
+                   .stream()
+                   .filter(entry -> !Objects.equals(entry.getKey(), RocketmqUtils.FLAG)
+                           && !Objects.equals(entry.getKey(), RocketmqUtils.WAIT_STORE_MSG_OK)
+                           && !MessageConst.STRING_HASH_SET.contains(entry.getKey())) // exclude "FLAG", "WAIT_STORE_MSG_OK"
                    .forEach(entry -> message.putUserProperty(entry.getKey(), String.valueOf(entry.getValue())));
         }
         return message;
