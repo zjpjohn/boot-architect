@@ -25,9 +25,9 @@ import java.util.function.Function;
 public class LogContext {
 
     private final Object         target;
-    private final Method   method;
-    private final OpLog    annotation;
-    private final Class<?> targetClass;
+    private final Method         method;
+    private final OpLog          annotation;
+    private final Class<?>       targetClass;
     private final String         error;
     private final Long           takenTime;
     private final Integer        state;
@@ -49,6 +49,7 @@ public class LogContext {
     }
 
     public OperationLog buildLog(String appNo,
+                                 String tenantId,
                                  List<String> excludes,
                                  Function<Long, String> operator,
                                  Function<String, String> ipSearcher) {
@@ -56,6 +57,7 @@ public class LogContext {
         log.setAppNo(appNo);
         log.setState(state);
         log.setError(error);
+        log.setTenantId(tenantId);
         log.setTakenTime(takenTime);
         log.setType(annotation.type());
         log.setTitle(annotation.title());

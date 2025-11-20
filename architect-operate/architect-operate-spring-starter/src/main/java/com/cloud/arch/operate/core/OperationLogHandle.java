@@ -25,15 +25,18 @@ public class OperationLogHandle implements ConsumerListener<LogContext>, Environ
     private final OperateLogProperties properties;
     private final Ip2RegionSearcher    ipRegionSearcher;
     private final IOperatorResolver    operatorResolver;
+    private final ITenantResolver      tenantResolver;
 
     public OperationLogHandle(LogJdbcRepository repository,
                               OperateLogProperties properties,
                               Ip2RegionSearcher ipRegionSearcher,
-                              IOperatorResolver operatorResolver) {
+                              IOperatorResolver operatorResolver,
+                              ITenantResolver tenantResolver) {
         this.repository       = repository;
         this.properties       = properties;
         this.ipRegionSearcher = ipRegionSearcher;
         this.operatorResolver = operatorResolver;
+        this.tenantResolver   = tenantResolver;
     }
 
     @Override
@@ -44,7 +47,11 @@ public class OperationLogHandle implements ConsumerListener<LogContext>, Environ
             Map<Long, String> operator = operatorResolver.resolve(idList);
             List<String>      excludes = properties.excludeList();
             List<OperationLog> logList = contexts.stream()
-                                                 .map(context -> build(context, appNo, operator, excludes))
+                                                 .map(context -> build(context,
+                                                                       appNo,
+                                                                       tenantResolver.resolve(),
+                                                                       operator,
+                                                                       excludes))
                                                  .toList();
             this.repository.save(logList);
         } catch (Exception error) {
@@ -52,8 +59,12 @@ public class OperationLogHandle implements ConsumerListener<LogContext>, Environ
         }
     }
 
-    private OperationLog build(LogContext context, String appNo, Map<Long, String> operator, List<String> excludes) {
-        return context.buildLog(appNo, excludes, operator::get, this::locationResolve);
+    private OperationLog build(LogContext context,
+                               String appNo,
+                               String tenantId,
+                               Map<Long, String> operator,
+                               List<String> excludes) {
+        return context.buildLog(appNo, tenantId, excludes, operator::get, this::locationResolve);
     }
 
     private String locationResolve(String ip) {

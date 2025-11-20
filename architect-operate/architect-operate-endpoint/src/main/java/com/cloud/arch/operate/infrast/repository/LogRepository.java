@@ -23,7 +23,7 @@ import java.util.Map;
 public class LogRepository {
 
     private static final String LOG_SQL   = "select "
-            + "id,app_no,biz_group,title,type,target,method,req_uri,op_id,op_name,inet_ntoa(op_ip) as op_ip,op_location,state,params,error,taken_time,gmt_create "
+            + "id,app_no,tenant_id,biz_group,title,type,target,method,req_uri,op_id,op_name,inet_ntoa(op_ip) as op_ip,op_location,state,params,error,taken_time,gmt_create "
             + "from sys_oper_log ";
     private static final String COUNT_SQL = "select count(1) from sys_oper_log ";
 
@@ -77,6 +77,14 @@ public class LogRepository {
         String                whereSql  = "";
         MapSqlParameterSource source    = new MapSqlParameterSource();
         Map<String, Object>   condition = query.getCondition();
+        if (condition.get("tenantId") != null) {
+            whereSql += "and tenant_id=:tenantId ";
+            source.addValue("tenantId", condition.get("tenantId"));
+        }
+        if (condition.get("opId") != null) {
+            whereSql += "and op_id=:opId ";
+            source.addValue("opId", condition.get("opId"));
+        }
         if (condition.get("appNo") != null) {
             whereSql += "app_no=:appNo ";
             source.addValue("appNo", condition.get("appNo"));
@@ -96,10 +104,6 @@ public class LogRepository {
         if (condition.get("type") != null) {
             whereSql += "and type=:type ";
             source.addValue("type", condition.get("type"));
-        }
-        if (condition.get("opId") != null) {
-            whereSql += "and op_id=:opId ";
-            source.addValue("opId", condition.get("opId"));
         }
         if (condition.get("start") != null && condition.get("end") != null) {
             whereSql += "and gmt_create between :start and :end ";

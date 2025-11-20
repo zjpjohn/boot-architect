@@ -16,6 +16,10 @@ public class OperationLog {
      */
     private String        appNo;
     /**
+     * 租户标识
+     */
+    private String        tenantId;
+    /**
      * 操作业务分组
      */
     private String        bizGroup;

@@ -39,11 +39,22 @@ public class OperateLogConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(ITenantResolver.class)
+    public ITenantResolver tenantResolver() {
+        return new DefaultTenantResolver();
+    }
+
+    @Bean
     public OperationLogHandle operationLogHandle(OperateLogProperties properties,
                                                  LogJdbcRepository logJdbcRepository,
                                                  Ip2RegionSearcher ipRegionSearcher,
-                                                 IOperatorResolver operatorResolver) {
-        return new OperationLogHandle(logJdbcRepository, properties, ipRegionSearcher, operatorResolver);
+                                                 IOperatorResolver operatorResolver,
+                                                 ITenantResolver tenantResolver) {
+        return new OperationLogHandle(logJdbcRepository,
+                                      properties,
+                                      ipRegionSearcher,
+                                      operatorResolver,
+                                      tenantResolver);
     }
 
     @Bean

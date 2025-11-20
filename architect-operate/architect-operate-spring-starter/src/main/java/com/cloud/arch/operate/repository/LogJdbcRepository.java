@@ -12,8 +12,8 @@ import java.util.List;
 public class LogJdbcRepository {
 
     private static final String INSERT_SQL =
-            "insert into sys_oper_log(id,app_no,biz_group,title,type,target,method,req_uri,op_id,op_name,op_ip,op_location,state,params,error,taken_time,gmt_create) "
-                    + "values(:id,:appNo,:bizGroup,:title,:type,:target,:method,:reqUri,:opId,:opName,inet_aton(:opIp),:opLocation,:state,:params,:error,:takenTime,:gmtCreate)";
+            "insert into sys_oper_log(id,tenant_id,app_no,biz_group,title,type,target,method,req_uri,op_id,op_name,op_ip,op_location,state,params,error,taken_time,gmt_create) "
+                    + "values(:id,:tenantId,:appNo,:bizGroup,:title,:type,:target,:method,:reqUri,:opId,:opName,inet_aton(:opIp),:opLocation,:state,:params,:error,:takenTime,:gmtCreate)";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -30,6 +30,7 @@ public class LogJdbcRepository {
 
     public MapSqlParameterSource buildParameter(OperationLog log) {
         return new MapSqlParameterSource().addValue("id", IdWorker.nextId())
+                                          .addValue("tenantId", log.getTenantId())
                                           .addValue("appNo", log.getAppNo())
                                           .addValue("bizGroup", log.getBizGroup())
                                           .addValue("title", log.getTitle())

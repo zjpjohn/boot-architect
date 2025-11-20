@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 public class LogListQuery extends PageQuery {
 
+    private String    tenantId;
     private String    appNo;
     private String    bizGroup;
     private Integer   state;
