@@ -34,7 +34,7 @@ public class LogQueryService implements ILogQueryService {
     @Override
     public Page<OperationLog> logList(LogListQuery query) {
         if (properties.getTenantForce() && StringUtils.isBlank(query.getTenantId())) {
-            throw new ApiBizException(HttpStatus.BAD_REQUEST, 400, "租户参数为空");
+            throw new ApiBizException(HttpStatus.BAD_REQUEST, 400, "tenantId must not be null.");
         }
         return repository.queryList(query.from());
     }
