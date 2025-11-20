@@ -22,6 +22,7 @@ public enum OperateType implements Value<String> {
     UPLOAD("upload", "上传"),
     DOWNLOAD("download", "下载"),
     ISSUE("issue", "发布"),
+    ACTIVE("active", "激活"),
     CANCEL("cancel", "取消"),
     TAKE_UP("take_up", "上架"),
     TAKE_OFF("take_off", "下架"),

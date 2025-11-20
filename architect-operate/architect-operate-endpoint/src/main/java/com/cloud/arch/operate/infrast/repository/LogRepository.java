@@ -2,12 +2,11 @@ package com.cloud.arch.operate.infrast.repository;
 
 import com.cloud.arch.operate.core.OperateType;
 import com.cloud.arch.operate.core.OperationLog;
+import com.cloud.arch.page.Page;
 import com.cloud.arch.page.PageCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -37,76 +36,90 @@ public class LogRepository {
     public OperationLog query(Long id) {
         String                whereSql = "where id=:id";
         MapSqlParameterSource source   = new MapSqlParameterSource("id", id);
-        return jdbcTemplate.query(LOG_SQL + whereSql, source, new ResultSetExtractor<OperationLog>() {
-            @Override
-            public OperationLog extractData(ResultSet rs) throws SQLException, DataAccessException {
-                if (rs.next()) {
-                    return mapping(rs);
-                }
-                return null;
+        return jdbcTemplate.query(LOG_SQL + whereSql, source, rs -> {
+            if (rs.next()) {
+                return mapping(rs);
             }
+            return null;
         });
     }
 
-    public Integer count(PageCondition condition) {
-        Pair<String, MapSqlParameterSource> pair = condition(condition, true);
-        return jdbcTemplate.query(COUNT_SQL + pair.getKey(), pair.getRight(), new ResultSetExtractor<Integer>() {
-            @Override
-            public Integer extractData(ResultSet rs) throws SQLException, DataAccessException {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-                return 0;
+    public Page<OperationLog> queryList(PageCondition condition) {
+        Pair<String, MapSqlParameterSource> where = where(condition);
+        Integer                             count = countLogs(where);
+        Page<OperationLog>                  page  = new Page<>();
+        page.setTotal(count);
+        page.setCurrent(condition.getPage());
+        page.setPageSize(condition.getLimit());
+        if (count > 0) {
+            List<OperationLog> logs = logList(condition, where);
+            page.setRecords(logs);
+            page.setSize(logs.size());
+        }
+        return page;
+    }
+
+    private Integer countLogs(Pair<String, MapSqlParameterSource> where) {
+        return jdbcTemplate.query(COUNT_SQL + where.getKey(), where.getRight(), rs -> {
+            if (rs.next()) {
+                return rs.getInt(1);
             }
+            return 0;
         });
     }
 
-    public List<OperationLog> list(PageCondition condition) {
-        Pair<String, MapSqlParameterSource> pair = condition(condition, false);
-        return jdbcTemplate.query(LOG_SQL + pair.getKey(), pair.getRight(), (rs, rowNum) -> this.mapping(rs));
+    private List<OperationLog> logList(PageCondition condition, Pair<String, MapSqlParameterSource> where) {
+        Pair<String, MapSqlParameterSource> sqlSource = whereWithPageOrder(condition, where);
+        return jdbcTemplate.query(LOG_SQL + sqlSource.getKey(), sqlSource.getRight(), (rs, rowNum) -> this.mapping(rs));
     }
 
-    private Pair<String, MapSqlParameterSource> condition(PageCondition query, boolean count) {
+    private Pair<String, MapSqlParameterSource> where(PageCondition query) {
         String                whereSql  = "";
         MapSqlParameterSource source    = new MapSqlParameterSource();
         Map<String, Object>   condition = query.getCondition();
         if (condition.get("appNo") != null) {
             whereSql += "app_no=:appNo ";
-            source.addValue(":appNo", condition.get("appNo"));
+            source.addValue("appNo", condition.get("appNo"));
         }
         if (condition.get("bizGroup") != null) {
             whereSql += "and biz_group=:bizGroup ";
-            source.addValue(":bizGroup", condition.get("bizGroup"));
+            source.addValue("bizGroup", condition.get("bizGroup"));
         }
         if (condition.get("title") != null) {
             whereSql += "and title=:title ";
-            source.addValue(":title", condition.get("title"));
+            source.addValue("title", condition.get("title"));
         }
         if (condition.get("state") != null) {
             whereSql += "and state=:state ";
-            source.addValue(":state", condition.get("state"));
+            source.addValue("state", condition.get("state"));
         }
         if (condition.get("type") != null) {
             whereSql += "and type=:type ";
-            source.addValue(":type", condition.get("type"));
+            source.addValue("type", condition.get("type"));
         }
         if (condition.get("opId") != null) {
             whereSql += "and op_id=:opId ";
-            source.addValue(":opId", condition.get("opId"));
+            source.addValue("opId", condition.get("opId"));
         }
         if (condition.get("start") != null && condition.get("end") != null) {
             whereSql += "and gmt_create between :start and :end ";
-            source.addValue(":start", condition.get("start")).addValue(":end", condition.get("end"));
+            source.addValue("start", condition.get("start")).addValue("end", condition.get("end"));
         }
         if (StringUtils.isNotBlank(whereSql)) {
             if (whereSql.startsWith("and")) {
                 whereSql = whereSql.replaceFirst("and", "");
             }
             whereSql = " where " + whereSql;
-        } else if (!count) {
-            source.addValue("limit", query.getLimit()).addValue("offset", query.getOffset());
-            whereSql = "order by gmt_create desc limit :offset,:limit";
         }
+        return Pair.of(whereSql, source);
+    }
+
+    private Pair<String, MapSqlParameterSource> whereWithPageOrder(PageCondition query,
+                                                                   Pair<String, MapSqlParameterSource> pair) {
+        String                whereSql = pair.getKey();
+        MapSqlParameterSource source   = pair.getValue();
+        source.addValue("limit", query.getLimit()).addValue("offset", query.getOffset());
+        whereSql = whereSql + " order by gmt_create desc limit :offset,:limit";
         return Pair.of(whereSql, source);
     }
 
@@ -132,4 +145,5 @@ public class LogRepository {
         log.setGmtCreate(rs.getObject("gmt_create", LocalDateTime.class));
         return log;
     }
+
 }

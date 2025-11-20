@@ -26,7 +26,7 @@ public class LogQueryService implements ILogQueryService {
 
     @Override
     public Page<OperationLog> logList(LogListQuery query) {
-        return query.from().count(repository::count).query(repository::list);
+        return repository.queryList(query.from());
     }
 
 }
