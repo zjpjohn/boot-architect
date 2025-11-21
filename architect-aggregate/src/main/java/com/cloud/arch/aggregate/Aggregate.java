@@ -235,9 +235,9 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     }
 
     @SuppressWarnings("unchecked")
-    public <I extends Serializable, T extends AggregateRoot<I>> Optional<T> changedEntity(Function<R, T> getEntity) {
-        T        newEntity   = getEntity.apply(root);
-        T        oldEntity   = getEntity.apply(snapshot);
+    public <I extends Serializable, T extends Entity<I>> Optional<T> changedEntity(Function<R, T> loader) {
+        T        newEntity   = loader.apply(root);
+        T        oldEntity   = loader.apply(snapshot);
         Class<T> entityClass = (Class<T>) newEntity.getClass();
         try {
             T                 result  = newInstance(entityClass);
@@ -254,8 +254,8 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
                 }
             }
             if (changed) {
-                result.setVersion(newEntity.getVersion());
                 result.setId(newEntity.getId());
+                result.setVersion(newEntity.getVersion());
                 return Optional.of(result);
             }
         } catch (Exception error) {
