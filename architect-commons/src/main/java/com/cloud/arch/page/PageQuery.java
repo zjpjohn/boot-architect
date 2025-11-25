@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Data
 public class PageQuery implements Serializable {
-    
+
     public static final String PAGE_KEY  = "page";
     public static final String LIMIT_KEY = "limit";
 
@@ -26,8 +26,8 @@ public class PageQuery implements Serializable {
     @Range(min = 1, max = 1000, message = "page size range in 1-1000")
     private Integer limit = 10;
 
-    public PageCondition from() {
-        final PageCondition condition = new PageCondition();
+    public PageWrapper from() {
+        PageCondition condition = new PageCondition();
         condition.setPage(page);
         condition.setLimit(limit);
         List<Field> fields = this.getFields();
@@ -39,7 +39,7 @@ public class PageQuery implements Serializable {
                 condition.setParam(key, value);
             }
         });
-        return condition;
+        return new PageWrapper(condition);
     }
 
     private List<Field> getFields() {

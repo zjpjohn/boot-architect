@@ -27,20 +27,6 @@ public class Page<T> implements Serializable {
     private List<T> records = Collections.emptyList();
 
     /**
-     * 分页结果数据构造
-     *
-     * @param condition     分页查询条件
-     * @param countFunction total操作函数 {@link Function}
-     * @param dataFunction  data查询操作 {@link Function}
-     * @return 返回分页数据
-     */
-    public static <E> Page<E> wrapper(PageCondition condition,
-                                      Function<PageCondition, Integer> countFunction,
-                                      Function<PageCondition, List<E>> dataFunction) {
-        return PageWrapper.wrap(condition, countFunction).query(dataFunction);
-    }
-
-    /**
      * 空分页信息
      *
      * @param limit 分页数据

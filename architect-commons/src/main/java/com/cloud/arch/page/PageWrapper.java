@@ -5,46 +5,41 @@ import java.util.function.Function;
 
 public class PageWrapper {
 
-    private PageCondition condition;
-    private Integer       total;
-    private boolean       needCount;
+    private final PageCondition                    condition;
+    private       Function<PageCondition, Integer> counter;
 
-    private PageWrapper() {
+    public PageWrapper(PageCondition condition) {
+        this.condition = condition;
+
     }
 
-    public static PageWrapper wrap(PageCondition condition) {
-        PageWrapper cnt = new PageWrapper();
-        cnt.condition = condition;
-        cnt.total     = 0;
-        cnt.needCount = false;
-        return cnt;
+    public PageWrapper count(Function<PageCondition, Integer> counter) {
+        this.counter = counter;
+        return this;
     }
 
-    public static PageWrapper wrap(PageCondition condition, Function<PageCondition, Integer> counter) {
-        PageWrapper cnt = new PageWrapper();
-        cnt.total     = counter.apply(condition);
-        cnt.condition = condition;
-        cnt.needCount = true;
-        return cnt;
-    }
-
-    public <T> Page<T> query(Function<PageCondition, List<T>> dataFunc) {
+    public <T> Page<T> query(Function<PageCondition, List<T>> dataLoader) {
         Page<T> page = new Page<>();
         page.setCurrent(this.condition.getPage());
         page.setPageSize(this.condition.getLimit());
-        if (!this.needCount) {
-            List<T> records = dataFunc.apply(condition);
+        if (this.counter == null) {
+            List<T> records = dataLoader.apply(condition);
             page.setRecords(records);
             page.setSize(records.size());
             return page;
         }
-        page.setTotal(this.total);
-        if (this.total > 0 && condition.getOffset() <= this.total) {
-            List<T> records = dataFunc.apply(condition);
+        int total = this.counter.apply(condition);
+        page.setTotal(total);
+        if (total > 0 && condition.getOffset() <= total) {
+            List<T> records = dataLoader.apply(condition);
             page.setRecords(records);
             page.setSize(records.size());
         }
         return page;
+    }
+
+    public <T> List<T> list(Function<PageCondition, List<T>> dataLoader) {
+        return dataLoader.apply(this.condition);
     }
 
 }

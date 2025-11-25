@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.cloud.arch.utils.CollectionUtils;
 import lombok.Setter;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import java.util.function.Predicate;
 
 public class Pager<T> implements IPage<T> {
 
+    @Serial
     private static final long serialVersionUID = 8545996863226528798L;
 
     /**

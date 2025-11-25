@@ -76,20 +76,6 @@ public class PageCondition implements Serializable {
     }
 
     /**
-     * 带count分页查询
-     */
-    public PageWrapper count(Function<PageCondition, Integer> counter) {
-        return PageWrapper.wrap(this, counter);
-    }
-
-    /**
-     * 不带count分页查询
-     */
-    public <T> Page<T> query(Function<PageCondition, List<T>> loader) {
-        return PageWrapper.wrap(this).query(loader);
-    }
-
-    /**
      * 分页仅返回数据列表
      */
     public <T> List<T> list(Function<PageCondition, List<T>> query) {
