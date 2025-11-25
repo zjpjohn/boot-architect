@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -144,6 +145,14 @@ public class LambdaQuery<T> extends AbstractLambdaWrapper<T, LambdaQuery<T>>
     }
 
     /**
+     * 查询单条数据
+     *
+     */
+    public Optional<T> oneNullable(Function<LambdaQuery<T>, T> loader) {
+        return Optional.ofNullable(loader.apply(this));
+    }
+
+    /**
      * 查询列表
      */
     public List<T> list(Function<LambdaQuery<T>, List<T>> loader) {
@@ -151,10 +160,18 @@ public class LambdaQuery<T> extends AbstractLambdaWrapper<T, LambdaQuery<T>>
     }
 
     /**
+     * 分页查询
+     */
+    public PagerWrapper<T> page(Integer current, Integer size) {
+        Pager<T> page = Pager.of(current, size);
+        return new PagerWrapper<>(page, this);
+    }
+
+    /**
      * 分页查询构造
      */
-    public PageWrapper<T> page(Page<T> page) {
-        return new PageWrapper<>(page, this);
+    public PagerWrapper<T> page(Pager<T> page) {
+        return new PagerWrapper<>(page, this);
     }
 
     public static <E> LambdaQuery<E> from() {

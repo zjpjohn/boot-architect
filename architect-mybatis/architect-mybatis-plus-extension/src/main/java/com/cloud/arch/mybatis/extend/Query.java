@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.toolkit.sql.SqlInjectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -154,6 +155,14 @@ public class Query<T> extends AbstractWrapper<T, String, Query<T>>
     }
 
     /**
+     * 查询单条数据
+     *
+     */
+    public Optional<T> oneNullable(Function<Query<T>, T> loader) {
+        return Optional.ofNullable(loader.apply(this));
+    }
+
+    /**
      * 查询列表
      */
     public List<T> list(Function<Query<T>, List<T>> loader) {
@@ -161,10 +170,18 @@ public class Query<T> extends AbstractWrapper<T, String, Query<T>>
     }
 
     /**
+     * 分页查询
+     */
+    public PagerWrapper<T> page(Integer current, Integer size) {
+        Pager<T> page = Pager.of(current, size);
+        return new PagerWrapper<>(page, this);
+    }
+
+    /**
      * 分页查询构造
      */
-    public PageWrapper<T> page(Page<T> page) {
-        return new PageWrapper<>(page, this);
+    public PagerWrapper<T> page(Pager<T> page) {
+        return new PagerWrapper<>(page, this);
     }
 
 

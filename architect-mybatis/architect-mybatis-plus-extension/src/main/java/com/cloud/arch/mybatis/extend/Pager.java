@@ -13,7 +13,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class Page<T> implements IPage<T> {
+public class Pager<T> implements IPage<T> {
+
     private static final long serialVersionUID = 8545996863226528798L;
 
     /**
@@ -65,7 +66,7 @@ public class Page<T> implements IPage<T> {
     @Setter
     private String  countId;
 
-    public Page() {
+    public Pager() {
     }
 
     /**
@@ -74,19 +75,19 @@ public class Page<T> implements IPage<T> {
      * @param current 当前页
      * @param size    每页显示条数
      */
-    public Page(long current, long size) {
+    public Pager(long current, long size) {
         this(current, size, 0);
     }
 
-    public Page(long current, long size, long total) {
+    public Pager(long current, long size, long total) {
         this(current, size, total, true);
     }
 
-    public Page(long current, long size, boolean searchCount) {
+    public Pager(long current, long size, boolean searchCount) {
         this(current, size, 0, searchCount);
     }
 
-    public Page(long current, long size, long total, boolean searchCount) {
+    public Pager(long current, long size, long total, boolean searchCount) {
         if (current > 1) {
             this.current = current;
         }
@@ -119,7 +120,7 @@ public class Page<T> implements IPage<T> {
     }
 
     @Override
-    public Page<T> setRecords(List<T> records) {
+    public Pager<T> setRecords(List<T> records) {
         this.records = records;
         return this;
     }
@@ -130,7 +131,7 @@ public class Page<T> implements IPage<T> {
     }
 
     @Override
-    public Page<T> setTotal(long total) {
+    public Pager<T> setTotal(long total) {
         this.total = total;
         return this;
     }
@@ -141,7 +142,7 @@ public class Page<T> implements IPage<T> {
     }
 
     @Override
-    public Page<T> setSize(long size) {
+    public Pager<T> setSize(long size) {
         this.size = size;
         return this;
     }
@@ -152,7 +153,7 @@ public class Page<T> implements IPage<T> {
     }
 
     @Override
-    public Page<T> setCurrent(long current) {
+    public Pager<T> setCurrent(long current) {
         this.current = current;
         return this;
     }
@@ -170,8 +171,8 @@ public class Page<T> implements IPage<T> {
     /**
      * page分页数据转换
      */
-    public <V> Page<V> map(Function<T, V> converter) {
-        Page<V> page = Page.of(this.current, this.size, this.total);
+    public <V> Pager<V> map(Function<T, V> converter) {
+        Pager<V> page = Pager.of(this.current, this.size, this.total);
         if (this.total > 0) {
             List<V> list = this.records.stream().map(converter).toList();
             page.setRecords(list);
@@ -182,8 +183,8 @@ public class Page<T> implements IPage<T> {
     /**
      * page分页数据转换
      */
-    public <V> Page<V> flatMap(Function<List<T>, List<V>> converter) {
-        Page<V> page = Page.of(this.current, this.size, this.total);
+    public <V> Pager<V> flatMap(Function<List<T>, List<V>> converter) {
+        Pager<V> page = Pager.of(this.current, this.size, this.total);
         if (this.total > 0) {
             page.setRecords(converter.apply(this.records));
         }
@@ -195,7 +196,7 @@ public class Page<T> implements IPage<T> {
      *
      * @param consumer 消费处理器
      */
-    public Page<T> ifPresent(Consumer<List<T>> consumer) {
+    public Pager<T> ifPresent(Consumer<List<T>> consumer) {
         if (CollectionUtils.isNotEmpty(this.records)) {
             consumer.accept(this.records);
         }
@@ -237,7 +238,7 @@ public class Page<T> implements IPage<T> {
      * @param items 条件
      * @return 返回分页参数本身
      */
-    public Page<T> addOrder(OrderItem... items) {
+    public Pager<T> addOrder(OrderItem... items) {
         orders.addAll(Arrays.asList(items));
         return this;
     }
@@ -248,7 +249,7 @@ public class Page<T> implements IPage<T> {
      * @param items 条件
      * @return 返回分页参数本身
      */
-    public Page<T> addOrder(List<OrderItem> items) {
+    public Pager<T> addOrder(List<OrderItem> items) {
         orders.addAll(items);
         return this;
     }
@@ -263,8 +264,8 @@ public class Page<T> implements IPage<T> {
         return optimizeCountSql;
     }
 
-    public static <T> Page<T> of(long current, long size, long total, boolean searchCount) {
-        return new Page<>(current, size, total, searchCount);
+    public static <T> Pager<T> of(long current, long size, long total, boolean searchCount) {
+        return new Pager<>(current, size, total, searchCount);
     }
 
     @Override
@@ -272,32 +273,26 @@ public class Page<T> implements IPage<T> {
         return optimizeJoinOfCountSql;
     }
 
-    public Page<T> setSearchCount(boolean searchCount) {
+    public Pager<T> setSearchCount(boolean searchCount) {
         this.searchCount = searchCount;
         return this;
     }
 
-    public Page<T> setOptimizeCountSql(boolean optimizeCountSql) {
+    public Pager<T> setOptimizeCountSql(boolean optimizeCountSql) {
         this.optimizeCountSql = optimizeCountSql;
         return this;
     }
-
-    @Override
-    public long getPages() {
-        // 解决 github issues/3208
-        return IPage.super.getPages();
-    }
-
+    
     /* --------------- 以下为静态构造方式 --------------- */
-    public static <T> Page<T> of(long current, long size) {
+    public static <T> Pager<T> of(long current, long size) {
         return of(current, size, 0);
     }
 
-    public static <T> Page<T> of(long current, long size, long total) {
+    public static <T> Pager<T> of(long current, long size, long total) {
         return of(current, size, total, true);
     }
 
-    public static <T> Page<T> of(long current, long size, boolean searchCount) {
+    public static <T> Pager<T> of(long current, long size, boolean searchCount) {
         return of(current, size, 0, searchCount);
     }
 
