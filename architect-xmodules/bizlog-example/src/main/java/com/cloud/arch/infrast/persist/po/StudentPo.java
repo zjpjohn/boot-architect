@@ -16,6 +16,8 @@ public class StudentPo {
     private Integer       age;
     private Integer       classId;
     private Gender        gender;
+    @Version
+    private Integer       version;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime gmtCreate;
     @TableField(fill = FieldFill.INSERT_UPDATE)

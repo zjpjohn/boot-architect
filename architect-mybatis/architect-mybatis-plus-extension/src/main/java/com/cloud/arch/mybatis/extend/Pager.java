@@ -204,6 +204,18 @@ public class Pager<T> implements IPage<T> {
     }
 
     /**
+     * 处理每一个元素
+     *
+     * @param consumer 消费处理
+     */
+    public Pager<T> forEach(Consumer<T> consumer) {
+        if (CollectionUtils.isNotEmpty(this.records)) {
+            this.records.forEach(consumer);
+        }
+        return this;
+    }
+
+    /**
      * 查找 order 中正序排序的字段数组
      *
      * @param filter 过滤器
@@ -282,7 +294,7 @@ public class Pager<T> implements IPage<T> {
         this.optimizeCountSql = optimizeCountSql;
         return this;
     }
-    
+
     /* --------------- 以下为静态构造方式 --------------- */
     public static <T> Pager<T> of(long current, long size) {
         return of(current, size, 0);
