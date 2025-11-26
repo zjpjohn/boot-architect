@@ -168,6 +168,14 @@ public class LambdaQuery<T> extends AbstractLambdaWrapper<T, LambdaQuery<T>>
     }
 
     /**
+     * 分页查询
+     */
+    public PagerWrapper<T> page(Integer current, Integer size, boolean searchCount) {
+        Pager<T> page = Pager.of(current, size, searchCount);
+        return new PagerWrapper<>(page, this);
+    }
+
+    /**
      * 分页查询构造
      */
     public PagerWrapper<T> page(Pager<T> page) {

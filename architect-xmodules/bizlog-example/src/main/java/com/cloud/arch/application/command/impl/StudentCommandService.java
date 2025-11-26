@@ -8,6 +8,7 @@ import com.cloud.arch.infrast.persist.mapper.StudentMapper;
 import com.cloud.arch.infrast.persist.po.StudentPo;
 import com.cloud.arch.mybatis.extend.LambdaQuery;
 import com.cloud.arch.mybatis.extend.Pager;
+import com.cloud.arch.page.Page;
 import com.cloud.arch.page.PageQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,14 @@ public class StudentCommandService implements IStudentCommandService {
     public Pager<StudentPo> getStudentList(PageQuery query) {
         return LambdaQuery.from(StudentPo.class)
                           .orderByDesc(StudentPo::getGmtCreate)
+                          .page(query.getPage(), query.getLimit())
+                          .pagerList(mapper::selectPage);
+    }
+
+    @Override
+    public Page<StudentPo> getStudents(PageQuery query) {
+        return LambdaQuery.<StudentPo>from()
+                          .orderByAsc(StudentPo::getGmtCreate)
                           .page(query.getPage(), query.getLimit())
                           .pageList(mapper::selectPage);
     }

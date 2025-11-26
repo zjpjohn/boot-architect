@@ -1,6 +1,7 @@
 package com.cloud.arch.page;
 
 import com.google.common.collect.Maps;
+import lombok.Getter;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -8,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+@Getter
 public class PageCondition implements Serializable {
 
-    private static final long serialVersionUID = -2061071494603748487L;
+    private final Map<String, Object> condition = Maps.newHashMap();
 
     private int limit  = 10;
     private int offset = 0;
     private int page   = 1;
 
-    private final Map<String, Object> condition = Maps.newHashMap();
 
     public static PageCondition build() {
         return new PageCondition();
@@ -26,31 +27,12 @@ public class PageCondition implements Serializable {
         return new PageCondition().setLimit(limit);
     }
 
-    public int getLimit() {
-        return limit;
-    }
-
     public PageCondition setLimit(int limit) {
         if (limit > 0) {
             this.limit  = limit;
             this.offset = (this.page - 1) * limit;
         }
         return this;
-    }
-
-    public int getOffset() {
-        return offset;
-    }
-
-    public PageCondition setOffset(int offset) {
-        if (offset >= 0) {
-            this.offset = offset;
-        }
-        return this;
-    }
-
-    public int getPage() {
-        return page;
     }
 
     public PageCondition setPage(int page) {

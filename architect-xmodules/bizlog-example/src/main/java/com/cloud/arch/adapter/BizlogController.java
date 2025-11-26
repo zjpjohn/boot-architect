@@ -4,6 +4,7 @@ import com.cloud.arch.application.command.IStudentCommandService;
 import com.cloud.arch.application.command.dto.StudentCreateCmd;
 import com.cloud.arch.infrast.persist.po.StudentPo;
 import com.cloud.arch.mybatis.extend.Pager;
+import com.cloud.arch.page.Page;
 import com.cloud.arch.page.PageQuery;
 import com.cloud.arch.web.annotation.ApiBody;
 import jakarta.validation.constraints.NotBlank;
@@ -39,4 +40,10 @@ public class BizlogController {
     public Pager<StudentPo> students(@Validated PageQuery query) {
         return studentCommandService.getStudentList(query);
     }
+
+    @GetMapping("/page")
+    public Page<StudentPo> studentList(@Validated PageQuery query) {
+        return studentCommandService.getStudents(query);
+    }
+
 }

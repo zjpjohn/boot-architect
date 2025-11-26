@@ -2,6 +2,7 @@ package com.cloud.arch.mybatis.extend;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.cloud.arch.page.Page;
 import com.cloud.arch.utils.CollectionUtils;
 import lombok.Setter;
 
@@ -96,6 +97,17 @@ public class Pager<T> implements IPage<T> {
         this.size        = size;
         this.total       = total;
         this.searchCount = searchCount;
+    }
+
+    /**
+     * 将mybatis-plus Pager分页对象转换为外部通用的Page
+     */
+    public Page<T> transform() {
+        Page<T> page = new Page<>();
+        page.setRecords(records);
+        page.setPageSize(this.size);
+        page.setTotal(this.total);
+        return page;
     }
 
     /**

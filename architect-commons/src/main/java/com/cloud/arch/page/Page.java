@@ -16,15 +16,23 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class Page<T> implements Serializable {
 
-    private int total = 0;
+    //查询总数据量
+    private long    total    = 0;
+    //当前页码
+    private long    current  = 1;
+    //每页数据量
+    private long    pageSize = 10;
+    //当前页数量
+    private long    size     = 0;
+    //当前页数据
+    private List<T> records  = Collections.emptyList();
 
-    private int current = 1;
-
-    private int pageSize = 10;
-
-    private int size = 0;
-
-    private List<T> records = Collections.emptyList();
+    public void setRecords(List<T> records) {
+        this.records = records;
+        if (CollectionUtils.isNotEmpty(this.records)) {
+            this.size = records.size();
+        }
+    }
 
     /**
      * 空分页信息
