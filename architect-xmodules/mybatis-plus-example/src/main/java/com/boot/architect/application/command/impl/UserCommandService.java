@@ -8,7 +8,7 @@ import com.boot.architect.application.command.dto.UserListQuery;
 import com.boot.architect.infrast.persist.mapper.UserMapper;
 import com.boot.architect.infrast.persist.po.UserPo;
 import com.cloud.arch.annotation.RptCheck;
-import com.cloud.arch.mybatis.extend.Query;
+import com.cloud.arch.mybatis.extend.LambdaQuery;
 import com.cloud.arch.page.Pager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +31,14 @@ public class UserCommandService implements IUserCommandService {
 
     @Override
     public void editUser(UserEditCmd command) {
-        UserPo user = mapper.selectOneById(command.getId());
+        UserPo user = mapper.selectById(command.getId());
         if (user != null) {
             UserPo newUser = new UserPo();
             newUser.setId(user.getId());
             newUser.setName(command.getName());
             newUser.setNickname(command.getNickname());
             newUser.setVersion(user.getVersion());
-            mapper.update(user, true);
+            mapper.updateById(user);
         }
     }
 
@@ -49,20 +49,20 @@ public class UserCommandService implements IUserCommandService {
 
     @Override
     public UserPo getUser(String name) {
-        return Query.of(mapper).eq(UserPo::getName, name).one();
+        return LambdaQuery.of(mapper).eq(UserPo::getName, name).one();
     }
 
     @Override
     public UserPo getUser(Long id) {
-        return mapper.selectOneById(id);
+        return mapper.selectById(id);
     }
 
     @Override
     public Pager<UserPo> userList(UserListQuery query) {
-        return Query.of(mapper)
-                    .eq(UserPo::getName, query.getName())
-                    .eq(UserPo::getGender, query.getGender())
-                    .pager(query.getPage(), query.getLimit());
+        return LambdaQuery.of(mapper)
+                          .eq(UserPo::getName, query.getName())
+                          .eq(UserPo::getGender, query.getGender())
+                          .pager(query.getPage(), query.getLimit());
     }
 
 }

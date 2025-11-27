@@ -6,6 +6,7 @@ import com.cloud.arch.web.error.ApiBizException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 import static com.cloud.arch.support.RptCheckRepository.REPEAT_CONSTRAINT_SQL;
 import static com.cloud.arch.support.RptCheckRepository.REPEAT_SQL;
 
+@Slf4j
 @Getter
 public class RptMetadata {
 
@@ -35,7 +37,7 @@ public class RptMetadata {
         Preconditions.checkState(StringUtils.isNotBlank(this.table), "数据表名为空");
         Preconditions.checkState(StringUtils.isNotBlank(this.column), "数据字段为空");
         this.message     = annotation.message();
-        this.constraints = Splitter.on(",").trimResults().splitToList(annotation.constraints());
+        this.constraints = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(annotation.constraints());
         this.sql         = this.constraint();
     }
 
@@ -46,7 +48,7 @@ public class RptMetadata {
         field.setAccessible(true);
         try {
             Object value = field.get(target);
-            if (notNull(value)) {
+            if (nonNull(value)) {
                 return new RptFieldValue(this, value);
             }
             return null;
@@ -58,17 +60,18 @@ public class RptMetadata {
     /**
      * 对校验参数进行校验
      */
-    public Map<String, Object> checkConstraints(Map<String, Object> params) {
+    public Map<String, Object> checkConstraints(Map<String, Object> constraintValue) {
         if (CollectionUtils.isEmpty(this.constraints)) {
             return Collections.emptyMap();
         }
-        if (CollectionUtils.isEmpty(params)) {
+        if (CollectionUtils.isEmpty(constraintValue)) {
             throw new ApiBizException(HttpStatus.INTERNAL_SERVER_ERROR, 500, "重复校验配置错误，请确认配置.");
         }
-        Map<String, Object> newParams = params.entrySet()
-                                              .stream()
-                                              .filter(entry -> this.constraints.contains(entry.getKey()))
-                                              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Object> newParams = constraintValue.entrySet()
+                                                       .stream()
+                                                       .filter(entry -> this.constraints.contains(entry.getKey()))
+                                                       .collect(Collectors.toMap(Map.Entry::getKey,
+                                                                                 Map.Entry::getValue));
         if (newParams.size() < this.constraints.size()) {
             throw new ApiBizException(HttpStatus.INTERNAL_SERVER_ERROR, 500, "重复校验配置错误，请确认配置.");
         }
@@ -90,7 +93,7 @@ public class RptMetadata {
     }
 
 
-    private boolean notNull(Object value) {
+    public static boolean nonNull(Object value) {
         if (value instanceof String target) {
             return StringUtils.isNotBlank(target);
         }

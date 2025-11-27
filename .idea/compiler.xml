@@ -96,6 +96,7 @@
         <module name="architect-operate-endpoint" />
         <module name="architect-scheduler-dispatcher" />
         <module name="architect-mybatis-commons" />
+        <module name="mybatis-plus-example" />
         <module name="idempotent-example" />
         <module name="multi-redis-example" />
         <module name="architect-token-support" />
@@ -253,6 +254,7 @@
       <module name="idempotent-example" options="-parameters" />
       <module name="multi-redis-example" options="-parameters" />
       <module name="mybatis-flex-example" options="-parameters" />
+      <module name="mybatis-plus-example" options="-parameters" />
       <module name="web-example" options="-parameters" />
     </option>
   </component>

@@ -3,6 +3,7 @@ package com.cloud.arch.support;
 import com.cloud.arch.annotation.RptField;
 import com.cloud.arch.utils.CollectionUtils;
 import com.google.common.collect.Maps;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -16,7 +17,7 @@ public class RptMetadataContainer {
     /**
      * 计算指定对象校验重复字段信息
      */
-    public static List<RptFieldValue> compute(Object target) {
+    public static List<RptFieldValue> compute(@NonNull Object target) {
         List<RptMetadata> metaList = getMetaList(target);
         if (CollectionUtils.isEmpty(metaList)) {
             return Collections.emptyList();

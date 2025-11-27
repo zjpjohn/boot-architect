@@ -26,6 +26,7 @@
         <module>idempotent-example</module>
         <module>bizlog-example</module>
         <module>mybatis-flex-example</module>
+        <module>mybatis-plus-example</module>
     </modules>
 
     <dependencyManagement>

@@ -2,7 +2,6 @@ package com.cloud.arch.support;
 
 import com.cloud.arch.web.error.ApiBizException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -36,7 +35,7 @@ public class RptCheckRepository {
      * 带约束字段的重复校验
      */
     public void check(Object target, Map<String, Object> constraint) {
-        if (noneNull(target)) {
+        if (!RptMetadata.nonNull(target)) {
             return;
         }
         List<RptFieldValue> valueList = RptMetadataContainer.compute(target);
@@ -67,13 +66,6 @@ public class RptCheckRepository {
             return 0;
         });
         return exist != null && exist > 0;
-    }
-
-    private boolean noneNull(Object target) {
-        if (target instanceof String str) {
-            return StringUtils.isNotBlank(str);
-        }
-        return target != null;
     }
 
 }
