@@ -4,7 +4,7 @@ package com.cloud.arch.operate.adapter;
 import com.cloud.arch.operate.application.ILogQueryService;
 import com.cloud.arch.operate.application.dto.LogListQuery;
 import com.cloud.arch.operate.core.OperationLog;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import com.cloud.arch.web.annotation.ApiBody;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class OperLogController {
     }
 
     @GetMapping("/list")
-    public Page<OperationLog> logList(@Validated LogListQuery query) {
+    public Pager<OperationLog> logList(@Validated LogListQuery query) {
         return logQueryService.logList(query);
     }
 

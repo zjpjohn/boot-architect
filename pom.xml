@@ -115,16 +115,16 @@
                             <artifactId>mapstruct-processor</artifactId>
                             <version>1.6.3</version>
                         </path>
-                        <dependency>
+                        <path>
                             <groupId>org.atteo.classindex</groupId>
                             <artifactId>classindex</artifactId>
                             <version>3.13</version>
-                        </dependency>
-                        <dependency>
+                        </path>
+                        <path>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-configuration-processor</artifactId>
                             <version>3.5.5</version>
-                        </dependency>
+                        </path>
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>

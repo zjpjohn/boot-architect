@@ -3,23 +3,21 @@ package com.cloud.arch.page;
 import java.util.List;
 import java.util.function.Function;
 
-public class PageWrapper {
+public class PagerWrapper {
 
-    private final PageCondition                    condition;
-    private       Function<PageCondition, Integer> counter;
+    private final PageCondition                   condition;
+    private       Function<PageCondition, Number> counter;
 
-    public PageWrapper(PageCondition condition) {
+    public PagerWrapper(PageCondition condition) {
         this.condition = condition;
-
     }
 
-    public PageWrapper count(Function<PageCondition, Integer> counter) {
+    public void counter(Function<PageCondition, Number> counter) {
         this.counter = counter;
-        return this;
     }
 
-    public <T> Page<T> query(Function<PageCondition, List<T>> dataLoader) {
-        Page<T> page = new Page<>();
+    public <T> Pager<T> query(Function<PageCondition, List<T>> dataLoader) {
+        Pager<T> page = new Pager<>();
         page.setCurrent(this.condition.getPage());
         page.setPageSize(this.condition.getLimit());
         if (this.counter == null) {
@@ -28,7 +26,7 @@ public class PageWrapper {
             page.setSize(records.size());
             return page;
         }
-        int total = this.counter.apply(condition);
+        long total = this.counter.apply(condition).longValue();
         page.setTotal(total);
         if (total > 0 && condition.getOffset() <= total) {
             List<T> records = dataLoader.apply(condition);

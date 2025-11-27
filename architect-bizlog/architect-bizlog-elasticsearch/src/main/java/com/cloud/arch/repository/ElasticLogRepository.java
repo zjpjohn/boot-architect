@@ -9,7 +9,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.cloud.arch.client.ElasticSearchProperties;
 import com.cloud.arch.core.LogPageQuery;
 import com.cloud.arch.core.LogRecord;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,11 +56,11 @@ public class ElasticLogRepository implements ILogRepository {
     }
 
     @Override
-    public Page<LogRecord> queryPage(LogPageQuery query) {
+    public Pager<LogRecord> queryPage(LogPageQuery query) {
         try {
-            List<Query>     queries = buildQuery(query);
-            long            total   = client.count(c -> c.query(q -> q.bool(b -> b.must(queries)))).count();
-            Page<LogRecord> page    = new Page<>();
+            List<Query>      queries = buildQuery(query);
+            long             total   = client.count(c -> c.query(q -> q.bool(b -> b.must(queries)))).count();
+            Pager<LogRecord> page    = new Pager<>();
             page.setTotal((int) total);
             page.setCurrent(query.getPage());
             page.setPageSize(query.getLimit());

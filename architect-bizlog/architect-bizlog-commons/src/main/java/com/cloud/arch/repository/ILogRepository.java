@@ -3,7 +3,7 @@ package com.cloud.arch.repository;
 
 import com.cloud.arch.core.LogPageQuery;
 import com.cloud.arch.core.LogRecord;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 
 import java.util.List;
 
@@ -13,6 +13,6 @@ public interface ILogRepository {
 
     List<LogRecord> ofBizNo(String bizNo);
 
-    Page<LogRecord> queryPage(LogPageQuery query);
+    Pager<LogRecord> queryPage(LogPageQuery query);
 
 }

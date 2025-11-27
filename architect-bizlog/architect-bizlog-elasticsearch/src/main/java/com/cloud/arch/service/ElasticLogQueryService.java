@@ -3,7 +3,7 @@ package com.cloud.arch.service;
 
 import com.cloud.arch.core.LogPageQuery;
 import com.cloud.arch.core.LogRecord;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import com.cloud.arch.repository.ILogQueryService;
 import com.cloud.arch.repository.ILogRepository;
 
@@ -23,7 +23,7 @@ public class ElasticLogQueryService implements ILogQueryService {
     }
 
     @Override
-    public Page<LogRecord> queryList(LogPageQuery query) {
+    public Pager<LogRecord> queryList(LogPageQuery query) {
         return logRepository.queryPage(query);
     }
 

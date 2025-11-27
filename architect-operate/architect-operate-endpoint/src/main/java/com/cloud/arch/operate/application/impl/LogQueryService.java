@@ -6,7 +6,7 @@ import com.cloud.arch.operate.core.OperationLog;
 import com.cloud.arch.operate.infrast.error.OptErrorHandler;
 import com.cloud.arch.operate.infrast.props.OperateProperties;
 import com.cloud.arch.operate.infrast.repository.LogRepository;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import com.cloud.arch.web.error.ApiBizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class LogQueryService implements ILogQueryService {
     }
 
     @Override
-    public Page<OperationLog> logList(LogListQuery query) {
+    public Pager<OperationLog> logList(LogListQuery query) {
         if (properties.getTenantForce() && StringUtils.isBlank(query.getTenantId())) {
             throw new ApiBizException(HttpStatus.BAD_REQUEST, 400, "tenantId must not be null.");
         }

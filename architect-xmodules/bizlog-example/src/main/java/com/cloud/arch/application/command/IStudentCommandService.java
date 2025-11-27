@@ -2,9 +2,8 @@ package com.cloud.arch.application.command;
 
 import com.cloud.arch.application.command.dto.StudentCreateCmd;
 import com.cloud.arch.infrast.persist.po.StudentPo;
-import com.cloud.arch.mybatis.extend.Pager;
-import com.cloud.arch.page.Page;
 import com.cloud.arch.page.PageQuery;
+import com.cloud.arch.page.Pager;
 
 public interface IStudentCommandService {
 
@@ -12,8 +11,10 @@ public interface IStudentCommandService {
 
     StudentPo getStudent(String name);
 
+    StudentPo getStudent(Long id);
+
     Pager<StudentPo> getStudentList(PageQuery query);
 
-    Page<StudentPo> getStudents(PageQuery query);
+    Pager<StudentPo> getStudents(PageQuery query);
 
 }

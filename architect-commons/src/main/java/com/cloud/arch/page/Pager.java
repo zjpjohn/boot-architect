@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
-public class Page<T> implements Serializable {
+public class Pager<T> implements Serializable {
 
     //查询总数据量
     private long    total    = 0;
@@ -39,8 +39,8 @@ public class Page<T> implements Serializable {
      *
      * @param limit 分页数据
      */
-    public static <E> Page<E> empty(Integer limit) {
-        Page<E> result = new Page<>();
+    public static <E> Pager<E> empty(Integer limit) {
+        Pager<E> result = new Pager<>();
         result.setPageSize(limit);
         return result;
     }
@@ -51,8 +51,8 @@ public class Page<T> implements Serializable {
      * @param function 数据转换
      * @param <V>      转换后类型
      */
-    public <V> Page<V> map(Function<T, V> function) {
-        Page<V> vPage = new Page<>();
+    public <V> Pager<V> map(Function<T, V> function) {
+        Pager<V> vPage = new Pager<>();
         vPage.setTotal(this.total);
         vPage.setPageSize(this.pageSize);
         vPage.setCurrent(this.current);
@@ -70,8 +70,8 @@ public class Page<T> implements Serializable {
      * @param function 数据转换器
      * @param <V>      转换后数据
      */
-    public <V> Page<V> flatMap(Function<List<T>, List<V>> function) {
-        Page<V> vPage = new Page<>();
+    public <V> Pager<V> flatMap(Function<List<T>, List<V>> function) {
+        Pager<V> vPage = new Pager<>();
         vPage.setTotal(this.total);
         vPage.setPageSize(this.pageSize);
         vPage.setCurrent(this.current);
@@ -87,7 +87,7 @@ public class Page<T> implements Serializable {
      *
      * @param consumer 消费处理器
      */
-    public Page<T> ifPresent(Consumer<List<T>> consumer) {
+    public Pager<T> ifPresent(Consumer<List<T>> consumer) {
         if (CollectionUtils.isNotEmpty(this.records)) {
             consumer.accept(this.records);
         }
@@ -100,7 +100,7 @@ public class Page<T> implements Serializable {
      * @param predicate 前置条件
      * @param consumer  数据处理
      */
-    public Page<T> ifPresent(Predicate<List<T>> predicate, Consumer<List<T>> consumer) {
+    public Pager<T> ifPresent(Predicate<List<T>> predicate, Consumer<List<T>> consumer) {
         if (predicate.test(this.records) && CollectionUtils.isNotEmpty(this.records)) {
             consumer.accept(this.records);
         }
@@ -112,7 +112,7 @@ public class Page<T> implements Serializable {
      *
      * @param consumer 消费处理
      */
-    public Page<T> forEach(Consumer<T> consumer) {
+    public Pager<T> forEach(Consumer<T> consumer) {
         if (CollectionUtils.isNotEmpty(this.records)) {
             this.records.forEach(consumer);
         }

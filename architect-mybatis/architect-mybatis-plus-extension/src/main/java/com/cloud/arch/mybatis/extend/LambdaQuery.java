@@ -4,36 +4,41 @@ import com.baomidou.mybatisplus.core.conditions.AbstractLambdaWrapper;
 import com.baomidou.mybatisplus.core.conditions.SharedString;
 import com.baomidou.mybatisplus.core.conditions.query.Query;
 import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.cloud.arch.page.Pager;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class LambdaQuery<T> extends AbstractLambdaWrapper<T, LambdaQuery<T>>
         implements Query<LambdaQuery<T>, T, SFunction<T, ?>> {
 
-    private SharedString sqlSelect = new SharedString();
+    private SharedString  sqlSelect = new SharedString();
+    private BaseMapper<T> mapper;
 
-    public LambdaQuery() {
-        this((T) null);
+    public LambdaQuery(BaseMapper<T> mapper) {
+        this((T) null, mapper);
     }
 
-    public LambdaQuery(T entity) {
+    public LambdaQuery(T entity, BaseMapper<T> mapper) {
         super.setEntity(entity);
         super.initNeed();
+        this.mapper = mapper;
     }
 
-    public LambdaQuery(Class<T> entityClass) {
+    public LambdaQuery(Class<T> entityClass, BaseMapper<T> mapper) {
         super.setEntityClass(entityClass);
         super.initNeed();
+        this.mapper = mapper;
     }
 
     public LambdaQuery(T entity,
@@ -126,72 +131,84 @@ public class LambdaQuery<T> extends AbstractLambdaWrapper<T, LambdaQuery<T>>
     /**
      * 条件更新
      */
-    public int update(Function<LambdaQuery<T>, Integer> loader) {
-        return loader.apply(this);
+    public int update() {
+        return mapper.update(this);
     }
 
     /**
      * 条件删除
      */
-    public int delete(Function<LambdaQuery<T>, Integer> loader) {
-        return loader.apply(this);
+    public int delete() {
+        return mapper.delete(this);
     }
 
     /**
      * 查询单条数据
      */
-    public T one(Function<LambdaQuery<T>, T> loader) {
-        return loader.apply(this);
+    public T one() {
+        return mapper.selectOne(this);
     }
 
     /**
      * 查询单条数据
      *
      */
-    public Optional<T> oneNullable(Function<LambdaQuery<T>, T> loader) {
-        return Optional.ofNullable(loader.apply(this));
+    public Optional<T> oneNullable() {
+        return Optional.ofNullable(this.one());
     }
 
     /**
      * 查询列表
      */
-    public List<T> list(Function<LambdaQuery<T>, List<T>> loader) {
-        return loader.apply(this);
+    public List<T> list() {
+        return this.mapper.selectList(this);
     }
 
     /**
      * 分页查询
      */
-    public PagerWrapper<T> page(Integer current, Integer size) {
-        Pager<T> page = Pager.of(current, size);
-        return new PagerWrapper<>(page, this);
+    public Page<T> page(Integer current, Integer size) {
+        Page<T> page = Page.of(current, size);
+        return this.mapper.selectPage(page, this);
+    }
+
+    public Pager<T> pager(Integer current, Integer size) {
+        return PagerConverter.convert(this.page(current, size));
     }
 
     /**
      * 分页查询
      */
-    public PagerWrapper<T> page(Integer current, Integer size, boolean searchCount) {
-        Pager<T> page = Pager.of(current, size, searchCount);
-        return new PagerWrapper<>(page, this);
+    public Page<T> page(Integer current, Integer size, boolean searchCount) {
+        Page<T> page = Page.of(current, size, searchCount);
+        return this.mapper.selectPage(page, this);
+    }
+
+    public Pager<T> pager(Integer current, Integer size, boolean searchCount) {
+        return PagerConverter.convert(this.page(current, size, searchCount));
     }
 
     /**
      * 分页查询构造
      */
-    public PagerWrapper<T> page(Pager<T> page) {
-        return new PagerWrapper<>(page, this);
+    public Page<T> page(Page<T> page) {
+        return this.mapper.selectPage(page, this);
     }
 
-    public static <E> LambdaQuery<E> from() {
-        return new LambdaQuery<>();
+    public Pager<T> pager(Page<T> page) {
+        return PagerConverter.convert(this.page(page));
     }
 
-    public static <E> LambdaQuery<E> from(E entity) {
-        return new LambdaQuery<>(entity);
+    public static <E> LambdaQuery<E> of(BaseMapper<E> mapper) {
+        return new LambdaQuery<>(mapper);
     }
 
-    public static <E> LambdaQuery<E> from(Class<E> clazz) {
-        return new LambdaQuery<>(clazz);
+    public static <E> LambdaQuery<E> of(E entity, BaseMapper<E> mapper) {
+        return new LambdaQuery<>(entity, mapper);
+    }
+
+    public static <E> LambdaQuery<E> of(Class<E> clazz, BaseMapper<E> mapper) {
+        return new LambdaQuery<>(clazz, mapper);
     }
 
 }

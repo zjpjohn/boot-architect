@@ -3,11 +3,10 @@ package com.cloud.arch.adapter;
 import com.cloud.arch.application.command.IStudentCommandService;
 import com.cloud.arch.application.command.dto.StudentCreateCmd;
 import com.cloud.arch.infrast.persist.po.StudentPo;
-import com.cloud.arch.mybatis.extend.Pager;
-import com.cloud.arch.page.Page;
 import com.cloud.arch.page.PageQuery;
+import com.cloud.arch.page.Pager;
 import com.cloud.arch.web.annotation.ApiBody;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -32,8 +31,8 @@ public class BizlogController {
     }
 
     @GetMapping
-    public StudentPo student(@NotBlank(message = "学生名称为空") String name) {
-        return studentCommandService.getStudent(name);
+    public StudentPo student(@NotNull(message = "唯一标识为空") Long id) {
+        return studentCommandService.getStudent(id);
     }
 
     @GetMapping("/list")
@@ -42,7 +41,7 @@ public class BizlogController {
     }
 
     @GetMapping("/page")
-    public Page<StudentPo> studentList(@Validated PageQuery query) {
+    public Pager<StudentPo> studentList(@Validated PageQuery query) {
         return studentCommandService.getStudents(query);
     }
 

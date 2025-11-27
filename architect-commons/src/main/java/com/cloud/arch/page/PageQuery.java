@@ -26,7 +26,7 @@ public class PageQuery implements Serializable {
     @Range(min = 1, max = 1000, message = "page size range in 1-1000")
     private Integer limit = 10;
 
-    public PageWrapper from() {
+    public PageCondition from() {
         PageCondition condition = new PageCondition();
         condition.setPage(page);
         condition.setLimit(limit);
@@ -39,7 +39,7 @@ public class PageQuery implements Serializable {
                 condition.setParam(key, value);
             }
         });
-        return new PageWrapper(condition);
+        return condition;
     }
 
     private List<Field> getFields() {

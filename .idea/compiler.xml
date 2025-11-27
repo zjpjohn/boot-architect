@@ -10,6 +10,36 @@
         <module name="search-example" />
         <module name="rocketmq-example" />
       </profile>
+      <profile name="Annotation profile for aggregate-example" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/openjdk/jmh/jmh-generator-annprocess/1.37/jmh-generator-annprocess-1.37.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar" />
+          <entry name="$MAVEN_REPOSITORY$/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar" />
+        </processorPath>
+        <module name="aggregate-example" />
+      </profile>
+      <profile name="Annotation profile for mybatis-flex-example" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/com/mybatis-flex/mybatis-flex-processor/1.11.4/mybatis-flex-processor-1.11.4.jar" />
+          <entry name="$MAVEN_REPOSITORY$/com/mybatis-flex/mybatis-flex-annotation/1.11.4/mybatis-flex-annotation-1.11.4.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mybatis/mybatis/3.5.19/mybatis-3.5.19.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.5/spring-boot-configuration-processor-3.5.5.jar" />
+        </processorPath>
+        <module name="mybatis-flex-example" />
+      </profile>
       <profile name="Annotation profile for boot-architect" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -30,6 +60,7 @@
         <module name="architect-idempotent-support" />
         <module name="architect-token-boot-starter" />
         <module name="architect-event-storage-jdbc" />
+        <module name="architect-mybatis-flex-extension" />
         <module name="bizlog-example" />
         <module name="architect-cache-hotkey" />
         <module name="architect-hotkey-admin" />
@@ -104,21 +135,6 @@
         <module name="architect-ip2region" />
         <module name="architect-operate-spring-starter" />
       </profile>
-      <profile name="Annotation profile for aggregate-example" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/openjdk/jmh/jmh-generator-annprocess/1.37/jmh-generator-annprocess-1.37.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar" />
-          <entry name="$MAVEN_REPOSITORY$/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar" />
-        </processorPath>
-        <module name="aggregate-example" />
-      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="25">
       <module name="architect-event-queue-rocketmq-v4x" target="25" />
@@ -180,6 +196,7 @@
       <module name="architect-mybatis" options="-parameters" />
       <module name="architect-mybatis-commons" options="-parameters" />
       <module name="architect-mybatis-extension" options="-parameters" />
+      <module name="architect-mybatis-flex-extension" options="-parameters" />
       <module name="architect-mybatis-plus-extension" options="-parameters" />
       <module name="architect-operate" options="-parameters" />
       <module name="architect-operate-commons" options="-parameters" />
@@ -235,6 +252,7 @@
       <module name="event-example" options="-parameters" />
       <module name="idempotent-example" options="-parameters" />
       <module name="multi-redis-example" options="-parameters" />
+      <module name="mybatis-flex-example" options="-parameters" />
       <module name="web-example" options="-parameters" />
     </option>
   </component>

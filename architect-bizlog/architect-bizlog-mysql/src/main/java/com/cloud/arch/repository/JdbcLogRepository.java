@@ -3,7 +3,7 @@ package com.cloud.arch.repository;
 
 import com.cloud.arch.core.LogPageQuery;
 import com.cloud.arch.core.LogRecord;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,15 +58,15 @@ public class JdbcLogRepository implements ILogRepository {
     }
 
     @Override
-    public Page<LogRecord> queryPage(LogPageQuery query) {
+    public Pager<LogRecord> queryPage(LogPageQuery query) {
         Pair<String, MapSqlParameterSource> pair         = buildQuery(query);
         String                              conditionSql = pair.getKey();
         String                              countSql     = COUNT_QUERY_SQL;
         if (!StringUtils.isBlank(conditionSql)) {
             countSql = countSql + " where " + conditionSql;
         }
-        Integer         total = jdbcTemplate.queryForObject(countSql, pair.getValue(), Integer.class);
-        Page<LogRecord> page  = new Page<>();
+        Integer          total = jdbcTemplate.queryForObject(countSql, pair.getValue(), Integer.class);
+        Pager<LogRecord> page  = new Pager<>();
         page.setTotal(total);
         page.setPageSize(query.getLimit());
         page.setCurrent(query.getPage());

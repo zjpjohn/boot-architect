@@ -3,7 +3,7 @@ package com.cloud.arch.repository;
 
 import com.cloud.arch.core.LogPageQuery;
 import com.cloud.arch.core.LogRecord;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import com.cloud.arch.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,8 +24,8 @@ public class DefaultLogRepository implements ILogRepository {
     }
 
     @Override
-    public Page<LogRecord> queryPage(LogPageQuery query) {
-        return Page.empty(query.getLimit());
+    public Pager<LogRecord> queryPage(LogPageQuery query) {
+        return Pager.empty(query.getLimit());
     }
 
 }

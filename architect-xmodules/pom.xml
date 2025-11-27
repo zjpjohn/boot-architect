@@ -25,6 +25,7 @@
         <module>multi-redis-example</module>
         <module>idempotent-example</module>
         <module>bizlog-example</module>
+        <module>mybatis-flex-example</module>
     </modules>
 
     <dependencyManagement>

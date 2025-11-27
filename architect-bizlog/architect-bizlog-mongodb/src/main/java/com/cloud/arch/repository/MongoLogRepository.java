@@ -2,7 +2,7 @@ package com.cloud.arch.repository;
 
 import com.cloud.arch.core.LogPageQuery;
 import com.cloud.arch.core.LogRecord;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -34,10 +34,10 @@ public class MongoLogRepository implements ILogRepository {
     }
 
     @Override
-    public Page<LogRecord> queryPage(LogPageQuery condition) {
-        Query           query = buildQuery(condition);
-        long            total = mongoTemplate.count(query, COLLECTION_NAME);
-        Page<LogRecord> page  = new Page<>();
+    public Pager<LogRecord> queryPage(LogPageQuery condition) {
+        Query            query = buildQuery(condition);
+        long             total = mongoTemplate.count(query, COLLECTION_NAME);
+        Pager<LogRecord> page  = new Pager<>();
         page.setTotal((int) total);
         page.setCurrent(condition.getPage());
         page.setPageSize(condition.getLimit());

@@ -103,6 +103,8 @@
     <file url="file://$PROJECT_DIR$/architect-mybatis/architect-mybatis-commons/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-mybatis/architect-mybatis-extension/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-mybatis/architect-mybatis-extension/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/architect-mybatis/architect-mybatis-flex-extension/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/architect-mybatis/architect-mybatis-flex-extension/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-mybatis/architect-mybatis-plus-extension/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-mybatis/architect-mybatis-plus-extension/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-mybatis/src/main/java" charset="UTF-8" />
@@ -213,6 +215,8 @@
     <file url="file://$PROJECT_DIR$/architect-xmodules/idempotent-example/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-xmodules/multi-redis-example/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-xmodules/multi-redis-example/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/architect-xmodules/mybatis-flex-example/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/architect-xmodules/mybatis-flex-example/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-xmodules/rocketmq-example/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-xmodules/rocketmq-example/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-xmodules/search-example/src/main/java" charset="UTF-8" />

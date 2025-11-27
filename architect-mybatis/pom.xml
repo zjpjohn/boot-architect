@@ -15,6 +15,7 @@
         <module>architect-mybatis-commons</module>
         <module>architect-mybatis-extension</module>
         <module>architect-mybatis-plus-extension</module>
+        <module>architect-mybatis-flex-extension</module>
     </modules>
 
     <dependencyManagement>

@@ -2,7 +2,7 @@ package com.cloud.arch.operate.infrast.repository;
 
 import com.cloud.arch.operate.core.OperateType;
 import com.cloud.arch.operate.core.OperationLog;
-import com.cloud.arch.page.Page;
+import com.cloud.arch.page.Pager;
 import com.cloud.arch.page.PageCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,10 +44,10 @@ public class LogRepository {
         });
     }
 
-    public Page<OperationLog> queryList(PageCondition condition) {
+    public Pager<OperationLog> queryList(PageCondition condition) {
         Pair<String, MapSqlParameterSource> where = where(condition);
         Integer                             count = countLogs(where);
-        Page<OperationLog>                  page  = new Page<>();
+        Pager<OperationLog>                 page  = new Pager<>();
         page.setTotal(count);
         page.setCurrent(condition.getPage());
         page.setPageSize(condition.getLimit());

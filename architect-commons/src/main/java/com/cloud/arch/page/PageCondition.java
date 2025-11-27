@@ -12,12 +12,16 @@ import java.util.function.Function;
 @Getter
 public class PageCondition implements Serializable {
 
+    private final PagerWrapper        pagerWrapper;
     private final Map<String, Object> condition = Maps.newHashMap();
 
     private int limit  = 10;
     private int offset = 0;
     private int page   = 1;
 
+    public PageCondition() {
+        this.pagerWrapper = new PagerWrapper(this);
+    }
 
     public static PageCondition build() {
         return new PageCondition();
@@ -55,6 +59,15 @@ public class PageCondition implements Serializable {
     @SuppressWarnings("unchecked")
     public <T> T getValue(String key) {
         return (T) condition.get(key);
+    }
+
+    public PageCondition count(Function<PageCondition, Number> counter) {
+        this.pagerWrapper.counter(counter);
+        return this;
+    }
+
+    public <T> Pager<T> query(Function<PageCondition, List<T>> loader) {
+        return this.pagerWrapper.query(loader);
     }
 
     /**
