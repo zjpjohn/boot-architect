@@ -14,7 +14,7 @@ public class PageWhere implements Consumer<QueryWrapper> {
 
     @Min(value = 1, message = "page index must greater than 0")
     private Integer page  = 1;
-    @Range(min = 1, max = 1000, message = "page size must in 1-1000")
+    @Range(min = 1, max = 1000, message = "page size must between 1 and 1000")
     private Integer limit = 10;
 
     @Override
