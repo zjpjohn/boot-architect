@@ -30,11 +30,21 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
         return this;
     }
 
+
     @Override
     public String toSQL() {
         TableInfo tableInfo = TableInfoFactory.ofMapperClass(baseMapper.getClass());
         CPI.setFromIfNecessary(this, tableInfo.getSchema(), tableInfo.getTableName());
         return super.toSQL();
+    }
+
+    /**
+     * 自行填充查询条件
+     * 查询条件实现 Condition接口，自行填充Query查询条件
+     */
+    public Query<T> where(Condition condition) {
+        super.and(condition);
+        return this;
     }
 
     public Cursor<T> cursor() {
@@ -46,11 +56,11 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
     }
 
     public Pager<T> pager(Page<T> page) {
-        return PagerConverter.convert(this.page(page));
+        return this.convert(this.page(page));
     }
 
     public <R> Pager<R> pagerAs(Page<R> page, Class<R> type) {
-        return PagerConverter.convert(this.pageAs(page, type));
+        return this.convert(this.pageAs(page, type));
     }
 
     public Page<T> page(Number pageNumber, Number pageSize) {
@@ -59,7 +69,7 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
 
     public Pager<T> pager(Number pageNumber, Number pageSize) {
         Page<T> page = this.page(Page.of(pageNumber, pageSize));
-        return PagerConverter.convert(page);
+        return this.convert(page);
     }
 
     public Page<T> page(Number pageNumber, Number pageSize, Number totalRow) {
@@ -68,7 +78,27 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
 
     public Pager<T> pager(Number pageNumber, Number pageSize, Number totalRow) {
         Page<T> page = this.page(Page.of(pageNumber, pageSize, totalRow));
-        return PagerConverter.convert(page);
+        return this.convert(page);
+    }
+
+    public Page<T> page(PageWhere where) {
+        return where.page(this.where(where));
+    }
+
+    /**
+     * 转换为外部分页
+     */
+    private <R> Pager<R> convert(Page<R> page) {
+        Pager<R> pager = new Pager<>();
+        pager.setTotal(page.getTotalRow());
+        pager.setPageSize(page.getPageSize());
+        pager.setCurrent(page.getPageNumber());
+        pager.setRecords(page.getRecords());
+        return pager;
+    }
+
+    public Pager<T> pager(PageWhere where) {
+        return where.pager(this.where(where));
     }
 
     public static <E> Query<E> of(Class<E> entityClass) {

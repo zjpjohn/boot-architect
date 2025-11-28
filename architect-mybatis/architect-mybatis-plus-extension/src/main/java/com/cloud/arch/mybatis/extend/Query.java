@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class Query<T> extends AbstractWrapper<T, String, Query<T>>
@@ -137,6 +138,15 @@ public class Query<T> extends AbstractWrapper<T, String, Query<T>>
     public void clear() {
         super.clear();
         sqlSelect.toNull();
+    }
+
+    /**
+     * 自行填充查询条件
+     * 查询条件实现Consumer接口
+     */
+    public Query<T> condition(Consumer<Query<T>> consumer) {
+        consumer.accept(this);
+        return this;
     }
 
     /**

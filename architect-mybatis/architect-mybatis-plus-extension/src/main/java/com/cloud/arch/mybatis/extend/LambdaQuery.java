@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class LambdaQuery<T> extends AbstractLambdaWrapper<T, LambdaQuery<T>>
@@ -126,6 +127,15 @@ public class LambdaQuery<T> extends AbstractLambdaWrapper<T, LambdaQuery<T>>
     public void clear() {
         super.clear();
         sqlSelect.toNull();
+    }
+
+    /**
+     * 自行填充查询条件
+     * 查询条件实现Consumer接口
+     */
+    public LambdaQuery<T> condition(Consumer<LambdaQuery<T>> consumer) {
+        consumer.accept(this);
+        return this;
     }
 
     /**

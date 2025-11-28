@@ -8,6 +8,7 @@ import com.boot.architect.application.command.dto.UserListQuery;
 import com.boot.architect.infrast.persist.mapper.UserMapper;
 import com.boot.architect.infrast.persist.po.UserPo;
 import com.cloud.arch.annotation.RptCheck;
+import com.cloud.arch.mybatis.extend.PageWhere;
 import com.cloud.arch.mybatis.extend.Query;
 import com.cloud.arch.page.Pager;
 import lombok.RequiredArgsConstructor;
@@ -59,10 +60,12 @@ public class UserCommandService implements IUserCommandService {
 
     @Override
     public Pager<UserPo> userList(UserListQuery query) {
-        return Query.of(mapper)
-                    .eq(UserPo::getName, query.getName())
-                    .eq(UserPo::getGender, query.getGender())
-                    .pager(query.getPage(), query.getLimit());
+        return Query.of(mapper).pager(query);
+    }
+
+    @Override
+    public Pager<UserPo> userList(PageWhere query) {
+        return Query.of(mapper).pager(query);
     }
 
 }

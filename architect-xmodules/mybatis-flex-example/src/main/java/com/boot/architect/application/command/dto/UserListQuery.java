@@ -1,15 +1,28 @@
 package com.boot.architect.application.command.dto;
 
 import com.boot.architect.infrast.persist.enums.Gender;
-import com.cloud.arch.page.PageQuery;
+import com.boot.architect.infrast.persist.po.UserPo;
+import com.cloud.arch.mybatis.extend.PageWhere;
+import com.mybatisflex.core.query.QueryWrapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class UserListQuery extends PageQuery {
+public class UserListQuery extends PageWhere {
 
     private String name;
     private Gender gender;
+
+    @Override
+    public void accept(QueryWrapper query) {
+        if (StringUtils.isNotBlank(this.name)) {
+            query.eq(UserPo::getName, this.name);
+        }
+        if (this.gender != null) {
+            query.eq(UserPo::getGender, this.gender);
+        }
+    }
 
 }

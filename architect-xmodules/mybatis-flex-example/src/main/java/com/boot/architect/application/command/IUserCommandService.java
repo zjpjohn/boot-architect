@@ -4,6 +4,7 @@ import com.boot.architect.application.command.dto.UserCreateCmd;
 import com.boot.architect.application.command.dto.UserEditCmd;
 import com.boot.architect.application.command.dto.UserListQuery;
 import com.boot.architect.infrast.persist.po.UserPo;
+import com.cloud.arch.mybatis.extend.PageWhere;
 import com.cloud.arch.page.Pager;
 
 public interface IUserCommandService {
@@ -19,5 +20,7 @@ public interface IUserCommandService {
     UserPo getUser(Long id);
 
     Pager<UserPo> userList(UserListQuery query);
+
+    Pager<UserPo> userList(PageWhere query);
 
 }

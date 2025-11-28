@@ -5,6 +5,7 @@ import com.boot.architect.application.command.dto.UserCreateCmd;
 import com.boot.architect.application.command.dto.UserEditCmd;
 import com.boot.architect.application.command.dto.UserListQuery;
 import com.boot.architect.infrast.persist.po.UserPo;
+import com.cloud.arch.mybatis.extend.PageWhere;
 import com.cloud.arch.page.Pager;
 import com.cloud.arch.web.annotation.ApiBody;
 import jakarta.validation.constraints.NotNull;
@@ -44,7 +45,12 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    public Pager<UserPo> userList(UserListQuery query) {
+    public Pager<UserPo> userList(@Validated UserListQuery query) {
+        return userCommandService.userList(query);
+    }
+
+    @GetMapping("/list1")
+    public Pager<UserPo> userList(@Validated PageWhere query) {
         return userCommandService.userList(query);
     }
 
