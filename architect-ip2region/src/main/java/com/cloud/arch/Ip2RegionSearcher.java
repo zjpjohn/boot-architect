@@ -10,6 +10,7 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -32,9 +33,11 @@ public class Ip2RegionSearcher implements DisposableBean, SmartInitializingSingl
         this.dbPath = dbPath;
     }
 
+    /**
+     * 返回Ip地址信息
+     */
     public IpRegionResult search(String ip) {
         if (this.searcher == null || StringUtils.isBlank(ip)) {
-            log.warn("ip searcher bean或ip地址为空.");
             return null;
         }
         try {
@@ -55,6 +58,13 @@ public class Ip2RegionSearcher implements DisposableBean, SmartInitializingSingl
             log.error("查询Ip对应区域地址异常:", error);
         }
         return null;
+    }
+
+    /**
+     * 返回Optional对象
+     */
+    public Optional<IpRegionResult> searchOpt(String ip) {
+        return Optional.ofNullable(this.search(ip));
     }
 
     private String filterNull(String part) {
