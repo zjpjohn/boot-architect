@@ -18,7 +18,7 @@ public class StudentPo {
     private Integer       age;
     private Integer       classId;
     private Gender        gender;
-    @Column(version = true)
+    @Column(version = true, onInsertValue = "1")
     private Integer       version;
     @Column(onInsertValue = "current_time")
     private LocalDateTime gmtCreate;

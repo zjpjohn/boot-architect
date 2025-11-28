@@ -38,12 +38,12 @@ public class MongoLogRepository implements ILogRepository {
         Query            query = buildQuery(condition);
         long             total = mongoTemplate.count(query, COLLECTION_NAME);
         Pager<LogRecord> page  = new Pager<>();
-        page.setTotal((int) total);
+        page.setTotal(total);
         page.setCurrent(condition.getPage());
         page.setPageSize(condition.getLimit());
         if (total > 0) {
             query.with(Sort.by(Sort.Order.desc("gmtCreate")));
-            query.skip((long) (condition.getPage() - 1) * condition.getLimit()).limit(condition.getLimit());
+            query.skip((condition.getPage() - 1) * condition.getLimit()).limit(condition.getLimit());
             List<LogRecord> records = mongoTemplate.find(query, LogRecord.class, COLLECTION_NAME);
             page.setRecords(records);
             page.setSize(records.size());

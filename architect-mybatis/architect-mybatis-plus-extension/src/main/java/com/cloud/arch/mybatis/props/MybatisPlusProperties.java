@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = MybatisPlusProperties.PROPS_PREFIX)
 public class MybatisPlusProperties {
 
-    public static final String PROPS_PREFIX = "com.cloud.mybatis-plus";
+    public static final String PROPS_PREFIX = "mybatis-plus.extend";
 
     /**
      * 填充创建时间时间字段名称

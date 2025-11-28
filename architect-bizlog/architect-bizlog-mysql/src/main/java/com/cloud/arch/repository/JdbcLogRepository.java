@@ -20,14 +20,14 @@ public class JdbcLogRepository implements ILogRepository {
 
     private static final String INSERT_LOG_SQL   =
             "insert into arch_biz_log(id,app,tenant,biz_group,biz_no,operator_id,operator,op_action,fail,detail,gmt_create) "
-            + "values(:id,:app,:tenant,:biz_group,:biz_no,:operator_id,:operator,:op_action,:fail,:detail,:gmt_create)";
+                    + "values(:id,:app,:tenant,:biz_group,:biz_no,:operator_id,:operator,:op_action,:fail,:detail,:gmt_create)";
     private static final String QUERY_BIZ_NO_SQL =
             "select id,app,tenant,biz_group,biz_no,operator_id,operator,op_action,fail,detail,gmt_create "
-            + "from arch_biz_log where biz_no=:biz_no order by gmt_create desc ";
+                    + "from arch_biz_log where biz_no=:biz_no order by gmt_create desc ";
     private static final String COUNT_QUERY_SQL  = "select count(1) from arch_biz_log ";
     private static final String QUERY_PAGE_SQL   =
             "select id,app,tenant,biz_group,biz_no,operator_id,operator,op_action,fail,detail,gmt_create "
-            + "from arch_biz_log ";
+                    + "from arch_biz_log ";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -37,18 +37,28 @@ public class JdbcLogRepository implements ILogRepository {
 
     @Override
     public void save(List<LogRecord> records) {
-        jdbcTemplate.batchUpdate(INSERT_LOG_SQL, records.stream()
-                                                        .map(e -> new MapSqlParameterSource("id", e.getId()).addValue("app", e.getApp())
-                                                                                                            .addValue("tenant", e.getTenant())
-                                                                                                            .addValue("biz_group", e.getGroup())
-                                                                                                            .addValue("biz_no", e.getBizNo())
-                                                                                                            .addValue("operator_id", e.getOperatorId())
-                                                                                                            .addValue("operator", e.getOperator())
-                                                                                                            .addValue("op_action", e.getAction())
-                                                                                                            .addValue("fail", e.getFail())
-                                                                                                            .addValue("detail", e.getDetail())
-                                                                                                            .addValue("gmt_create", e.getGmtCreate()))
-                                                        .toArray(MapSqlParameterSource[]::new));
+        jdbcTemplate.batchUpdate(INSERT_LOG_SQL,
+                                 records.stream()
+                                        .map(e -> new MapSqlParameterSource("id", e.getId()).addValue("app", e.getApp())
+                                                                                            .addValue("tenant",
+                                                                                                      e.getTenant())
+                                                                                            .addValue("biz_group",
+                                                                                                      e.getGroup())
+                                                                                            .addValue("biz_no",
+                                                                                                      e.getBizNo())
+                                                                                            .addValue("operator_id",
+                                                                                                      e.getOperatorId())
+                                                                                            .addValue("operator",
+                                                                                                      e.getOperator())
+                                                                                            .addValue("op_action",
+                                                                                                      e.getAction())
+                                                                                            .addValue("fail",
+                                                                                                      e.getFail())
+                                                                                            .addValue("detail",
+                                                                                                      e.getDetail())
+                                                                                            .addValue("gmt_create",
+                                                                                                      e.getGmtCreate()))
+                                        .toArray(MapSqlParameterSource[]::new));
     }
 
     @Override

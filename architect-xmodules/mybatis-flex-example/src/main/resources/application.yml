@@ -34,8 +34,6 @@ mybatis-flex:
   mapper-locations: classpath:mappers/*.xml
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-com:
-  cloud:
-    mybatis-flex:
-      key:
-        enabled: true
+  extend:
+    key:
+      enabled: true

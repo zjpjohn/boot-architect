@@ -10,7 +10,7 @@ import lombok.Data;
 public class UserCreateCmd {
 
     @NotBlank(message = "用户名称为空")
-    @RptField(table = "user_info", column = "name", message = "学生名称已存在")
+    @RptField(table = "user_info", column = "name", message = "用户名称已存在")
     private String name;
     @NotBlank(message = "用户昵称为空")
     private String nickname;

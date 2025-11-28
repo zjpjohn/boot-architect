@@ -30,14 +30,11 @@ spring:
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 30000
 
-com:
-  cloud:
-    mybatis-plus:
-      enable-id: true
-      version:
-        enable: true
-
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  extend:
+    enable-id: true
+    version:
+      enable: true

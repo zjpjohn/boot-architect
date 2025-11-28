@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = MybatisFlexProperties.PROPS_PREFIX)
 public class MybatisFlexProperties {
 
-    public static final String PROPS_PREFIX = "com.cloud.mybatis-flex";
+    public static final String PROPS_PREFIX = "mybatis-flex.extend";
 
     /**
      * 启用系统自定义主键

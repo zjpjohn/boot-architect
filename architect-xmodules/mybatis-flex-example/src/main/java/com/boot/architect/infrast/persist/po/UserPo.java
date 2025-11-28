@@ -17,7 +17,7 @@ public class UserPo {
     private String        name;
     private String        nickname;
     private Gender        gender;
-    @Column(version = true)
+    @Column(version = true, onInsertValue = "1")
     private Integer       version;
     @Column(isLogicDelete = true)
     private Integer       deleted;

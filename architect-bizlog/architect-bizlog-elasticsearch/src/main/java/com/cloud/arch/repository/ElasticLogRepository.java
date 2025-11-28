@@ -48,7 +48,8 @@ public class ElasticLogRepository implements ILogRepository {
                                                                      .query(q -> q.term(e -> e.field("bizNo")
                                                                                               .value(bizNo)))
                                                                      .sort(s -> s.field(f -> f.field("gmtCreate")
-                                                                                              .order(SortOrder.Desc))), LogRecord.class);
+                                                                                              .order(SortOrder.Desc))),
+                                                               LogRecord.class);
             return response.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -61,7 +62,7 @@ public class ElasticLogRepository implements ILogRepository {
             List<Query>      queries = buildQuery(query);
             long             total   = client.count(c -> c.query(q -> q.bool(b -> b.must(queries)))).count();
             Pager<LogRecord> page    = new Pager<>();
-            page.setTotal((int) total);
+            page.setTotal(total);
             page.setCurrent(query.getPage());
             page.setPageSize(query.getLimit());
             if (total > 0) {
