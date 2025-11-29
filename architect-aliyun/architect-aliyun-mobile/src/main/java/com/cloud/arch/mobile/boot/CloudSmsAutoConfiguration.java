@@ -22,34 +22,15 @@ import java.util.concurrent.ThreadPoolExecutor;
 @ConditionalOnProperty(prefix = "com.cloud.sms", name = {"accessId", "secret"})
 public class CloudSmsAutoConfiguration {
 
-    public static final String SMS_EXECUTOR_SERVICE_NAME = "sms-send-executor-name";
-
     @Bean
     @ConditionalOnMissingBean(SmsFlowController.class)
     public SmsFlowController smsFlowControl() {
         return new DefaultSmsFlowController();
     }
 
-    @Bean(name = SMS_EXECUTOR_SERVICE_NAME)
-    public Executor smsSendExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(1024);
-        executor.setKeepAliveSeconds(300);
-        executor.setThreadNamePrefix("sms-send-thread-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.initialize();
-        return executor;
-    }
-
     @Bean
-    public CloudSmsExecutor cloudSmsExecutor(
-            @Qualifier(SMS_EXECUTOR_SERVICE_NAME) Executor smsSendExecutor,
-            CloudSmsProperties properties,
-            SmsFlowController smsFlowControl) {
-        return new CloudSmsExecutor(smsSendExecutor, properties, smsFlowControl);
+    public CloudSmsExecutor cloudSmsExecutor(CloudSmsProperties properties, SmsFlowController smsFlowControl) {
+        return new CloudSmsExecutor(properties, smsFlowControl);
     }
 
 }

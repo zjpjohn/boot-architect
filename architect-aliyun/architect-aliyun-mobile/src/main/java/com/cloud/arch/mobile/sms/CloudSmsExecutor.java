@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.concurrent.*;
 
 @Slf4j
 @Getter
@@ -22,31 +22,23 @@ public class CloudSmsExecutor implements InitializingBean {
             }
             """;
     private static final String DEFAULT_PLACEHOLDER = "code";
-    private static final String DEFAULT_CHANNEL     = "thales";
+    private static final String DEFAULT_CHANNEL     = "default";
     private static final String SUCCESS_FLAG        = "OK";
 
-    private       Executor           executor;
-    private       DefaultAcsClient   client;
+    private final ExecutorService    executor;
     private final CloudSmsProperties properties;
     private final SmsFlowController  flowControl;
+    private       DefaultAcsClient   client;
 
     public CloudSmsExecutor(CloudSmsProperties properties, SmsFlowController flowControl) {
-        this.properties  = properties;
+        this.properties = properties;
         this.flowControl = flowControl;
-    }
-
-    public CloudSmsExecutor(Executor executor, CloudSmsProperties properties, SmsFlowController flowControl) {
-        this.executor    = executor;
-        this.properties  = properties;
-        this.flowControl = flowControl;
+        ThreadFactory factory = Thread.ofVirtual().name("sms-send-thread-").factory();
+        this.executor = Executors.newThreadPerTaskExecutor(factory);
     }
 
     /**
      * 同步发送短信验证码
-     *
-     * @param param   短信验证码参数
-     * @param channel 发送渠道
-     * @param expire  过期时间
      */
     public SendResult syncSend(SmsParam param, String channel, Long expire) throws Exception {
         String smsChanel = StringUtils.isNotBlank(channel) ? channel : DEFAULT_CHANNEL;
@@ -57,7 +49,7 @@ public class CloudSmsExecutor implements InitializingBean {
         SendSmsResponse response = this.client.getAcsResponse(request);
         if (!isSuccess(response)) {
             log.error("发送短信验证码[{}]失败，失败原因:{}", response.getCode(), response.getMessage());
-            return SendResult.apiError("sms api error");
+            return SendResult.apiError("sms response error");
         }
         flowControl.cacheCode(param.getPhone(), smsChanel, param.getCode(), expire, TimeUnit.SECONDS);
         return SendResult.success("send success");
@@ -65,37 +57,34 @@ public class CloudSmsExecutor implements InitializingBean {
 
     /**
      * 异步发送短信验证码
-     *
-     * @param param   短信参数
-     * @param channel 发送渠道
-     * @param expire  短信过期时间
      */
-    public SendResult asyncSend(SmsParam param, String channel, Long expire) {
-        if (executor == null) {
-            throw new IllegalArgumentException("请配置异步发送线程池.");
-        }
-        String smsChanel = StringUtils.isNotBlank(channel) ? channel : DEFAULT_CHANNEL;
-        if (flowControl.flowLimit(param.getPhone(), smsChanel)) {
-            return SendResult.limitError("verify code not expired");
-        }
+    public void asyncSend(SmsParam param, String channel, Long expire) {
         executor.execute(() -> {
             try {
+                String smsChannel = this.smsChannel(channel);
+                if (flowControl.flowLimit(param.getPhone(), smsChannel)) {
+                    return;
+                }
                 SendSmsRequest  request  = request(param);
                 SendSmsResponse response = this.client.getAcsResponse(request);
                 if (!isSuccess(response)) {
                     log.error("发送短信验证码[{}]失败，失败原因:{}", response.getCode(), response.getMessage());
                     return;
                 }
-                flowControl.cacheCode(param.getPhone(), smsChanel, param.getCode(), expire, TimeUnit.SECONDS);
+                flowControl.cacheCode(param.getPhone(), smsChannel, param.getCode(), expire, TimeUnit.SECONDS);
             } catch (Exception e) {
                 log.error("发送短信验证码异常:", e);
             }
         });
-        return SendResult.success("send success");
     }
 
     private Boolean isSuccess(SendSmsResponse response) {
         return SUCCESS_FLAG.equals(response.getCode());
+    }
+
+
+    private String smsChannel(String smsChanel) {
+        return Optional.ofNullable(smsChanel).filter(StringUtils::isNotBlank).orElse(DEFAULT_CHANNEL);
     }
 
     /**

@@ -4,9 +4,11 @@ import com.aliyun.dypnsapi20170525.Client;
 import com.aliyun.dypnsapi20170525.models.VerifyMobileRequest;
 import com.aliyun.dypnsapi20170525.models.VerifyMobileResponse;
 import com.aliyun.dypnsapi20170525.models.VerifyMobileResponseBody;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Getter
 public class VerifyMobileExecutor {
 
     public static final String SUCCESS = "OK";
@@ -15,10 +17,6 @@ public class VerifyMobileExecutor {
 
     public VerifyMobileExecutor(Client client) {
         this.client = client;
-    }
-
-    public Client getClient() {
-        return client;
     }
 
     /**
