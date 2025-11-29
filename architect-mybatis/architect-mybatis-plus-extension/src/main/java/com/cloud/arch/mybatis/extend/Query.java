@@ -20,8 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class Query<T> extends AbstractWrapper<T, String, Query<T>>
-        implements com.baomidou.mybatisplus.core.conditions.query.Query<Query<T>, T, String> {
+public class Query<T> extends AbstractWrapper<T, String, Query<T>> implements com.baomidou.mybatisplus.core.conditions.query.Query<Query<T>, T, String> {
 
     protected final SharedString  sqlSelect;
     private         boolean       checkSqlInjection;
@@ -53,25 +52,19 @@ public class Query<T> extends AbstractWrapper<T, String, Query<T>>
         this.mapper = mapper;
     }
 
-    public Query(T entity,
-                 Class<T> entityClass,
-                 AtomicInteger paramNameSeq,
-                 Map<String, Object> paramNameValuePairs,
-                 MergeSegments mergeSegments,
-                 SharedString paramAlias,
-                 SharedString lastSql,
-                 SharedString sqlComment,
+    public Query(T entity, Class<T> entityClass, AtomicInteger paramNameSeq, Map<String, Object> paramNameValuePairs,
+                 MergeSegments mergeSegments, SharedString paramAlias, SharedString lastSql, SharedString sqlComment,
                  SharedString sqlFirst) {
         this.sqlSelect = new SharedString();
         super.setEntity(entity);
         super.setEntityClass(entityClass);
-        this.paramNameSeq        = paramNameSeq;
+        this.paramNameSeq = paramNameSeq;
         this.paramNameValuePairs = paramNameValuePairs;
-        this.expression          = mergeSegments;
-        this.paramAlias          = paramAlias;
-        this.lastSql             = lastSql;
-        this.sqlComment          = sqlComment;
-        this.sqlFirst            = sqlFirst;
+        this.expression = mergeSegments;
+        this.paramAlias = paramAlias;
+        this.lastSql = lastSql;
+        this.sqlComment = sqlComment;
+        this.sqlFirst = sqlFirst;
     }
 
     @Override
