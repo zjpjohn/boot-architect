@@ -10,6 +10,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.query.QueryWrapperAdapter;
 import com.mybatisflex.core.table.TableInfo;
 import com.mybatisflex.core.table.TableInfoFactory;
+import com.mybatisflex.core.util.LambdaGetter;
 import org.apache.ibatis.cursor.Cursor;
 
 public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQueryChain<T> {
@@ -36,6 +37,16 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
         TableInfo tableInfo = TableInfoFactory.ofMapperClass(baseMapper.getClass());
         CPI.setFromIfNecessary(this, tableInfo.getSchema(), tableInfo.getTableName());
         return super.toSQL();
+    }
+
+    public Query<T> orderDesc(LambdaGetter<T> column) {
+        super.orderBy(column, false);
+        return this;
+    }
+
+    public Query<T> orderAsc(LambdaGetter<T> column) {
+        super.orderBy(column, true);
+        return this;
     }
 
     /**

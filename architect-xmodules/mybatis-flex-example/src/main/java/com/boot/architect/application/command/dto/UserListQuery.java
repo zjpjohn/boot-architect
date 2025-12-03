@@ -6,7 +6,6 @@ import com.cloud.arch.mybatis.extend.PageWhere;
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -17,12 +16,7 @@ public class UserListQuery extends PageWhere {
 
     @Override
     public void accept(QueryWrapper query) {
-        if (StringUtils.isNotBlank(this.name)) {
-            query.eq(UserPo::getName, this.name);
-        }
-        if (this.gender != null) {
-            query.eq(UserPo::getGender, this.gender);
-        }
+        query.eq(UserPo::getName, this.name).eq(UserPo::getGender, this.gender);
     }
 
 }
