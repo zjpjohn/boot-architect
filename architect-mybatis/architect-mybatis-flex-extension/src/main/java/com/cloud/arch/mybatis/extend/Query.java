@@ -13,6 +13,8 @@ import com.mybatisflex.core.table.TableInfoFactory;
 import com.mybatisflex.core.util.LambdaGetter;
 import org.apache.ibatis.cursor.Cursor;
 
+import java.util.List;
+
 public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQueryChain<T> {
 
     private final BaseMapper<T> baseMapper;
@@ -60,6 +62,14 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
 
     public Cursor<T> cursor() {
         return this.baseMapper.selectCursorByQuery(this);
+    }
+
+    public List<T> list() {
+        return this.baseMapper.selectListByQuery(this);
+    }
+
+    public <R> List<R> listAs(Class<R> type) {
+        return this.baseMapper.selectListByQueryAs(this, type);
     }
 
     public <R> Cursor<R> cursorAs(Class<R> type) {
