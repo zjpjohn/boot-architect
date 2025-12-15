@@ -96,7 +96,7 @@ public class RocketmqProperties {
         /**
          * 线程池请求缓存队列，默认2000
          */
-        private int     checkRequestHoldMax           = 2000;
+        private int     checkRequestHoldMax           = 2048;
         /**
          * 线程池线程保活时间，默认60秒
          */

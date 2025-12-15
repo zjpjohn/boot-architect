@@ -35,8 +35,8 @@ public class TransactionProducerContainer implements SmartInitializingSingleton,
                                         RocketmqProperties properties,
                                         MessageConverter converter) {
         this.transactionListener = transactionListener;
-        this.properties          = properties;
-        this.converter           = converter;
+        this.properties = properties;
+        this.converter = converter;
     }
 
     /**
@@ -87,7 +87,7 @@ public class TransactionProducerContainer implements SmartInitializingSingleton,
                                                                producerCfg.getCheckThreadPoolMaxSize(),
                                                                producerCfg.getKeepAliveTime(),
                                                                TimeUnit.MILLISECONDS,
-                                                               new LinkedBlockingQueue<Runnable>(producerCfg.getCheckRequestHoldMax()));
+                                                               new LinkedBlockingQueue<>(producerCfg.getCheckRequestHoldMax()));
         this.producer.setExecutorService(checkExecutor);
         this.producer.start();
     }

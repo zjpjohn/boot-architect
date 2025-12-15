@@ -25,12 +25,12 @@ public class TxSenderMetadata {
     private final Integer  keyIndex;
 
     public TxSenderMetadata(Class<?> targetClass, Method method, TxSender txSender) {
-        this.targetClass  = targetClass;
-        this.method       = method;
-        this.topic        = txSender.topic();
-        this.tag          = txSender.tag();
+        this.targetClass = targetClass;
+        this.method = method;
+        this.topic = txSender.topic();
+        this.tag = txSender.tag();
         this.payloadIndex = this.payloadIndex(method);
-        this.keyIndex     = keyIndex(method);
+        this.keyIndex = keyIndex(method);
     }
 
     private Integer payloadIndex(Method method) {
@@ -85,21 +85,21 @@ public class TxSenderMetadata {
 
     @Override
     public String toString() {
-        return "TxSenderMetadata{"
-               + "targetClass="
-               + targetClass.getSimpleName()
-               + ", method="
-               + method.getName()
-               + ", topic='"
-               + topic
-               + '\''
-               + ", tag='"
-               + tag
-               + '\''
-               + ", payloadIndex="
-               + payloadIndex
-               + ", keyIndex="
-               + keyIndex
-               + '}';
+        return "TxSenderMetadata{" +
+               "targetClass=" +
+               targetClass.getSimpleName() +
+               ", method=" +
+               method.getName() +
+               ", topic='" +
+               topic +
+               '\'' +
+               ", tag='" +
+               tag +
+               '\'' +
+               ", payloadIndex=" +
+               payloadIndex +
+               ", keyIndex=" +
+               keyIndex +
+               '}';
     }
 }
