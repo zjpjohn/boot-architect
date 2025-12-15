@@ -46,7 +46,17 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
         return this;
     }
 
+    public Query<T> orderDesc(String column) {
+        super.orderBy(column, false);
+        return this;
+    }
+
     public Query<T> orderAsc(LambdaGetter<T> column) {
+        super.orderBy(column, true);
+        return this;
+    }
+
+    public Query<T> orderAsc(String column) {
         super.orderBy(column, true);
         return this;
     }
