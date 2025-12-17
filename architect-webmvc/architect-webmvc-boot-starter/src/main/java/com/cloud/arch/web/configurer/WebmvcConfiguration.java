@@ -93,7 +93,8 @@ public class WebmvcConfiguration {
         @Bean
         public DictionaryEndpoint dictionaryEndpoint(DictionaryFactory dictionaryFactory,
                                                      WebmvcProperties properties,
-                                                     @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping requestMappingHandlerMapping) {
+                                                     @Qualifier("requestMappingHandlerMapping")
+                                                     RequestMappingHandlerMapping requestMappingHandlerMapping) {
             return new DictionaryEndpoint(dictionaryFactory, properties, requestMappingHandlerMapping);
         }
 

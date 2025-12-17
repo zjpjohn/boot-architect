@@ -40,6 +40,10 @@ public class VerifyResult {
         this.headers.put(name, value);
     }
 
+    public String getIdentity() {
+        return this.headers.get(WebTokenConstants.AUTH_IDENTITY_HEADER);
+    }
+
     public void addRetain(String retain) {
         this.retains.add(retain);
     }
