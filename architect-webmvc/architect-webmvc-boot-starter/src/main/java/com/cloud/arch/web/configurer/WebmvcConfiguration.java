@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +40,7 @@ public class WebmvcConfiguration {
      * 添加公共配置
      */
     @Bean
-    @ConditionalOnProperty(prefix = WebmvcProperties.PROPS_PREFIX)
+    @ConfigurationProperties(prefix = WebmvcProperties.PROPS_PREFIX + ".share")
     public WebShareProperties shareProperties() {
         return new WebShareProperties();
     }

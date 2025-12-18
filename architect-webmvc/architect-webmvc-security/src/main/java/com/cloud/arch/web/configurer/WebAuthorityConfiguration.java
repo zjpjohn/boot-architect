@@ -4,8 +4,10 @@ import com.cloud.arch.web.annotation.Permission;
 import com.cloud.arch.web.aspect.AuthorizationAnnotationPointcutAdvisor;
 import com.cloud.arch.web.interceptor.UriResourceAuthorizeInterceptor;
 import com.cloud.arch.web.props.WebAuthorityProperties;
+import com.cloud.arch.web.props.WebShareProperties;
 import com.cloud.arch.web.support.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -59,8 +61,9 @@ public class WebAuthorityConfiguration {
 
         @Bean
         @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-        public UriAuthorityManager uriAuthorityManager(WebAuthorityProperties properties) {
-            return new UriAuthorityManager(properties);
+        public UriAuthorityManager uriAuthorityManager(WebAuthorityProperties properties,
+                                                       ObjectProvider<WebShareProperties> shareConfig) {
+            return new UriAuthorityManager(properties, shareConfig);
         }
 
         @Bean

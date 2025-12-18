@@ -9,4 +9,5 @@ public class DefaultBlackListPublisher implements ITokenBlackListPublisher {
     @Override
     public void publish(String tokenId, LocalDateTime expireAt) {
     }
+
 }
