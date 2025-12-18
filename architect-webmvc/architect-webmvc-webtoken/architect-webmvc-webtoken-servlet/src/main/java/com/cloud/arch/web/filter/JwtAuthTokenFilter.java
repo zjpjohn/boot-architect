@@ -7,13 +7,17 @@ import com.cloud.arch.web.VerifyResult;
 import com.cloud.arch.web.WebTokenConstants;
 import com.cloud.arch.web.domain.ApiReturn;
 import com.cloud.arch.web.error.ApiBizException;
+import com.cloud.arch.web.props.WebShareProperties;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.MediaType;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,7 +25,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public class JwtAuthTokenFilter extends OncePerRequestFilter {
@@ -33,9 +39,21 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
 
     private final ITokenVerifier tokenVerifier;
 
-    public JwtAuthTokenFilter(ITokenVerifier tokenVerifier, TokenAuthProperties properties) {
+    public JwtAuthTokenFilter(ITokenVerifier tokenVerifier,
+                              TokenAuthProperties properties,
+                              ObjectProvider<WebShareProperties> shareConfig) {
         this.tokenVerifier = tokenVerifier;
-        this.excludes.addAll(properties.excludes());
+        this.excludesParse(properties, shareConfig);
+    }
+
+    /**
+     * 排除路径接卸
+     */
+    private void excludesParse(TokenAuthProperties properties, ObjectProvider<WebShareProperties> shareConfig) {
+        Set<String> result = Sets.newHashSet();
+        shareConfig.ifAvailable(prop -> result.addAll(prop.excludes()));
+        result.addAll(properties.excludes());
+        excludes.addAll(result);
     }
 
     /**
@@ -46,8 +64,9 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain) throws ServletException, IOException {
         //过滤exclusions中的请求uri
         if (this.isExcludeUri(request.getRequestURI())) {
             chain.doFilter(request, response);

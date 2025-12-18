@@ -8,6 +8,7 @@ import com.cloud.arch.web.custom.CustomErrorAttributes;
 import com.cloud.arch.web.custom.CustomWebMvcRegistrations;
 import com.cloud.arch.web.custom.DictionaryEndpoint;
 import com.cloud.arch.web.dict.DictionaryFactory;
+import com.cloud.arch.web.props.WebShareProperties;
 import com.cloud.arch.web.props.WebmvcProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,6 +32,16 @@ public class WebmvcConfiguration {
     @Bean
     public WebConverterConfigurer webConverterConfigurer(WebMvcProperties properties) {
         return new WebConverterConfigurer(properties);
+    }
+
+
+    /**
+     * 添加公共配置
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = WebmvcProperties.PROPS_PREFIX)
+    public WebShareProperties shareProperties() {
+        return new WebShareProperties();
     }
 
     /**

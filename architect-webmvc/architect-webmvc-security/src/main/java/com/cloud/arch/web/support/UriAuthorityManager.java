@@ -3,6 +3,7 @@ package com.cloud.arch.web.support;
 import com.cloud.arch.utils.CollectionUtils;
 import com.cloud.arch.web.WebTokenConstants;
 import com.cloud.arch.web.props.WebAuthorityProperties;
+import com.cloud.arch.web.props.WebShareProperties;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -10,6 +11,7 @@ import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.expression.AnnotatedElementKey;
 import org.springframework.web.method.HandlerMethod;
 
@@ -20,6 +22,7 @@ import java.util.Set;
 public class UriAuthorityManager implements DisposableBean {
 
     private final WebAuthorityProperties                         properties;
+    private final ObjectProvider<WebShareProperties>             shareConfig;
     //已配置的uri权限资源集合
     private final List<UriResourceAuthority>                     resources;
     //缓存标记未匹配权限的方法集合
@@ -31,9 +34,10 @@ public class UriAuthorityManager implements DisposableBean {
                                                                                             .trimResults()
                                                                                             .omitEmptyStrings();
 
-    public UriAuthorityManager(WebAuthorityProperties properties) {
+    public UriAuthorityManager(WebAuthorityProperties properties, ObjectProvider<WebShareProperties> shareConfig) {
         this.properties = properties;
-        this.resources  = properties.parse();
+        this.shareConfig = shareConfig;
+        this.resources = properties.parse();
     }
 
     /**
@@ -59,8 +63,12 @@ public class UriAuthorityManager implements DisposableBean {
      * 获取拦截器排除的请求uri集合
      */
     public List<String> getExcudeList() {
-        Set<String> values     = Sets.newHashSet(WebTokenConstants.STATIC_RESOURCES);
-        String      excludeStr = properties.getExcludes();
+        //默认添加静态资源
+        Set<String> values = Sets.newHashSet(WebTokenConstants.STATIC_RESOURCES);
+        //web公共配置
+        shareConfig.ifAvailable(prop -> values.addAll(prop.excludes()));
+        //权限配置
+        String excludeStr = properties.getExcludes();
         if (StringUtils.isNotBlank(excludeStr)) {
             List<String> appended = splitter.splitToList(excludeStr);
             values.addAll(appended);

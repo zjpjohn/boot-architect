@@ -2,7 +2,9 @@ package com.cloud.arch.web;
 
 import com.cloud.arch.web.filter.JwtAuthTokenFilter;
 import com.cloud.arch.web.impl.*;
+import com.cloud.arch.web.props.WebShareProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -73,8 +75,10 @@ public class JwtAuthTokenConfiguration {
         }
 
         @Bean
-        public JwtAuthTokenFilter jwtAuthTokenFilter(TokenAuthProperties properties, ITokenVerifier tokenVerifier) {
-            return new JwtAuthTokenFilter(tokenVerifier, properties);
+        public JwtAuthTokenFilter jwtAuthTokenFilter(TokenAuthProperties properties,
+                                                     ITokenVerifier tokenVerifier,
+                                                     ObjectProvider<WebShareProperties> shareProperties) {
+            return new JwtAuthTokenFilter(tokenVerifier, properties, shareProperties);
         }
 
         @Bean
