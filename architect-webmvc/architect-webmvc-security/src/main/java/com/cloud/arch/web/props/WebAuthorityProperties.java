@@ -38,10 +38,10 @@ public class WebAuthorityProperties {
      */
     private Integer      cacheMaxSize = 1024;
     /**
-     * 授权结果缓存过期时间，单位分钟
+     * 授权结果缓存过期时间单位分钟,默认-5分钟
      */
     @DurationUnit(ChronoUnit.MINUTES)
-    private Duration     cacheExpire  = Duration.ofMinutes(10);
+    private Duration     cacheExpire  = Duration.ofMinutes(5);
     /**
      * 基于url资源的权限校验集合
      * 如果未配置则不启用权限拦截器
