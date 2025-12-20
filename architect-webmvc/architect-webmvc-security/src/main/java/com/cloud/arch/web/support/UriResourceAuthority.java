@@ -62,9 +62,9 @@ public class UriResourceAuthority {
         if (CollectionUtils.isEmpty(domains) && CollectionUtils.isEmpty(roles) && CollectionUtils.isEmpty(permits)) {
             throw new IllegalArgumentException("domains,roles,authorities at least one not be null.");
         }
-        this.mode     = mode;
+        this.mode = mode;
         this.resource = resource;
-        this.methods  = methods;
+        this.methods = methods;
         if (CollectionUtils.isNotEmpty(domains)) {
             this.domains.addAll(domains);
         }
@@ -77,14 +77,22 @@ public class UriResourceAuthority {
     }
 
     /**
+     * 判断目标访问域是否有效
+     */
+    public boolean isValidDomain(String target) {
+        return StringUtils.isNotBlank(target) &&
+               (CollectionUtils.isEmpty(this.domains) || this.domains.contains(target));
+    }
+
+    /**
      * 资源匹配计算
      *
      * @param requestUri 请求uri
      * @param method     请求方法
      */
     public boolean match(String requestUri, String method) {
-        return (CollectionUtils.isEmpty(this.methods) || this.methods.contains(method.toLowerCase()))
-                && antPathMatcher.match(this.resource, requestUri);
+        return (CollectionUtils.isEmpty(this.methods) || this.methods.contains(method.toLowerCase())) &&
+               antPathMatcher.match(this.resource, requestUri);
     }
 
     public Set<String> getMethods() {
@@ -145,10 +153,10 @@ public class UriResourceAuthority {
         if (target.isBlank() || target.contains(Permission.DEFAULT_VALUE) || !target.endsWith(SUFFIX)) {
             return Triple.of(GrantMode.AND, Collections.emptySet(), Collections.emptySet());
         }
-        if (!(target.contains(GrantMode.AND_LOWER)
-                || target.contains(GrantMode.AND_UPPER)
-                || target.contains(GrantMode.OR_LOWER)
-                || target.contains(GrantMode.OR_UPPER))) {
+        if (!(target.contains(GrantMode.AND_LOWER) ||
+              target.contains(GrantMode.AND_UPPER) ||
+              target.contains(GrantMode.OR_LOWER) ||
+              target.contains(GrantMode.OR_UPPER))) {
             if (target.startsWith(PERMIT_PREFIX) && target.endsWith(SUFFIX)) {
                 Set<String> authority = parseSplit(target, PERMIT_PREFIX);
                 return Triple.of(GrantMode.AND, authority, Sets.newHashSet());

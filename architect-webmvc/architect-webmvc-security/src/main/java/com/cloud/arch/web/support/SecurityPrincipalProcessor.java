@@ -31,27 +31,15 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
     private final Map<String, SecurityPrincipal> principalAuthorities = Maps.newHashMap();
     private       AuthorizeCacheManager          cacheManager;
     private       ApplicationContext             applicationContext;
-
-    /**
-     * 无效请求域校验
-     *
-     * @param authDomain 授权域
-     * @param domains    权限域
-     */
-    private boolean isInvalidDomain(String authDomain, Set<String> domains) {
-        return StringUtils.isBlank(authDomain) || (CollectionUtils.isNotEmpty(domains)
-                && !domains.contains(authDomain));
-    }
-
+    
     /**
      * 基于注解的权限校验
      */
     public boolean annotationAuthorize(AuthorizationMetadata metaData) {
-        Set<String>        domains    = metaData.getDomains();
         RequestAttributes  attributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request    = ((ServletRequestAttributes) attributes).getRequest();
         String             authDomain = request.getHeader(WebTokenConstants.ACCESS_SOURCE_HEADER);
-        if (this.isInvalidDomain(authDomain, domains)) {
+        if (!metaData.isValidDomain(authDomain)) {
             return false;
         }
         SecurityPrincipal principalSecurity = principalAuthorities.get(authDomain);
@@ -86,8 +74,7 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
                                 HandlerMethod handlerMethod,
                                 String identity,
                                 String authDomain) {
-        Set<String> domains = uriResource.getDomains();
-        if (this.isInvalidDomain(authDomain, domains)) {
+        if (!uriResource.isValidDomain(authDomain)) {
             return false;
         }
         SecurityPrincipal principalAuthority = principalAuthorities.get(authDomain);
@@ -113,10 +100,7 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
     }
 
     private AuthorizeCacheKey cacheKey(String domain, String identity, AuthorizationMetadata metadata) {
-        Class<?>            targetClass = AopUtils.getTargetClass(metadata.getTargetClass());
-        Method              method      = AopUtils.getMostSpecificMethod(metadata.getMethod(), targetClass);
-        AnnotatedElementKey elementKey  = new AnnotatedElementKey(method, targetClass);
-        return new AuthorizeCacheKey(domain, identity, elementKey);
+        return new AuthorizeCacheKey(domain, identity, metadata.getElementKey());
     }
 
     private AuthorizeCacheKey cacheKey(String domain, String identity, HandlerMethod handlerMethod) {

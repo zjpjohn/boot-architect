@@ -17,7 +17,7 @@ public class AuthorityInterceptorConfigurer implements WebMvcConfigurer {
 
     public AuthorityInterceptorConfigurer(UriAuthorityManager uriAuthorityManager,
                                           UriResourceAuthorizeInterceptor authorizeInterceptor) {
-        this.uriAuthorityManager  = uriAuthorityManager;
+        this.uriAuthorityManager = uriAuthorityManager;
         this.authorizeInterceptor = authorizeInterceptor;
     }
 
@@ -28,7 +28,6 @@ public class AuthorityInterceptorConfigurer implements WebMvcConfigurer {
             log.info("no uri resources authorities has be configured, authority interceptor not registry.");
             return;
         }
-        log.info("uri resources authorities has be configured, registry authority interceptor.");
         registry.addInterceptor(authorizeInterceptor)
                 .addPathPatterns(patternList)
                 .excludePathPatterns(this.uriAuthorityManager.getExcudeList());

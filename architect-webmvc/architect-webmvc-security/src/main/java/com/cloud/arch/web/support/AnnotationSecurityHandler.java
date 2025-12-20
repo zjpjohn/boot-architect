@@ -28,9 +28,8 @@ public class AnnotationSecurityHandler implements MethodInterceptor {
      * 接口授权权限校验
      */
     private Object authorizedInvoke(MethodInvocation invocation) throws Throwable {
-        AuthorizationMetadata metaData   = metaDataFactory.getAndCreate(invocation);
-        Permission            permission = metaData.getAnnotation();
-        if (permission == null) {
+        AuthorizationMetadata metaData = metaDataFactory.getAndCreate(invocation);
+        if (metaData.isEmptyAuthorization()) {
             return invocation.proceed();
         }
         boolean processResult = securityPrincipalProcessor.annotationAuthorize(metaData);

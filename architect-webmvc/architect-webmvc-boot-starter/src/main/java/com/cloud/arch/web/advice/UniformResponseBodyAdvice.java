@@ -31,9 +31,9 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         this.properties = properties;
     }
 
-    private ApiBody getAnnotation(MethodParameter returnType) {
-        return Optional.ofNullable(returnType.getMethodAnnotation(ApiBody.class))
-                       .orElseGet(() -> returnType.getDeclaringClass().getAnnotation(ApiBody.class));
+    private ApiBody getAnnotation(MethodParameter parameter) {
+        return Optional.ofNullable(parameter.getMethodAnnotation(ApiBody.class))
+                       .orElseGet(() -> parameter.getDeclaringClass().getAnnotation(ApiBody.class));
     }
 
     private boolean isSseEmitter(MethodParameter returnType) {

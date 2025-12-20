@@ -31,8 +31,9 @@ com:
       version:
         enable: true
         name: THA-X-VERSION
-      auth:
+      share:
         excludes: /v3/**,/web/**,/version/**,/auth/**,/executor/**,/dictionary,/dictionary/**
+      auth:
         token:
           expire: 24
           issuer: thales
