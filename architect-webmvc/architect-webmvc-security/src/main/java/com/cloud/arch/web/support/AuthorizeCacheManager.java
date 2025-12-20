@@ -12,7 +12,7 @@ public class AuthorizeCacheManager {
         if (properties.isCached()) {
             this.resultCache = Caffeine.newBuilder()
                                        .maximumSize(properties.getCacheMaxSize())
-                                       .expireAfterAccess(properties.getExpireMinutes())
+                                       .expireAfterAccess(properties.getCacheExpire())
                                        .build();
         }
     }

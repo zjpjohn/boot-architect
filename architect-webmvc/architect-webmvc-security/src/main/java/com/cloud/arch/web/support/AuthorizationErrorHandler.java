@@ -4,17 +4,17 @@ import com.cloud.arch.web.error.ErrorHandler;
 import org.springframework.http.HttpStatus;
 
 public enum AuthorizationErrorHandler implements ErrorHandler {
-    HANDLE_ERROR(HttpStatus.NOT_FOUND, "your request not found"),
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "internal server error"),
-    CHANNEL_NULL(HttpStatus.FORBIDDEN, "request domain null，please request domain"),
-    CHANNEL_ERROR(HttpStatus.FORBIDDEN, "request domain error"),
-    CHANNEL_FORBIDDEN(HttpStatus.FORBIDDEN, "forbidden request domain"),
-    ROLE_NULL(HttpStatus.FORBIDDEN, "no access privilege"),
-    ROLE_FORBIDDEN(HttpStatus.FORBIDDEN, "forbidden request"),
-    AUTHORITY_FORBIDDEN(HttpStatus.FORBIDDEN, "no access privilege"),
-    AUTHORITY_PROCESSOR_NONE(HttpStatus.INTERNAL_SERVER_ERROR, "none authority processor"),
-    AUTH_IDENTITY_NONE(HttpStatus.UNAUTHORIZED, "user identity null."),
-    AUTH_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "authority process internal error.");
+    HANDLE_ERROR(HttpStatus.NOT_FOUND, "Your request not found"),
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
+    CHANNEL_NULL(HttpStatus.FORBIDDEN, "Request domain null，please request domain"),
+    CHANNEL_ERROR(HttpStatus.FORBIDDEN, "Request domain error"),
+    CHANNEL_FORBIDDEN(HttpStatus.FORBIDDEN, "Forbidden request domain"),
+    ROLE_NULL(HttpStatus.FORBIDDEN, "No access privilege"),
+    ROLE_FORBIDDEN(HttpStatus.FORBIDDEN, "Forbidden request"),
+    AUTHORITY_FORBIDDEN(HttpStatus.FORBIDDEN, "No access privilege"),
+    AUTHORITY_PROCESSOR_NONE(HttpStatus.INTERNAL_SERVER_ERROR, "No authority processor"),
+    AUTH_IDENTITY_NONE(HttpStatus.UNAUTHORIZED, "Auth identity is null."),
+    AUTH_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Authority process internal error.");
 
     private final HttpStatus status;
     private final Integer    code;
@@ -22,8 +22,8 @@ public enum AuthorizationErrorHandler implements ErrorHandler {
 
     AuthorizationErrorHandler(Integer code, String error, HttpStatus status) {
         this.status = status;
-        this.code   = code;
-        this.error  = error;
+        this.code = code;
+        this.error = error;
     }
 
     AuthorizationErrorHandler(HttpStatus status, String error) {
