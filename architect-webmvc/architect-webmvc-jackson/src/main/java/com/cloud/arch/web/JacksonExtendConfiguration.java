@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -38,8 +39,9 @@ public class JacksonExtendConfiguration {
 
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectCustomizer(JacksonProperties props) {
-        String format =
-            Optional.ofNullable(props.getDateFormat()).filter(StringUtils::isNotBlank).orElse(PATTERN_FORMAT);
+        String format = Optional.ofNullable(props.getDateFormat())
+                                .filter(StringUtils::isNotBlank)
+                                .orElse(PATTERN_FORMAT);
         String[]          formats       = formatSplit(props.getDateFormat());
         DateTimeFormatter formatter     = DateTimeFormatter.ofPattern(format);
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(formats[0]);
@@ -49,6 +51,7 @@ public class JacksonExtendConfiguration {
             // 序列化
             builder.serializerByType(Long.class, ToStringSerializer.instance);
             builder.serializerByType(BigInteger.class, ToStringSerializer.instance);
+            builder.serializerByType(BigDecimal.class, ToStringSerializer.instance);
             builder.serializerByType(LocalDate.class, new LocalDateSerializer(dateFormatter));
             builder.serializerByType(LocalTime.class, new LocalTimeSerializer(timeFormatter));
             builder.serializerByType(Date.class, new DateSerializer(false, new SimpleDateFormat(format)));
@@ -57,7 +60,10 @@ public class JacksonExtendConfiguration {
             builder.deserializerByType(LocalDate.class, new LocalDateDeserializer(dateFormatter));
             builder.deserializerByType(LocalTime.class, new LocalTimeDeserializer(timeFormatter));
             builder.deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(formatter));
-            builder.deserializerByType(Date.class, new DateDeserializers.DateDeserializer(DateDeserializers.DateDeserializer.instance, new SimpleDateFormat(format), format));
+            builder.deserializerByType(Date.class,
+                                       new DateDeserializers.DateDeserializer(DateDeserializers.DateDeserializer.instance,
+                                                                              new SimpleDateFormat(format),
+                                                                              format));
             // 自定义枚举序列化or反序列化处理
             builder.modules(new SimpleModule().setDeserializerModifier(new EnumDeserializerModifier())
                                               .setSerializerModifier(new EnumSerializerModifier()));
