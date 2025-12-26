@@ -11,6 +11,7 @@ import com.cloud.arch.annotation.RptCheck;
 import com.cloud.arch.mybatis.extend.PageWhere;
 import com.cloud.arch.mybatis.extend.Query;
 import com.cloud.arch.page.Pager;
+import com.cloud.arch.utils.IdWorker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,9 @@ public class UserCommandService implements IUserCommandService {
     @RptCheck
     public void create(UserCreateCmd command) {
         UserPo user = assembler.toUser(command);
+        long   id   = IdWorker.nextId();
+        System.out.println("生成id" + id);
+        user.setId(id);
         mapper.insert(user);
     }
 

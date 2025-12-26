@@ -13,6 +13,7 @@ import com.mybatisflex.core.table.TableInfoFactory;
 import com.mybatisflex.core.util.LambdaGetter;
 import org.apache.ibatis.cursor.Cursor;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQueryChain<T> {
@@ -46,6 +47,13 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
         return this;
     }
 
+    public Query<T> orderDesc(String... columns) {
+        for (String column : columns) {
+            super.orderBy(column, false);
+        }
+        return this;
+    }
+
     public Query<T> orderDesc(String column) {
         super.orderBy(column, false);
         return this;
@@ -58,6 +66,13 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
 
     public Query<T> orderAsc(String column) {
         super.orderBy(column, true);
+        return this;
+    }
+
+    public Query<T> orderAsc(String... columns) {
+        for (String column : columns) {
+            super.orderBy(column, true);
+        }
         return this;
     }
 
