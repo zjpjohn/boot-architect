@@ -18,7 +18,7 @@
         <spring-boot.version>3.5.5</spring-boot.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <spring-cloud-alibaba.version>2025.0.0.0</spring-cloud-alibaba.version>
-        <dubbo.version>3.2.18</dubbo.version>
+        <dubbo.version>3.2.19</dubbo.version>
         <guava.version>33.5.0-jre</guava.version>
         <commons-lang3.version>3.16.0</commons-lang3.version>
         <commons-codec.version>1.17.1</commons-codec.version>
