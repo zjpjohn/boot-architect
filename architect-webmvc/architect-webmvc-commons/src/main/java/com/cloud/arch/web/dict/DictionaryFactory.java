@@ -53,7 +53,7 @@ public class DictionaryFactory implements InitializingBean {
      * 查询系统字典描述集合
      */
     public List<DictionaryRemark> list() {
-        return dictionaryCache.values().stream().toList();
+        return dictionaryCache.values().stream().sorted().toList();
     }
 
     /**
