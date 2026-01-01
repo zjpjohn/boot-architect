@@ -39,12 +39,12 @@ public class DictionaryFactory implements InitializingBean {
         Dictionary             annotation = clazz.getAnnotation(Dictionary.class);
         String                 name       = annotation.name();
         if (StringUtils.isBlank(name)) {
-            throw new IllegalArgumentException(String.format("dictionary %s must not be null name.", type.getName()));
+            String message = String.format("dictionary %s must not be null name.", type.getName());
+            throw new IllegalArgumentException(message);
         }
         if (dictionaryCache.containsKey(name)) {
-            throw new IllegalArgumentException(String.format("dictionary %s has duplicated name [%s].",
-                                                             type.getName(),
-                                                             name));
+            String message = String.format("dictionary %s has duplicated name [%s].", type.getName(), name);
+            throw new IllegalArgumentException(message);
         }
         dictionaryCache.put(name, new DictionaryRemark(annotation, type));
     }
