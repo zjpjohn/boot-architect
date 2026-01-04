@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @SuppressWarnings({"rawtypes"})
-public class DictionaryRemark {
+public class DictionaryRemark implements Comparable<DictionaryRemark> {
 
     //字典数据名称
     private String              name;
@@ -24,8 +24,8 @@ public class DictionaryRemark {
     private Map<String, Object> values;
 
     public DictionaryRemark(Dictionary dictionary, Class<? extends Value> type) {
-        this.name   = dictionary.name();
-        this.type   = dictionary.type();
+        this.name = dictionary.name();
+        this.type = dictionary.type();
         this.remark = dictionary.remark();
         this.values = this.typeToValue(type);
     }
@@ -40,4 +40,8 @@ public class DictionaryRemark {
         return this.values.entrySet().stream().map(e -> new DictionaryValue(e.getKey(), e.getValue())).toList();
     }
 
+    @Override
+    public int compareTo(DictionaryRemark o) {
+        return this.name.compareTo(o.name);
+    }
 }
