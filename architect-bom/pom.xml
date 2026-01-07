@@ -30,7 +30,7 @@
         <mapstruct.version>1.6.3</mapstruct.version>
         <mybatis.version>3.0.5</mybatis.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
-        <mybatis-flex.version>1.11.4</mybatis-flex.version>
+        <mybatis-flex.version>1.11.5</mybatis-flex.version>
         <mysql8.version>8.4.0</mysql8.version>
         <classindex.version>3.13</classindex.version>
         <disruptor.version>4.0.0</disruptor.version>
