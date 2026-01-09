@@ -20,8 +20,11 @@ public class JsonTypeHandler<T> extends BaseTypeHandler<T> {
     }
 
     @Override
-    public void setNonNullParameter(PreparedStatement preparedStatement, int index, T t, JdbcType jdbcType) throws SQLException {
-        preparedStatement.setString(index, JSON.toJSONString(t));
+    public void setNonNullParameter(PreparedStatement statement,
+                                    int index,
+                                    T t,
+                                    JdbcType jdbcType) throws SQLException {
+        statement.setString(index, JSON.toJSONString(t));
     }
 
     @Override

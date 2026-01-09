@@ -26,6 +26,7 @@ public class StudentCommandService implements IStudentCommandService {
     @RptCheck
     public void create(StudentCreateCmd command) {
         StudentPo student = assembler.toPo(command);
+//        StudentPo student = new StudentPo(command);
         mapper.insert(student, true);
     }
 

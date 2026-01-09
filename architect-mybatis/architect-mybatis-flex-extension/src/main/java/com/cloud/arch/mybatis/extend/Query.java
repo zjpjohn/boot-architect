@@ -131,6 +131,18 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
         return where.page(this.where(where));
     }
 
+    public void update(T value) {
+        this.baseMapper.updateByQuery(value, this);
+    }
+
+    public void update(T value, boolean ignoreNulls) {
+        this.baseMapper.updateByQuery(value, ignoreNulls, this);
+    }
+
+    public void delete() {
+        this.baseMapper.deleteByQuery(this);
+    }
+
     /**
      * 转换为外部分页
      */
