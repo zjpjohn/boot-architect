@@ -13,7 +13,6 @@ import com.mybatisflex.core.table.TableInfoFactory;
 import com.mybatisflex.core.util.LambdaGetter;
 import org.apache.ibatis.cursor.Cursor;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQueryChain<T> {

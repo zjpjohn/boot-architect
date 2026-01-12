@@ -5,9 +5,7 @@ import lombok.experimental.UtilityClass;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.atteo.classindex.ClassIndex;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @UtilityClass
 public class TypeHandlerRegister {
@@ -24,8 +22,12 @@ public class TypeHandlerRegister {
             annotation.type().register(v, registry);
         });
         Type.JSON.register(List.class, registry);
+        Type.JSON.register(ArrayList.class, registry);
+        Type.JSON.register(LinkedList.class, registry);
         Type.JSON.register(Map.class, registry);
+        Type.JSON.register(HashMap.class, registry);
         Type.JSON.register(Set.class, registry);
+        Type.JSON.register(HashSet.class, registry);
     }
 
 }
