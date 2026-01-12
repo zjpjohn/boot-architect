@@ -23,7 +23,7 @@ public class StudentPo {
     private Integer       age;
     private Integer       classId;
     private Gender        gender;
-    @Column(typeHandler = JsonTypeHandler.class)
+//    @Column(typeHandler = JsonTypeHandler.class)
     private List<String>  images;
     @Column(version = true, onInsertValue = "1")
     private Integer       version;

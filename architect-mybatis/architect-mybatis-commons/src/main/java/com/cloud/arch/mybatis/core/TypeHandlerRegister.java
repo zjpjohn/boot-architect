@@ -24,8 +24,10 @@ public class TypeHandlerRegister {
         Type.JSON.register(List.class, registry);
         Type.JSON.register(ArrayList.class, registry);
         Type.JSON.register(LinkedList.class, registry);
+
         Type.JSON.register(Map.class, registry);
         Type.JSON.register(HashMap.class, registry);
+
         Type.JSON.register(Set.class, registry);
         Type.JSON.register(HashSet.class, registry);
     }
