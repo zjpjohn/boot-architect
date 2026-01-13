@@ -52,8 +52,14 @@ public class Query<T> extends AbstractWrapper<T, String, Query<T>> implements co
         this.mapper = mapper;
     }
 
-    public Query(T entity, Class<T> entityClass, AtomicInteger paramNameSeq, Map<String, Object> paramNameValuePairs,
-                 MergeSegments mergeSegments, SharedString paramAlias, SharedString lastSql, SharedString sqlComment,
+    public Query(T entity,
+                 Class<T> entityClass,
+                 AtomicInteger paramNameSeq,
+                 Map<String, Object> paramNameValuePairs,
+                 MergeSegments mergeSegments,
+                 SharedString paramAlias,
+                 SharedString lastSql,
+                 SharedString sqlComment,
                  SharedString sqlFirst) {
         this.sqlSelect = new SharedString();
         super.setEntity(entity);
@@ -167,7 +173,7 @@ public class Query<T> extends AbstractWrapper<T, String, Query<T>> implements co
      * 查询单条数据
      *
      */
-    public Optional<T> oneNullable() {
+    public Optional<T> oneOpt() {
         return Optional.ofNullable(one());
     }
 
