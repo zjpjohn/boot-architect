@@ -1,6 +1,8 @@
 package com.cloud.arch.web.advice;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONReader;
+import com.alibaba.fastjson2.JSONWriter;
 import com.cloud.arch.web.annotation.ApiBody;
 import com.cloud.arch.web.domain.BodyData;
 import com.cloud.arch.web.props.WebmvcProperties;
@@ -59,7 +61,7 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         BodyData<?> wrappedBody = wrapBody(annotation, body, message, response);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         if (body instanceof String) {
-            return JSON.toJSONString(wrappedBody);
+            return JSON.toJSONString(wrappedBody, JSONWriter.Feature.WriteLongAsString);
         }
         return wrappedBody;
     }
