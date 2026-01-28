@@ -54,8 +54,8 @@ public class RSAKit {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
         keyPairGen.initialize(INITIALIZE_LENGTH);
         KeyPair             keyPair    = keyPairGen.generateKeyPair();
-        RSAPublicKey        publicKey  = (RSAPublicKey)keyPair.getPublic();
-        RSAPrivateKey       privateKey = (RSAPrivateKey)keyPair.getPrivate();
+        RSAPublicKey        publicKey  = (RSAPublicKey) keyPair.getPublic();
+        RSAPrivateKey       privateKey = (RSAPrivateKey) keyPair.getPrivate();
         String              pubKey     = Base64.getEncoder().encodeToString(publicKey.getEncoded());
         String              priKey     = Base64.getEncoder().encodeToString(privateKey.getEncoded());
         Map<String, String> keyMap     = HashMap.newHashMap(2);
@@ -111,7 +111,7 @@ public class RSAKit {
      * @param encryptedData 已加密数据
      * @param privateKey    私钥(BASE64编码)
      */
-    public byte[] decryptByPrivateKey(byte[] encryptedData, String privateKey) throws Exception {
+    public byte[] decodePrivateKey(byte[] encryptedData, String privateKey) throws Exception {
         byte[]              keyBytes     = Base64.getDecoder().decode(privateKey);
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory          keyFactory   = KeyFactory.getInstance(KEY_ALGORITHM);
@@ -147,7 +147,7 @@ public class RSAKit {
      * @param encryptedData 已加密数据
      * @param publicKey     公钥(BASE64编码)
      */
-    public byte[] decryptByPublicKey(byte[] encryptedData, String publicKey) throws Exception {
+    public byte[] decodePublicKey(byte[] encryptedData, String publicKey) throws Exception {
         byte[]             keyBytes    = Base64.getDecoder().decode(publicKey);
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory         keyFactory  = KeyFactory.getInstance(KEY_ALGORITHM);
@@ -183,7 +183,7 @@ public class RSAKit {
      * @param data      源数据
      * @param publicKey 公钥(BASE64编码)
      */
-    public byte[] encryptByPublicKey(byte[] data, String publicKey) throws Exception {
+    public byte[] encodePublicKey(byte[] data, String publicKey) throws Exception {
         byte[]             keyBytes    = Base64.getDecoder().decode(publicKey);
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory         keyFactory  = KeyFactory.getInstance(KEY_ALGORITHM);
@@ -220,7 +220,7 @@ public class RSAKit {
      * @param data       源数据
      * @param privateKey 私钥(BASE64编码)
      */
-    public byte[] encryptByPrivateKey(byte[] data, String privateKey) throws Exception {
+    public byte[] encodePrivateKey(byte[] data, String privateKey) throws Exception {
         byte[]              keyBytes     = Base64.getDecoder().decode(privateKey);
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory          keyFactory   = KeyFactory.getInstance(KEY_ALGORITHM);
@@ -254,8 +254,8 @@ public class RSAKit {
      * @param data       待加密内容
      * @param privateKey rsa私钥
      */
-    public String encryptPrivateKey(String data, String privateKey) throws Exception {
-        byte[] bytes = encryptByPrivateKey(data.getBytes(), privateKey);
+    public String encodePrivateKey(String data, String privateKey) throws Exception {
+        byte[] bytes = encodePrivateKey(data.getBytes(), privateKey);
         return Base64.getEncoder().encodeToString(bytes);
     }
 
@@ -265,9 +265,9 @@ public class RSAKit {
      * @param data      加密内容
      * @param publicKey rsa公钥
      */
-    public String decryptPublicKey(String data, String publicKey) throws Exception {
+    public String decodePublicKey(String data, String publicKey) throws Exception {
         byte[] bytes   = Base64.getDecoder().decode(data);
-        byte[] decrypt = decryptByPublicKey(bytes, publicKey);
+        byte[] decrypt = decodePublicKey(bytes, publicKey);
         return new String(decrypt);
     }
 

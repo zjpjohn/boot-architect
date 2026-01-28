@@ -36,8 +36,8 @@ public class EnumPropertyCustomizer implements PropertyCustomizer, EnumValueCust
                 if (StringUtils.hasText(property.getDescription())) {
                     description = property.getDescription() + " (" + description + ")";
                 }
-                description = description
-                              + "\n备注说明：前端传参时，只需传递枚举值即可；后端返回的枚举数据格式{'value':枚举值,'label':'枚举说明'}";
+                description = description +
+                              "\n备注说明：前端传参时，只需传递枚举值即可；后端返回的枚举数据格式{'value':枚举值,'label':'枚举说明'}";
                 schema.setDescription(description);
                 return schema;
             }

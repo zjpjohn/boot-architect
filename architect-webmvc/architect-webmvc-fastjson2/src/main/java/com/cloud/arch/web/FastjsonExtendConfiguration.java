@@ -70,8 +70,9 @@ public class FastjsonExtendConfiguration implements WebMvcConfigurer, Initializi
     }
 
     private void registerLocalWriters() {
-        String dateFormat =
-            Optional.ofNullable(properties.getDateFormat()).filter(StringUtils::isNotBlank).orElse(DATE_FORMAT);
+        String dateFormat = Optional.ofNullable(properties.getDateFormat())
+                                    .filter(StringUtils::isNotBlank)
+                                    .orElse(DATE_FORMAT);
         String[] formats = this.formats(dateFormat);
         JSON.register(LocalDateTime.class, new LocalDateTimeWriter(dateFormat));
         JSON.register(LocalDate.class, new LocalDateWriter(formats[0]));
@@ -91,8 +92,9 @@ public class FastjsonExtendConfiguration implements WebMvcConfigurer, Initializi
     }
 
     private JSONWriter.Feature[] writerFeatures() {
-        List<JSONWriter.Feature> features =
-            Lists.newArrayList(JSONWriter.Feature.WriteLongAsString, JSONWriter.Feature.BrowserCompatible, JSONWriter.Feature.BrowserSecure);
+        List<JSONWriter.Feature> features = Lists.newArrayList(JSONWriter.Feature.WriteLongAsString,
+                                                               JSONWriter.Feature.BrowserCompatible,
+                                                               JSONWriter.Feature.BrowserSecure);
         if (!properties.isIgnoreNull()) {
             features.add(JSONWriter.Feature.WriteNulls);
         }
@@ -100,8 +102,10 @@ public class FastjsonExtendConfiguration implements WebMvcConfigurer, Initializi
     }
 
     private JSONReader.Feature[] readFeatures() {
-        ArrayList<JSONReader.Feature> features =
-            Lists.newArrayList(JSONReader.Feature.FieldBased, JSONReader.Feature.IgnoreAutoTypeNotMatch, JSONReader.Feature.UseDefaultConstructorAsPossible, JSONReader.Feature.AllowUnQuotedFieldNames);
+        ArrayList<JSONReader.Feature> features = Lists.newArrayList(JSONReader.Feature.FieldBased,
+                                                                    JSONReader.Feature.IgnoreAutoTypeNotMatch,
+                                                                    JSONReader.Feature.UseDefaultConstructorAsPossible,
+                                                                    JSONReader.Feature.AllowUnQuotedFieldNames);
         if (properties.isIgnoreNull()) {
             features.add(JSONReader.Feature.IgnoreSetNullValue);
         }

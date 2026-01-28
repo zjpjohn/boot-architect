@@ -112,8 +112,9 @@ public final class IdWorker {
                           this.lastTimestamp - timestamp);
             }
             this.lastTimestamp = timestamp;
-            return ((timestamp - START_TIMESTAMP) << TIMESTAMP_SHIFT) | (this.sequence << SEQUENCE_SHIFT)
-                   | this.workerId;
+            return ((timestamp - START_TIMESTAMP) << TIMESTAMP_SHIFT) |
+                   (this.sequence << SEQUENCE_SHIFT) |
+                   this.workerId;
         }
     }
 
@@ -159,7 +160,7 @@ public final class IdWorker {
         byte[] ip;
         long   workerId;
         try {
-            ip       = getPrivateIp().getAddress();
+            ip = getPrivateIp().getAddress();
             workerId = (ip[2] << 8 | (int) ip[3]) & ((1 << IP_BITS) - 1);
         } catch (SocketException e) {
             throw new RuntimeException("无法获取本机IP地址", e);
@@ -176,9 +177,7 @@ public final class IdWorker {
         if (addresses.isEmpty()) {
             throw new RuntimeException("无法获取本机IP地址");
         }
-        List<InetAddress> localAddresses = addresses.stream()
-                                                    .filter(InetAddress::isSiteLocalAddress)
-                                                    .collect(Collectors.toList());
+        List<InetAddress> localAddresses = addresses.stream().filter(InetAddress::isSiteLocalAddress).toList();
         if (localAddresses.isEmpty()) {
             throw new RuntimeException("无法获取本机内网IP地址");
         }
