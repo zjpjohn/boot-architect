@@ -56,7 +56,7 @@ public class Pager<T> implements Serializable {
         vPage.setTotal(this.total);
         vPage.setPageSize(this.pageSize);
         vPage.setCurrent(this.current);
-        if (this.total > 0) {
+        if (CollectionUtils.isNotEmpty(this.records)) {
             vPage.setSize(this.size);
             List<V> list = this.records.stream().map(function).collect(Collectors.toList());
             vPage.setRecords(list);
@@ -75,7 +75,7 @@ public class Pager<T> implements Serializable {
         vPage.setTotal(this.total);
         vPage.setPageSize(this.pageSize);
         vPage.setCurrent(this.current);
-        if (this.total > 0) {
+        if (CollectionUtils.isNotEmpty(this.records)) {
             vPage.setSize(this.size);
             vPage.setRecords(function.apply(this.records));
         }

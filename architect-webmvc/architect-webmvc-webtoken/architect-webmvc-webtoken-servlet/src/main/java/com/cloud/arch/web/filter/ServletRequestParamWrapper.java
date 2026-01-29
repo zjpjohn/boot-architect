@@ -28,12 +28,12 @@ public class ServletRequestParamWrapper extends HttpServletRequestWrapper {
     public ServletRequestParamWrapper(HttpServletRequest request) {
         super(request);
         this.appendParameters = Maps.newHashMap();
-        this.appendHeaders    = Maps.newHashMap();
-        this.parameterMap     = Maps.newHashMap(request.getParameterMap());
+        this.appendHeaders = Maps.newHashMap();
+        this.parameterMap = Maps.newHashMap(request.getParameterMap());
     }
 
     public void putParameter(String name, Object value) {
-        parameterMap.put(name, new String[] {value.toString()});
+        parameterMap.put(name, new String[]{value.toString()});
         appendParameters.put(name, value);
     }
 
@@ -98,7 +98,7 @@ public class ServletRequestParamWrapper extends HttpServletRequestWrapper {
         }
         byte[] requestBody = StreamUtils.copyToByteArray(getRequest().getInputStream());
         if (requestBody.length > 0) {
-            char jsonStart = (char)requestBody[0];
+            char jsonStart = (char) requestBody[0];
             if (JSON_OBJECT_SYMBOL == jsonStart) {
                 //body体json数据,追加参数
                 JSONObject jsonObject = JSON.parseObject(requestBody);
@@ -118,7 +118,7 @@ public class ServletRequestParamWrapper extends HttpServletRequestWrapper {
     @Override
     public String getParameter(String name) {
         String[] values = parameterMap.get(name);
-        if (values == null || values.length <= 0) {
+        if (values == null || values.length == 0) {
             return null;
         }
         return values[0];

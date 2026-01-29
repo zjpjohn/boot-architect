@@ -71,14 +71,20 @@ public class MutexTemplate implements SmartLifecycle {
     private void schedule(String mutex, ContendMutexProps props, SchedulerConfig config, Runnable task) {
         Preconditions.checkState(StringUtils.isNotBlank(mutex), "mutex must not be null.");
         if (schedulers.containsKey(mutex)) {
-            throw new IllegalArgumentException(Strings.lenientFormat("exist mutex [%s] scheduler, please change another mutex.", mutex));
+            throw new IllegalArgumentException(Strings.lenientFormat(
+                    "exist mutex [%s] scheduler, please change another mutex.",
+                    mutex));
         }
         ScheduledExecutorService scheduleService = scheduledExecutor;
         if (scheduleService == null) {
             scheduleService = Executors.newSingleThreadScheduledExecutor();
         }
-        final MutexScheduler mutexScheduler
-                = new MutexScheduler(mutex, config, task, props, scheduleService, controllerFactory);
+        final MutexScheduler mutexScheduler = new MutexScheduler(mutex,
+                                                                 config,
+                                                                 task,
+                                                                 props,
+                                                                 scheduleService,
+                                                                 controllerFactory);
         schedulers.put(mutex, mutexScheduler);
         mutexScheduler.start();
     }
