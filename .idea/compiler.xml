@@ -36,6 +36,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/mybatis/mybatis/3.5.19/mybatis-3.5.19.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.5/spring-boot-configuration-processor-3.5.5.jar" />
         </processorPath>
         <module name="mybatis-flex-example" />
       </profile>

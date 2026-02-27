@@ -65,6 +65,9 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = ConstraintViolationException.class)
     public ApiReturn<String> exception(ConstraintViolationException exception) {
+        if (log.isWarnEnabled()) {
+            log.error(exception.getMessage(), exception);
+        }
         String message = exception.getConstraintViolations()
                                   .stream()
                                   .map(ConstraintViolation::getMessage)
@@ -76,21 +79,11 @@ public class WebmvcHandlerAdvice implements Ordered {
      * 请求参数错误处理
      */
     @ResponseBody
-    @ExceptionHandler(
-            value = {
-                    MethodArgumentTypeMismatchException.class,
-                    MethodArgumentConversionNotSupportedException.class,
-                    HttpMessageNotReadableException.class,
-                    HttpMessageNotWritableException.class,
-                    ConversionException.class,
-                    ConversionNotSupportedException.class,
-                    InvalidPropertyException.class,
-                    NumberFormatException.class,
-                    ServletRequestBindingException.class,
-                    UnsatisfiedServletRequestParameterException.class,
-                    IllegalArgumentException.class,
-            })
+    @ExceptionHandler(value = {MethodArgumentTypeMismatchException.class, MethodArgumentConversionNotSupportedException.class, HttpMessageNotReadableException.class, HttpMessageNotWritableException.class, ConversionException.class, ConversionNotSupportedException.class, InvalidPropertyException.class, NumberFormatException.class, ServletRequestBindingException.class, UnsatisfiedServletRequestParameterException.class, IllegalArgumentException.class,})
     public ApiReturn<String> error(Exception error) {
+        if (log.isWarnEnabled()) {
+            log.error(error.getMessage(), error);
+        }
         String message = Optional.ofNullable(NestedExceptionUtils.getRootCause(error))
                                  .map(Throwable::getMessage)
                                  .orElse(error.getMessage());
@@ -137,6 +130,9 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = DuplicateKeyException.class)
     public ApiReturn<String> duplicateError(DuplicateKeyException error) {
+        if (log.isWarnEnabled()) {
+            log.error(error.getMessage(), error);
+        }
         return ApiReturn.badRequest("has duplicated data.", 400);
     }
 
@@ -146,6 +142,9 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = {HttpMediaTypeNotSupportedException.class, HttpMediaTypeNotAcceptableException.class})
     public ApiReturn<String> mediaTypeError(Exception error) {
+        if (log.isWarnEnabled()) {
+            log.error(error.getMessage(), error);
+        }
         return ApiReturn.unsupportedMedia(error.getMessage());
     }
 
@@ -154,7 +153,7 @@ public class WebmvcHandlerAdvice implements Ordered {
      */
     @ResponseBody
     @ExceptionHandler(value = {NoHandlerFoundException.class, NoResourceFoundException.class})
-    public ApiReturn<String> notFoundError(Exception exception) {
+    public ApiReturn<String> notFoundError(Exception error) {
         return ApiReturn.notFound(HttpStatus.NOT_FOUND.value(), "your request not found.");
     }
 
