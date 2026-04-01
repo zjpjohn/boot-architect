@@ -59,7 +59,7 @@
         </dependency>
         <dependency>
             <groupId>com.cloud.arch</groupId>
-            <artifactId>architect-mybatis</artifactId>
+            <artifactId>architect-mybatis-extension</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
