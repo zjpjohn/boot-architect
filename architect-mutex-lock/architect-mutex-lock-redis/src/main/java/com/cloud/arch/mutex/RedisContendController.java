@@ -130,7 +130,7 @@ public class RedisContendController extends AbsContendController {
         Object[] values = {this.contender.getContenderId(), String.valueOf(ttl.toMillis())};
         final String result = this.luaScript.eval(RScript.Mode.READ_WRITE,
                                                   GUARD_SCRIPT,
-                                                  RScript.ReturnType.STATUS,
+                                                  RScript.ReturnType.STRING,
                                                   Arrays.asList(keys),
                                                   values);
         if (log.isDebugEnabled()) {
@@ -143,7 +143,7 @@ public class RedisContendController extends AbsContendController {
         Object[] values = {this.contender.getContenderId(), String.valueOf(ttl.toMillis() + transition.toMillis())};
         final String result = this.luaScript.eval(RScript.Mode.READ_WRITE,
                                                   ACQUIRE_SCRIPT,
-                                                  RScript.ReturnType.STATUS,
+                                                  RScript.ReturnType.STRING,
                                                   Arrays.asList(keys),
                                                   values);
         if (log.isDebugEnabled()) {

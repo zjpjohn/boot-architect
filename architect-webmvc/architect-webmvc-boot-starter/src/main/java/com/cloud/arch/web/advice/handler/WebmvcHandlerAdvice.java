@@ -79,7 +79,17 @@ public class WebmvcHandlerAdvice implements Ordered {
      * 请求参数错误处理
      */
     @ResponseBody
-    @ExceptionHandler(value = {MethodArgumentTypeMismatchException.class, MethodArgumentConversionNotSupportedException.class, HttpMessageNotReadableException.class, HttpMessageNotWritableException.class, ConversionException.class, ConversionNotSupportedException.class, InvalidPropertyException.class, NumberFormatException.class, ServletRequestBindingException.class, UnsatisfiedServletRequestParameterException.class, IllegalArgumentException.class,})
+    @ExceptionHandler(value = {MethodArgumentTypeMismatchException.class,
+            MethodArgumentConversionNotSupportedException.class,
+            HttpMessageNotReadableException.class,
+            HttpMessageNotWritableException.class,
+            ConversionException.class,
+            ConversionNotSupportedException.class,
+            InvalidPropertyException.class,
+            NumberFormatException.class,
+            ServletRequestBindingException.class,
+            UnsatisfiedServletRequestParameterException.class,
+            IllegalArgumentException.class,})
     public ApiReturn<String> error(Exception error) {
         if (log.isWarnEnabled()) {
             log.error(error.getMessage(), error);
