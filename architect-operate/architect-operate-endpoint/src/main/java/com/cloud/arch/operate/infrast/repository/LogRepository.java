@@ -2,6 +2,7 @@ package com.cloud.arch.operate.infrast.repository;
 
 import com.cloud.arch.operate.core.OperateType;
 import com.cloud.arch.operate.core.OperationLog;
+import com.cloud.arch.operate.infrast.props.OperateProperties;
 import com.cloud.arch.page.Pager;
 import com.cloud.arch.page.PageCondition;
 import lombok.extern.slf4j.Slf4j;
@@ -22,15 +23,17 @@ import java.util.Map;
 @Repository
 public class LogRepository {
 
-    private static final String LOG_SQL   = "select "
-            + "id,app_no,tenant_id,biz_group,title,type,target,method,req_uri,op_id,op_name,inet_ntoa(op_ip) as op_ip,op_location,state,params,error,taken_time,gmt_create "
-            + "from sys_oper_log ";
+    private static final String LOG_SQL   = "select " +
+                                            "id,app_no,tenant_id,biz_group,title,type,target,method,req_uri,op_id,op_name,inet_ntoa(op_ip) as op_ip,op_location,state,params,error,taken_time,gmt_create " +
+                                            "from sys_oper_log ";
     private static final String COUNT_SQL = "select count(1) from sys_oper_log ";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final OperateProperties          properties;
 
-    public LogRepository(DataSource dataSource) {
+    public LogRepository(DataSource dataSource, OperateProperties properties) {
         this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        this.properties = properties;
     }
 
     public OperationLog query(Long id) {
@@ -139,14 +142,19 @@ public class LogRepository {
         log.setReqUri(rs.getString("req_uri"));
         log.setOpId(rs.getLong("op_id"));
         log.setOpName(rs.getString("op_name"));
-        log.setOpIp(rs.getString("op_ip"));
-        log.setOpLocation(rs.getString("op_location"));
         log.setState(rs.getInt("state"));
         log.setParams(rs.getString("params"));
         log.setError(rs.getString("error"));
         log.setError(rs.getString("error"));
         log.setTakenTime(rs.getLong("taken_time"));
         log.setGmtCreate(rs.getObject("gmt_create", LocalDateTime.class));
+        if (properties.getIpMask()) {
+            log.setOpIp("****************");
+            log.setOpLocation("****************");
+        } else {
+            log.setOpIp(rs.getString("op_ip"));
+            log.setOpLocation(rs.getString("op_location"));
+        }
         return log;
     }
 

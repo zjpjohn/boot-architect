@@ -32,38 +32,29 @@ public class OperationLogHandle implements ConsumerListener<LogContext>, Environ
                               Ip2RegionSearcher ipRegionSearcher,
                               IOperatorResolver operatorResolver,
                               ITenantResolver tenantResolver) {
-        this.repository       = repository;
-        this.properties       = properties;
+        this.repository = repository;
+        this.properties = properties;
         this.ipRegionSearcher = ipRegionSearcher;
         this.operatorResolver = operatorResolver;
-        this.tenantResolver   = tenantResolver;
+        this.tenantResolver = tenantResolver;
     }
 
     @Override
     public void handle(List<LogContext> contexts) {
         try {
-            String            appNo    = environment.getProperty(APP_NAME_KEY);
-            List<Long>        idList   = CollectionUtils.toList(contexts, e -> e.getContext().getOperatorId());
-            Map<Long, String> operator = operatorResolver.resolve(idList);
-            List<String>      excludes = properties.excludeList();
-            List<OperationLog> logList = contexts.stream()
-                                                 .map(context -> build(context,
-                                                                       appNo,
-                                                                       tenantResolver.resolve(),
-                                                                       operator,
-                                                                       excludes))
-                                                 .toList();
+            List<Long>         idList   = CollectionUtils.toList(contexts, e -> e.getContext().getOperatorId());
+            Map<Long, String>  operator = operatorResolver.resolve(idList);
+            List<OperationLog> logList  = contexts.stream().map(context -> build(context, operator)).toList();
             this.repository.save(logList);
         } catch (Exception error) {
             log.error("async save the operate logs error:", error);
         }
     }
 
-    private OperationLog build(LogContext context,
-                               String appNo,
-                               String tenantId,
-                               Map<Long, String> operator,
-                               List<String> excludes) {
+    private OperationLog build(LogContext context, Map<Long, String> operator) {
+        String       appNo    = environment.getProperty(APP_NAME_KEY);
+        String       tenantId = tenantResolver.resolve();
+        List<String> excludes = properties.excludeList();
         return context.buildLog(appNo, tenantId, excludes, operator::get, this::locationResolve);
     }
 

@@ -16,5 +16,8 @@ public class OperateProperties {
      * 默认false
      */
     private Boolean tenantForce = false;
-
+    /**
+     * 是否ip使用掩码
+     */
+    private Boolean ipMask      = false;
 }
