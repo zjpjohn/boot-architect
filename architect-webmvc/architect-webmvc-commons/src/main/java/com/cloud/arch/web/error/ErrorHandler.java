@@ -1,6 +1,7 @@
 package com.cloud.arch.web.error;
 
 import com.cloud.arch.utils.CollectionUtils;
+import com.cloud.arch.web.domain.ApiReturn;
 import com.cloud.arch.web.utils.Assert;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,9 @@ public interface ErrorHandler extends Supplier<ApiBizException> {
      */
     String getError();
 
+    /**
+     * 返回业务异常
+     */
     default ApiBizException get() {
         return ApiBizException.from(this);
     }
