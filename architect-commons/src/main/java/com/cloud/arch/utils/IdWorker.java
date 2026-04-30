@@ -9,13 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 public final class IdWorker {
@@ -85,7 +85,9 @@ public final class IdWorker {
      */
     private long sequence = 0L;
 
-    private static final IdWorker WORKER = new IdWorker();
+    private static final class IdWorkerHolder {
+        public static final IdWorker INSTANCE = new IdWorker();
+    }
 
     private IdWorker() {
         long id = getWorkerId();
@@ -134,14 +136,14 @@ public final class IdWorker {
      * 获取long型 uuid
      */
     public static long nextId() {
-        return WORKER.getNextId();
+        return IdWorkerHolder.INSTANCE.getNextId();
     }
 
     /**
      * 转换进制的字符型uuid
      */
     public static String uuid() {
-        long          uid       = WORKER.getNextId();
+        long          uid       = IdWorkerHolder.INSTANCE.getNextId();
         int           remainder = 0, radix = RADIX_CHARS.length();
         StringBuilder builder   = new StringBuilder();
         while (uid > radix - 1) {
@@ -173,36 +175,22 @@ public final class IdWorker {
      * 取得本机内网IP
      */
     private static InetAddress getPrivateIp() throws SocketException {
-        List<InetAddress> addresses = getAllIPs();
-        if (addresses.isEmpty()) {
-            throw new RuntimeException("无法获取本机IP地址");
-        }
-        List<InetAddress> localAddresses = addresses.stream().filter(InetAddress::isSiteLocalAddress).toList();
-        if (localAddresses.isEmpty()) {
-            throw new RuntimeException("无法获取本机内网IP地址");
-        }
-        return localAddresses.get(0);
-    }
-
-    /**
-     * 取得本机所有IP
-     */
-    private static List<InetAddress> getAllIPs() throws SocketException {
-        List<InetAddress>             result = new ArrayList<>();
-        Enumeration<NetworkInterface> netInterfaces;
-        netInterfaces = NetworkInterface.getNetworkInterfaces();
-        InetAddress ip;
+        List<InetAddress>             result        = new ArrayList<>();
+        Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
         while (netInterfaces.hasMoreElements()) {
             NetworkInterface         ni        = netInterfaces.nextElement();
             Enumeration<InetAddress> addresses = ni.getInetAddresses();
             while (addresses.hasMoreElements()) {
-                ip = addresses.nextElement();
-                if (!ip.getHostAddress().contains(":")) {
+                InetAddress ip = addresses.nextElement();
+                if (ip instanceof Inet4Address && ip.isSiteLocalAddress()) {
                     result.add(ip);
                 }
             }
         }
-        return result;
+        if (result.isEmpty()) {
+            throw new RuntimeException("无法获取本机IP地址");
+        }
+        return result.getFirst();
     }
 
     /**
