@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -21,6 +22,16 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/web")
 public class WebMvcController {
+
+    @GetMapping("/opt1")
+    public Optional<String> opt1() {
+        return Optional.of("optional string");
+    }
+
+    @GetMapping("/opt2")
+    public Optional<?> opt2() {
+        return Optional.empty();
+    }
 
     @GetMapping("/test1")
     public String test1() {

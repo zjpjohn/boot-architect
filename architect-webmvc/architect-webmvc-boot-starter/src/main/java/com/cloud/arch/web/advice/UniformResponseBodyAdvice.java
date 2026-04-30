@@ -10,6 +10,8 @@ import com.cloud.arch.web.utils.WebMvcConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -43,10 +45,15 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         return type != null && ResponseBodyEmitter.class.isAssignableFrom(type);
     }
 
+    private boolean isStreamReturnType(MethodParameter returnType) {
+        Class<?> type = returnType.getParameterType();
+        return InputStreamResource.class.isAssignableFrom(type) || Resource.class.isAssignableFrom(type);
+    }
+
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         ApiBody annotation = this.getAnnotation(returnType);
-        return annotation != null && !isSseEmitter(returnType);
+        return annotation != null && !isSseEmitter(returnType) && !isStreamReturnType(returnType);
     }
 
     @Override
@@ -82,21 +89,35 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
      */
     private BodyData<?> wrapBody(ApiBody annotation, Object body, String message, ServerHttpResponse response) {
         if (annotation.encrypt()) {
-            Object data = extractBodyData(body);
+            Object data = unWrapBody(body);
             return ResponseEncryptor.encrypt(properties, data, message, response);
         }
-        if (body instanceof BodyData) {
-            return (BodyData<?>) body;
-        }
-        return new BodyData<>(message, HttpStatus.OK.value(), body);
+        return wrapAdapter(body, message);
     }
 
     /**
-     * 提取body内容数据
+     * 统一适配包装方法返回值
      */
-    private Object extractBodyData(Object data) {
+    private BodyData<?> wrapAdapter(Object body, String message) {
+        if (body instanceof BodyData) {
+            return (BodyData<?>) body;
+        }
+        Object data = body;
+        if (data instanceof Optional<?> value) {
+            data = value.orElse(null);
+        }
+        return new BodyData<>(message, HttpStatus.OK.value(), data);
+    }
+
+    /**
+     * 解构body内容数据
+     */
+    private Object unWrapBody(Object data) {
         if (data instanceof BodyData) {
             return ((BodyData<?>) data).data();
+        }
+        if (data instanceof Optional<?> value) {
+            return value.orElse(null);
         }
         return data;
     }
