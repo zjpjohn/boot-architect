@@ -9,9 +9,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class CloudCacheProperties {
 
     /**
-     * 缓存操作刷新本地缓存topic
+     * 缓存操作刷新本地缓存topic，默认值：cache:refresh:default
      */
-    private String  refreshTopic;
+    private String  refreshTopic       = "cache:refresh:default";
     /**
      * 二级缓存过期时间刷新时间间隔
      * 默认-60秒
@@ -21,6 +21,10 @@ public class CloudCacheProperties {
      * 缓存延迟删除时间间隔,时间单位毫秒，默认-500毫秒
      */
     private Long    delayEvictInterval = 500L;
+    /**
+     * 延迟删除队列最大容量，超出后丢弃新任务并记录 warn 日志，默认-10000
+     */
+    private int     maxDelayEvictSize  = 10000;
     /**
      * 是否开启缓存延迟双删，默认-开启
      */

@@ -15,6 +15,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
+/**
+ * 缓存注解解析器，将方法上的 {@code @CacheResult/@CachePut/@CacheEvict} 及类上的 {@code @CacheAction}
+ * 合并解析为对应的 {@link AbsCacheOperation} 集合
+ */
 public class CacheAnnotationParser {
 
     public static final Set<Class<? extends Annotation>> CACHE_OPERATION_ANNOTATIONS = new LinkedHashSet<>(4);

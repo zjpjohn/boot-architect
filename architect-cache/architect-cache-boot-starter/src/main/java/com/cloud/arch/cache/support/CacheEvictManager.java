@@ -13,6 +13,11 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * 缓存淘汰管理器，实现"延迟双删"策略：先立即淘汰缓存，再通过 {@link DelayQueue} 延迟二次淘汰，
+ * 以解决数据库读写分离场景下的主从延迟导致缓存脏数据问题。
+ * 监听 {@link CacheEvictEvent} 的 {@link TransactionalEventListener} 确保事务提交后才执行。
+ */
 @Slf4j
 public class CacheEvictManager implements DisposableBean, InitializingBean {
 
@@ -52,7 +57,7 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
     }
 
     /**
-     * 删除淘淘缓存
+     * 删除淘汰缓存
      *
      * @param event 删除缓存事件
      */
@@ -87,6 +92,12 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
      * 发布延迟删除缓存事件
      */
     private void publishDelayEvict(CacheEvictEvent event) {
+        int pendingSize = this.delayQueue.size();
+        if (pendingSize >= this.properties.getMaxDelayEvictSize()) {
+            log.warn("延迟删除队列已满(size:{}/max:{})，丢弃key[{}]的延迟双删任务",
+                     pendingSize, this.properties.getMaxDelayEvictSize(), event.getKey());
+            return;
+        }
         long           evictAt        = System.currentTimeMillis() + this.properties.getDelayEvictInterval();
         CacheEvictTask cacheEvictTask = new CacheEvictTask(event, evictAt);
         this.delayQueue.add(cacheEvictTask);
@@ -98,6 +109,7 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
         if (!this.triggerWorker.isInterrupted()) {
             this.triggerWorker.interrupt();
         }
+        this.delayQueue.clear();
     }
 
     @Override

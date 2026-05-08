@@ -13,10 +13,17 @@ public abstract class AbstractCacheInvoker {
     protected final CacheErrorHandler errorHandler;
     protected final CacheEvictManager cacheEvictManager;
 
+    /**
+     * 使用默认的 SimpleCacheErrorHandler 构造，缓存操作异常会抛出 RuntimeException
+     */
     public AbstractCacheInvoker(CacheEvictManager cacheEvictManager) {
         this(cacheEvictManager, new SimpleCacheErrorHandler());
     }
 
+    /**
+     * @param cacheEvictManager 缓存淘汰管理器
+     * @param errorHandler      自定义缓存错误处理器，可为 null（此时异常静默）
+     */
     public AbstractCacheInvoker(CacheEvictManager cacheEvictManager, CacheErrorHandler errorHandler) {
         this.errorHandler      = errorHandler;
         this.cacheEvictManager = cacheEvictManager;

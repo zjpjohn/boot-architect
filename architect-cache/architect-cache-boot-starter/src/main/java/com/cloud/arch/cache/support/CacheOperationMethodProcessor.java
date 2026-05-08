@@ -56,7 +56,7 @@ public class CacheOperationMethodProcessor
         Assert.state(this.beanFactory != null, "No ConfigurableListableBeanFactory set");
         Assert.state(this.applicationContext != null, "No ApplicationContext set");
         this.cacheOperationSource = this.getBean(CacheOperationCachedSource.class);
-        Assert.state(this.cacheOperationSource != null, "No CacheOperationSource bean founded.");
+        Assert.state(this.cacheOperationSource != null, "No CacheOperationSource bean found.");
         //处理所有bean缓存操作
         this.processAllBeanCacheOperations();
         //构建缓存操作构建缓存

@@ -24,6 +24,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 缓存操作上下文工厂，负责为每个缓存注解方法创建 {@link CacheContextContainer}，
+ * 内部缓存方法级元数据（{@link CacheOperationMetadata}）避免重复解析注解。
+ */
 public class CacheContextContainerFactory implements BeanFactoryAware, DisposableBean {
 
     private final Map<CacheOperationKey, CacheOperationMetadata> metadataCache = new ConcurrentHashMap<>(1024);

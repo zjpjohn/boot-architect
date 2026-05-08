@@ -15,6 +15,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+/**
+ * 缓存解析器抽象基类，提供从 {@link AbsCacheOperation} 中提取 {@link CacheSettings} 并
+ * 通过 {@link CacheManager#getAndAdd} 获取或创建 Cache 实例的通用逻辑
+ */
 public abstract class AbstractCacheResolver implements CacheResolver, InitializingBean {
 
     private final CacheManager cacheManager;

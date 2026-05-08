@@ -6,6 +6,9 @@ import lombok.Getter;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 延迟缓存淘汰任务，实现 {@link Delayed} 接口供 {@link DelayQueue} 按指定时间调度执行
+ */
 @Getter
 public class CacheEvictTask implements Delayed {
 

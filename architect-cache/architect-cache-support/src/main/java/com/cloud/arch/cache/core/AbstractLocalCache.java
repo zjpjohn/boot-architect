@@ -15,6 +15,11 @@ import java.util.concurrent.Callable;
 @SuppressWarnings("unchecked")
 public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
 
+    /**
+     * 全局 key 级锁表，所有 AbstractLocalCache 实例共享。
+     * 用于控制同一 key 的并发回源操作，避免缓存击穿时多个线程同时穿透 L2。
+     * 使用 weakValues 确保不再被引用的锁对象可被 GC 回收。
+     */
     private static final Map<Object, Object> KEY_LOCKS = new MapMaker().weakValues().makeMap();
     private final        LocalCacheSettings  settings;
     private final        AbstractRemoteCache remoteCache;
@@ -26,9 +31,9 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
                                  RefreshPolicy refreshPolicy,
                                  AbstractRemoteCache remoteCache) {
         super(name, allowNullValue);
-        this.settings      = settings;
+        this.settings = settings;
         this.refreshPolicy = refreshPolicy;
-        this.remoteCache   = remoteCache;
+        this.remoteCache = remoteCache;
     }
 
     /**
@@ -122,10 +127,14 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
         }
         try {
             this.remoteCache.doPut(key, storeValue);
+            // L2 写入成功，本节点直接更新 L1，避免下次 get 穿透 L1
+            this.doPut(key, storeValue);
         } catch (Exception error) {
             log.warn("put cache[{}] key[{}] cached value error:", this.getName(), key, error);
+            // L2 写入失败，淘汰本节点 L1 防止返回脏数据
+            this.doEvict(key);
         }
-        this.doEvict(key);
+        // 无论成败，通知其他节点淘汰 L1，确保集群一致性
         this.refreshPolicy.sendEvict(this.getName(), key);
     }
 

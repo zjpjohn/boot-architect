@@ -10,6 +10,10 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * 缓存操作上下文容器，按操作类型（CacheResult/CachePut/CacheEvict）分组存储 {@link OperationContext}，
+ * 供 {@link com.cloud.arch.cache.interceptor.CacheAspectSupport} 在执行时按类型取用
+ */
 @SuppressWarnings("rawtypes")
 public class CacheContextContainer {
 

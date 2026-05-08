@@ -31,13 +31,12 @@ public class CacheOperationMetadata {
                                   Class<?> targetClass,
                                   KeyGenerator keyGenerator,
                                   CacheResolver cacheResolver) {
-        this.operation     = operation;
-        this.method        = BridgeMethodResolver.findBridgedMethod(method);
-        this.keyGenerator  = keyGenerator;
+        this.operation = operation;
+        this.method = BridgeMethodResolver.findBridgedMethod(method);
+        this.keyGenerator = keyGenerator;
         this.cacheResolver = cacheResolver;
-        Method targetMethod = (Proxy.isProxyClass(targetClass) ?
-                               AopUtils.getMostSpecificMethod(method, targetClass) :
-                               this.method);
+        Method targetMethod = (Proxy.isProxyClass(targetClass) ? AopUtils.getMostSpecificMethod(method,
+                                                                                                targetClass) : this.method);
         this.methodKey = new AnnotatedElementKey(targetMethod, targetClass);
     }
 
@@ -79,14 +78,16 @@ public class CacheOperationMetadata {
     public Object generateKey(OperationContext context, CacheOperationExpressionEvaluator evaluator, Object result) {
         String key = operation.getKey();
         if (!StringUtils.hasText(key)) {
-            //没有Key SPEL表达式，使用KeyGenerator生成key
+            //没有 Key SpEL 表达式，使用 KeyGenerator 生成 key
             return keyGenerator.generate(context.getTarget(), method, context.getArgs());
         }
         EvaluationContext evaluationContext = createEvaluationContext(context, evaluator, result);
         Object            cacheKey          = evaluator.key(key, methodKey, evaluationContext);
         if (cacheKey == null) {
-            //如果SPEL表达式错误，抛出异常提示表达式错误
-            throw new IllegalArgumentException(String.format("Cache key expression '%s' error, no cache key can be evaluated.", key));
+            //如果SpEL表达式错误，抛出异常提示表达式错误
+            throw new IllegalArgumentException(String.format(
+                    "Cache key expression '%s' error, no cache key can be evaluated.",
+                    key));
         }
         return cacheKey;
     }

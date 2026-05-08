@@ -5,6 +5,10 @@ import org.springframework.context.expression.AnnotatedElementKey;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+/**
+ * 缓存操作唯一标识，由 {@link AbsCacheOperation} + Method + targetClass 组合而成，
+ * 用作 {@link com.cloud.arch.cache.interceptor.context.CacheContextContainerFactory} 中元数据缓存的键
+ */
 public class CacheOperationKey implements Comparable<CacheOperationKey> {
 
     private final AbsCacheOperation<? extends Annotation> operation;

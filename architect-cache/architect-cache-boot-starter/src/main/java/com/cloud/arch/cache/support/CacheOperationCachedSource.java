@@ -13,6 +13,10 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 缓存操作注解缓存源，缓存方法级 {@code @CacheResult/@CachePut/@CacheEvict} 的解析结果，
+ * 以 {@link MethodClassKey} 为键避免同一方法重复解析注解
+ */
 @Slf4j
 @Getter
 public class CacheOperationCachedSource implements CacheOperationSource, DisposableBean {

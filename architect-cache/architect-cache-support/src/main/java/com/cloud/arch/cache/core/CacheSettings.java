@@ -70,6 +70,10 @@ public class CacheSettings {
                + allowNullValue
                + ", randomBound="
                + randomBound
+               + ", enableLocal="
+               + enableLocal
+               + ", local="
+               + local
                + '}';
     }
 

@@ -26,6 +26,10 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter({SecondCacheAutoConfiguration.class, HotKeyCacheAutoConfiguration.class})
 public class CacheAutoConfiguration {
 
+    /**
+     * 一级缓存管理器的 Bean 名称，供 {@link com.cloud.arch.cache.boot.extension.SecondCacheAutoConfiguration}
+     * 和 {@link com.cloud.arch.cache.boot.extension.HotKeyCacheAutoConfiguration} 统一引用
+     */
     public static final String LAYER_CACHE_MANAGER = "layer_cache_manager";
 
     @Bean

@@ -11,6 +11,10 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 import java.lang.reflect.Method;
 
+/**
+ * 缓存注解 AOP 切面，定义 {@code @CacheResult/@CachePut/@CacheEvict} 的切点，
+ * 将 {@link ProceedingJoinPoint} 适配为 {@link CacheOperationInvoker} 后委托给 {@link CacheAspectSupport} 执行。
+ */
 @Aspect
 public class AnnotationCacheAspect extends CacheAspectSupport {
 

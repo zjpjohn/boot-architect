@@ -11,10 +11,11 @@ import com.cloud.arch.cache.interceptor.operation.CacheResultOperation;
 import com.cloud.arch.cache.support.CacheErrorHandler;
 import com.cloud.arch.cache.support.CacheEvictEvent;
 import com.cloud.arch.cache.support.CacheEvictManager;
-import com.cloud.arch.cache.support.CacheEvictPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
@@ -28,18 +29,28 @@ import java.util.concurrent.Callable;
 import static com.cloud.arch.cache.expression.CacheOperationExpressionEvaluator.NO_RESULT;
 
 
+/**
+ * 缓存 AOP 执行引擎，负责拦截 {@code @CacheResult/@CachePut/@CacheEvict} 注解方法，
+ * 按顺序执行：前置淘汰 → 缓存回源 → 缓存更新 → 后置淘汰，并处理 Optional 返回值包装。
+ */
 @Slf4j
-public class CacheAspectSupport extends AbstractCacheInvoker implements DisposableBean {
+public class CacheAspectSupport extends AbstractCacheInvoker implements DisposableBean, ApplicationEventPublisherAware {
 
     private final CacheOperationExpressionEvaluator evaluator = new CacheOperationExpressionEvaluator();
 
     private final CacheContextContainerFactory operationContextsFactory;
+    private       ApplicationEventPublisher    eventPublisher;
 
     public CacheAspectSupport(CacheEvictManager cacheEvictManager,
                               CacheErrorHandler errorHandler,
                               CacheContextContainerFactory operationContextsFactory) {
         super(cacheEvictManager, errorHandler);
         this.operationContextsFactory = operationContextsFactory;
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     protected Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] args) {
@@ -52,14 +63,11 @@ public class CacheAspectSupport extends AbstractCacheInvoker implements Disposab
     }
 
     private Object execute(CacheOperationInvoker invoker, Method method, CacheContextContainer contexts) {
-        // 方法调用前置清除缓存操作,前置@CacheEvict处理
-        precessCacheEvict(contexts.get(CacheEvictOperation.class), NO_RESULT, true);
-        // 方法调用缓存数据操作,@CacheResult缓存处理
+        // 执行顺序：前置 @CacheEvict → @CacheResult 回源 → @CachePut 更新 → 后置 @CacheEvict 淘汰
+        processCacheEvict(contexts.get(CacheEvictOperation.class), NO_RESULT, true);
         Object cacheValue = processCacheResult(contexts.get(CacheResultOperation.class), () -> unwrapReturnValue(invoker.invoke()));
-        // 方法调用更新缓存数据,@CachePut处理
         processCachePut(contexts.get(CachePutOperation.class), cacheValue);
-        // 方法调用后置缓存清除操作,后置@CacheEvict处理
-        precessCacheEvict(contexts.get(CacheEvictOperation.class), NO_RESULT, false);
+        processCacheEvict(contexts.get(CacheEvictOperation.class), NO_RESULT, false);
         // 包装还原返回数据
         return wrapCacheValue(method, cacheValue);
     }
@@ -78,6 +86,10 @@ public class CacheAspectSupport extends AbstractCacheInvoker implements Disposab
         }
     }
 
+    /**
+     * 还原 Optional 返回值包装。缓存内部存储的是原始对象（如 User），
+     * 而非 Optional&lt;User&gt;。若方法签名声明返回 Optional，需在此处重新包装。
+     */
     private Object wrapCacheValue(Method method, @Nullable Object cacheValue) {
         if (method.getReturnType() == Optional.class && (cacheValue == null
                 || cacheValue.getClass() != Optional.class)) {
@@ -116,6 +128,10 @@ public class CacheAspectSupport extends AbstractCacheInvoker implements Disposab
         }
     }
 
+    /**
+     * 从缓存中获取结果，支持多缓存实例场景：
+     * 第一个缓存负责回源加载（含 valueLoader），后续缓存仅做 putIfAbsent 同步
+     */
     private Object findCacheResult(OperationContext context, Callable<?> callable, Object key) {
         Iterator<Cache> iterator = context.caches().iterator();
         Cache           cache    = iterator.next();
@@ -127,7 +143,7 @@ public class CacheAspectSupport extends AbstractCacheInvoker implements Disposab
         return value;
     }
 
-    private void precessCacheEvict(Collection<OperationContext> contexts, Object result, boolean beforeInvoke) {
+    private void processCacheEvict(Collection<OperationContext> contexts, Object result, boolean beforeInvoke) {
         for (OperationContext context : contexts) {
             CacheEvictOperation operation = (CacheEvictOperation) context.getOperation();
             if (operation.isBeforeInvocation() == beforeInvoke && context.isConditionPassing(result, evaluator)) {
@@ -147,9 +163,11 @@ public class CacheAspectSupport extends AbstractCacheInvoker implements Disposab
         CacheEvictEvent[] evictEvents = cacheNames.stream()
                                                   .map(name -> new CacheEvictEvent(name, key, !beforeInvoke, allEntries))
                                                   .toArray(CacheEvictEvent[]::new);
-        // 后置淘汰缓存，此时需要考虑缓存方法是否在事务中
+        // 后置淘汰缓存，发布 Spring 事件由 CacheEvictManager 的 @TransactionalEventListener 处理
         if (!beforeInvoke) {
-            CacheEvictPublisher.publish(evictEvents);
+            for (CacheEvictEvent evictEvent : evictEvents) {
+                eventPublisher.publishEvent(evictEvent);
+            }
             return;
         }
         // 前置淘汰缓存，直接淘汰缓存

@@ -15,17 +15,29 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRefreshTask {
 
-    // 缓存加载锁前缀
+    /**
+     * 缓存加载分布式锁 key 模板，格式: t:cache:{cacheName}:{key}
+     */
     private static final String                    CACHE_LOAD_PATTERN            = "t:cache:%s:%s";
-    // 缓存刷新锁前缀
+    /**
+     * 缓存刷新分布式锁 key 模板，格式: t:refresh:{cacheName}:{key}
+     */
     private static final String                    REFRESH_LOCK_PATTERN          = "t:refresh:%s:%s";
-    // 加载缓存锁时间
+    /**
+     * 获取缓存加载锁的超时时间（毫秒）
+     */
     private static final long                      CACHE_LOAD_LOCK_TIME          = 200L;
-    // 刷新缓存锁时间
+    /**
+     * 刷新锁获取超时时间（毫秒）
+     */
     private static final long                      CACHE_REFRESH_LOCK_TIME       = 20L;
-    // 缓存竞争锁失败加载间隔时间
+    /**
+     * 获取锁失败后重试获取缓存值的间隔（毫秒）
+     */
     private static final long                      CACHE_LOCK_FAIL_LOAD_INTERVAL = 50L;
-    // 缓存竞争锁失败重试获取次数
+    /**
+     * 获取锁失败后重试获取缓存值的最大次数
+     */
     private static final long                      CACHE_LOCK_FAIL_LOAD_RETRY    = 5;
     // redis缓存
     private final        RMapCache<Object, Object> mapCache;
@@ -44,8 +56,8 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
                             RemoteCacheTtlRefresher ttlRefresher) {
         super(name, settings);
         this.redissonClient = redissonClient;
-        this.mapCache       = redissonClient.getMapCache(this.getName());
-        this.ttlRefresher   = ttlRefresher;
+        this.mapCache = redissonClient.getMapCache(this.getName());
+        this.ttlRefresher = ttlRefresher;
         this.remoteCacheExpireListener();
     }
 
@@ -158,7 +170,17 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
         try {
             boolean lockedSuccess = lock.tryLock(CACHE_LOAD_LOCK_TIME, TimeUnit.MILLISECONDS);
             if (!lockedSuccess) {
-                return this.retryLoadValue(key);
+                // 竞争锁失败，先重试从缓存获取值
+                Object value = this.retryLoadValue(key);
+                if (value != null) {
+                    return value;
+                }
+                // 重试仍未获取到值，再次尝试获取锁（最长等待 CACHE_LOAD_LOCK_TIME 毫秒）
+                lockedSuccess = lock.tryLock(CACHE_LOAD_LOCK_TIME, TimeUnit.MILLISECONDS);
+                if (!lockedSuccess) {
+                    throw new IllegalStateException(
+                            "Failed to acquire load lock for cache [" + this.getName() + "] key [" + key + "]");
+                }
             }
             try {
                 return doLoadAndPut(key, valueLoader);
@@ -167,10 +189,14 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
                     lock.unlock();
                 }
             }
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
+            throw new IllegalStateException("Thread interrupted while loading cache [" +
+                                            this.getName() +
+                                            "] key [" +
+                                            key +
+                                            "]", error);
         }
-        return null;
     }
 
     private Object doLoadAndPut(Object key, Callable<?> valueLoader) {
@@ -199,19 +225,18 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
      * @param key 缓存key
      */
     private Object retryLoadValue(Object key) throws InterruptedException {
-        Object value     = null;
+        Object value;
         int    retryTime = 0;
         do {
             // 先等待指定加载时间，在重试加载数据
             TimeUnit.MILLISECONDS.sleep(CACHE_LOCK_FAIL_LOAD_INTERVAL);
-            value     = this.mapCache.get(key);
+            value = this.mapCache.get(key);
             retryTime = retryTime + 1;
             if (value != null) {
                 statsCounter().recordHits(1, false);
                 break;
             }
-        }
-        while (retryTime < CACHE_LOCK_FAIL_LOAD_RETRY);
+        } while (retryTime < CACHE_LOCK_FAIL_LOAD_RETRY);
         return value;
     }
 

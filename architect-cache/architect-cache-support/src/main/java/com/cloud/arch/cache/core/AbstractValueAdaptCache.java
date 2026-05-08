@@ -5,6 +5,12 @@ import com.cloud.arch.cache.metrics.StatsCounter;
 
 import java.util.concurrent.Callable;
 
+/**
+ * 缓存值适配抽象类，负责缓存存储值与业务值之间的双向转换:
+ * 1. 空值编码为 NullValue 实例存储，避免缓存穿透
+ * 2. 类型安全检查：{@link #get(Object, Class)}
+ * 3. 统计包装：{@link #statsWrappedLoad(Callable)}
+ */
 @SuppressWarnings("unchecked")
 public abstract class AbstractValueAdaptCache implements Cache {
 

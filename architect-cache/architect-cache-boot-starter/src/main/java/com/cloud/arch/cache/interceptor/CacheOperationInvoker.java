@@ -1,5 +1,8 @@
 package com.cloud.arch.cache.interceptor;
 
+/**
+ * 缓存操作回调接口，封装目标方法的实际调用，将受检异常包装为 {@link ThrowableWrapper} 抛出
+ */
 @FunctionalInterface
 public interface CacheOperationInvoker {
 

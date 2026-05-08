@@ -10,8 +10,8 @@ public abstract class AbstractRemoteCache extends AbstractValueAdaptCache {
 
     /* 远程缓存配置 */
     private final CacheSettings settings;
-    /* 是否激活本地缓存 */
-    private boolean activatedLocal = false;
+    /** 是否已激活本地缓存，通过 {@link #activateLocal} / {@link #detachLocal} 控制 */
+    private volatile boolean activatedLocal = false;
     /* 持有的本地缓存 */
     private AbstractLocalCache localCache;
 

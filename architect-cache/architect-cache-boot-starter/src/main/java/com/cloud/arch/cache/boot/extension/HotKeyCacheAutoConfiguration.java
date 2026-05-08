@@ -39,7 +39,8 @@ import org.springframework.context.annotation.Configuration;
 public class HotKeyCacheAutoConfiguration {
 
     /**
-     * 默认使用redisson包自动配置的redissonTemplate,
+     * Redis 客户端供应器，默认使用 Redisson 自动配置的 RedissonClient，
+     * 多 Redis 源场景下可通过自定义 {@link CacheRedisSupplier} Bean 覆盖
      */
     @Bean
     @ConditionalOnMissingBean(CacheRedisSupplier.class)
@@ -47,6 +48,9 @@ public class HotKeyCacheAutoConfiguration {
         return new DefaultCacheRedisSupplier(redissonClient);
     }
 
+    /**
+     * 热 key 探测配置属性，前缀 com.cloud.cache.hotkey
+     */
     @Bean
     @ConfigurationProperties(prefix = "com.cloud.cache.hotkey")
     public HotKeyCacheProperties hotKeyCacheProperties() {
@@ -54,7 +58,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key规则管理
+     * 热 key 规则管理器，负责维护哪些 key 被标记为热点
      */
     @Bean
     public KeyRuleManager keyRuleManager() {
@@ -62,7 +66,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key数据收集器
+     * 热 key 数据收集器（轮转桶算法），统计每个 key 的访问频率
      */
     @Bean
     public IKeyCollector<HotKeyModel, HotKeyModel> hotKeyCollector() {
@@ -70,7 +74,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key规则统计数据收集器
+     * 热 key 规则命中统计收集器，统计规则匹配的 key 计数
      */
     @Bean
     public IKeyCollector<KeyHotModel, KeyCountModel> keyCountCollector() {
@@ -78,7 +82,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * ETCD配置管理客户端
+     * ETCD 配置中心客户端，用于热 key 规则的分发和同步
      */
     @Bean
     public IConfigCenter configCenter(HotKeyCacheProperties properties) {
@@ -86,7 +90,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key探测worker集群管理
+     * 热 key 探测 Worker 集群管理器，负责 Worker 注册和心跳
      */
     @Bean
     public HotKeyWorkerManager workerManager(HotKeyCacheProperties properties, IConfigCenter configCenter) {
@@ -94,7 +98,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 带热key探测缓存
+     * 热 key 缓存包装器，组合热 key 探测能力和二级缓存读写
      */
     @Bean
     public HotKeyCache hotKeyCache(HotKeyCacheProperties properties,
@@ -105,7 +109,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 集群缓存数据刷新策略器
+     * 集群缓存一致性策略，通过 Redis Pub/Sub 广播缓存变更事件
      */
     @Bean
     @ConditionalOnMissingBean(RefreshPolicy.class)
@@ -116,7 +120,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key探测的缓存管理器
+     * 热 key 探测模式下的缓存管理器，将热 key 探针注入 RedisCacheManager
      */
     @Bean(name = CacheAutoConfiguration.LAYER_CACHE_MANAGER)
     public HotKeyCacheManager cacheManager(CacheRedisSupplier redisLoader,
@@ -129,7 +133,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key探测cache refresh
+     * 缓存解析器，从缓存操作元数据中解析出对应的 Cache 实例
      */
     @Bean
     public CacheResolver cacheResolver(HotKeyCacheManager cacheManager) {
@@ -137,7 +141,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 缓存节点标识生成策略
+     * 缓存节点标识策略，用于 Pub/Sub 消息去重（区分消息来源节点）
      */
     @Bean
     @ConditionalOnMissingBean(CacheNodePolicy.class)
@@ -146,7 +150,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 缓存事件处理监听器
+     * 热 key 模式下缓存事件监听器，接收集群失效消息并淘汰本地 L1
      */
     @Bean
     public CacheEventListener eventListener(CloudCacheProperties properties,
@@ -156,7 +160,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key创建事件订阅处理器
+     * 新热 key 创建事件订阅处理器，接收 Worker 推送的新热 key 并写入本地规则
      */
     @Bean
     public ReceiveNewKeySubscriber receiveNewKeySubscriber(HotKeyCache hotKeyCache) {
@@ -164,7 +168,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key以及规则配置监听器
+     * 热 key 及规则配置变更监听器（基于 ETCD watch），检测到变更后刷新本地规则
      */
     @Bean
     public HotKeyWatcherFactoryBean hotKeyDetectWatcher(HotKeyCacheProperties properties,
@@ -174,7 +178,7 @@ public class HotKeyCacheAutoConfiguration {
     }
 
     /**
-     * 热key统计定时上报
+     * Worker 定时上报器，定期将本节点收集的热 key 统计数据推送到 Worker 集群
      */
     @Bean
     public ScheduledPusherFactoryBean workerScheduledPusher(HotKeyCacheProperties properties,

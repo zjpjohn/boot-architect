@@ -2,6 +2,9 @@ package com.cloud.arch.cache.support;
 
 import java.lang.reflect.Method;
 
+/**
+ * 默认缓存 Key 生成器，单参直接返回参数值，多参返回 {@link SimpleKey} 实例，无参返回 {@link SimpleKey#EMPTY}
+ */
 public class SimpleKeyGenerator implements KeyGenerator {
 
     @Override

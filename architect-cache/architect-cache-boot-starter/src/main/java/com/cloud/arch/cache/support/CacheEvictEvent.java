@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
+/**
+ * 缓存淘汰事件，封装缓存名称、key、是否延迟删除等信息，
+ * 通过 Spring 事件机制由 {@link CacheEvictManager#cacheEvict} 监听处理
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

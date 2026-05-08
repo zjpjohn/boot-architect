@@ -10,7 +10,7 @@ public interface RefreshPolicy {
     void publish(RefreshEvent event);
 
     /**
-     * 获取刷新节点编号，判断是否为本地时间
+     * 获取当前缓存节点编号，用于判断 RefreshEvent 是否为本节点发出
      */
     long getRefreshNode();
 
