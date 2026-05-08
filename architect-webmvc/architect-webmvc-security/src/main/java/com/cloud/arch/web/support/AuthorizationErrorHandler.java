@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 public enum AuthorizationErrorHandler implements ErrorHandler {
     HANDLE_ERROR(HttpStatus.NOT_FOUND, "Your request not found"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
-    CHANNEL_NULL(HttpStatus.FORBIDDEN, "Request domain null，please request domain"),
+    CHANNEL_NULL(HttpStatus.FORBIDDEN, "Request domain null,please request domain"),
     CHANNEL_ERROR(HttpStatus.FORBIDDEN, "Request domain error"),
     CHANNEL_FORBIDDEN(HttpStatus.FORBIDDEN, "Forbidden request domain"),
     ROLE_NULL(HttpStatus.FORBIDDEN, "No access privilege"),

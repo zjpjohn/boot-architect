@@ -15,6 +15,9 @@ public class AuthorizationAnnotationPointcutAdvisor extends StaticMethodMatcherP
     private final MethodMatcher         methodResolver;
     private final AnnotationClassFilter annotationClassFilter;
 
+    /**
+     * @param annotationType 权限注解类型
+     */
     public AuthorizationAnnotationPointcutAdvisor(Class<? extends Annotation> annotationType) {
         this.methodResolver = new AnnotationMethodMatcher(annotationType);
         // 在方法第一次调用时判断类上是否有@Permission注解
@@ -24,6 +27,9 @@ public class AuthorizationAnnotationPointcutAdvisor extends StaticMethodMatcherP
         setClassFilter(new AnnotationClassOrMethodFilter(annotationType));
     }
 
+    /**
+     * 类上有@Permission注解的所有方法或者方法上有@Permission注解，即满足权限过滤条件
+     */
     @Override
     public boolean matches(Method method, Class<?> targetClass) {
         //类上有@Permission注解的所有方法或者方法上有@Permission注解，将满足权限过滤条件

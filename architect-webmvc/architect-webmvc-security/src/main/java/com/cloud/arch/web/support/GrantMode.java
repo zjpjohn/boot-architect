@@ -9,6 +9,9 @@ public enum GrantMode {
     public static final String AND_LOWER = "and";
     public static final String AND_UPPER = "AND";
 
+    /**
+     * 通过字符串获取对应授权模式，忽略大小写
+     */
     public static GrantMode of(String value) {
         if (OR_LOWER.equalsIgnoreCase(value)) {
             return OR;

@@ -2,6 +2,7 @@ package com.cloud.arch.web.support;
 
 import com.cloud.arch.utils.CollectionUtils;
 import com.cloud.arch.web.WebTokenConstants;
+import com.cloud.arch.web.props.WebAuthorityProperties;
 import com.cloud.arch.web.support.metadata.AuthorizationMetadata;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,9 +30,14 @@ import java.util.Set;
 public class SecurityPrincipalProcessor implements ApplicationContextAware, SmartInitializingSingleton {
 
     private final Map<String, SecurityPrincipal> principalAuthorities = Maps.newHashMap();
+    private final WebAuthorityProperties         properties;
     private       AuthorizeCacheManager          cacheManager;
     private       ApplicationContext             applicationContext;
-    
+
+    public SecurityPrincipalProcessor(WebAuthorityProperties properties) {
+        this.properties = properties;
+    }
+
     /**
      * 基于注解的权限校验
      */
@@ -44,7 +50,7 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
         }
         SecurityPrincipal principalSecurity = principalAuthorities.get(authDomain);
         if (principalSecurity == null) {
-            return true;
+            return properties.isUnknownDomain();
         }
         GrantAuthority authority   = metaData.requireAuthority(request);
         Set<String>    roles       = authority.roles();
@@ -79,7 +85,7 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
         }
         SecurityPrincipal principalAuthority = principalAuthorities.get(authDomain);
         if (principalAuthority == null) {
-            return true;
+            return properties.isUnknownDomain();
         }
         Set<String> roles       = uriResource.getRoles();
         Set<String> authorities = uriResource.getPermits();

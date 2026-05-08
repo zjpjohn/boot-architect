@@ -8,7 +8,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Function;
 
 
 /**
@@ -32,27 +31,17 @@ public record GrantAuthority(String identity, GrantMode mode, Set<String> roles,
      * 校验角色权限
      *
      * @param roles       用户角色集合
-     * @param authorities 用户权限集合
+     * @param permits 用户权限集合
      */
-    public GrantedResult decide(Set<String> roles, Set<String> authorities) {
+    public GrantedResult decide(Set<String> roles, Set<String> permits) {
         Pair<Boolean, Set<String>> role   = roleCheck(roles);
-        Pair<Boolean, Set<String>> permit = permitCheck(authorities);
+        Pair<Boolean, Set<String>> permit = permitCheck(permits);
         if (mode == GrantMode.AND) {
             boolean result = role.getKey() && permit.getKey();
             return new GrantedResult(result, role.getValue(), permit.getValue());
         }
         boolean result = role.getKey() || permit.getKey();
         return new GrantedResult(result, role.getValue(), permit.getValue());
-    }
-
-    /**
-     * 懒加载获取数据集
-     */
-    private Set<String> lazyLoad(Set<String> source, Function<String, Set<String>> supplier) {
-        if (CollectionUtils.isEmpty(source)) {
-            return Collections.emptySet();
-        }
-        return supplier.apply(this.identity);
     }
 
     /**
@@ -73,7 +62,7 @@ public record GrantAuthority(String identity, GrantMode mode, Set<String> roles,
      *
      * @param permitSet 用户权限集合
      */
-    public Pair<Boolean, Set<String>> permitCheck(Set<String> permitSet) {
+    private Pair<Boolean, Set<String>> permitCheck(Set<String> permitSet) {
         if (CollectionUtils.isEmpty(permits) || permits.contains(Permission.DEFAULT_VALUE)) {
             return Pair.of(true, Collections.emptySet());
         }

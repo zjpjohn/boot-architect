@@ -12,7 +12,7 @@ public class AuthorizeCacheManager {
         if (properties.isCached()) {
             this.resultCache = Caffeine.newBuilder()
                                        .maximumSize(properties.getCacheMaxSize())
-                                       .expireAfterAccess(properties.getCacheExpire())
+                                       .expireAfterWrite(properties.getCacheExpire())
                                        .build();
         }
     }
@@ -38,6 +38,15 @@ public class AuthorizeCacheManager {
     public void cacheAuthorize(AuthorizeCacheKey cacheKey, GrantedResult result) {
         if (this.resultCache != null) {
             this.resultCache.put(cacheKey, result);
+        }
+    }
+
+    /**
+     * 清理指定用户标识已缓存的权限结果
+     */
+    public void invalidate(String identity) {
+        if (resultCache != null) {
+            this.resultCache.asMap().keySet().removeIf(key -> key.identity().equals(identity));
         }
     }
 

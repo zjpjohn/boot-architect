@@ -50,8 +50,8 @@ public class WebAuthorityConfiguration {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    public SecurityPrincipalProcessor securityPrincipalProcessor() {
-        return new SecurityPrincipalProcessor();
+    public SecurityPrincipalProcessor securityPrincipalProcessor(WebAuthorityProperties properties) {
+        return new SecurityPrincipalProcessor(properties);
     }
 
     @Configuration

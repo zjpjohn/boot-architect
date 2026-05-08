@@ -30,7 +30,7 @@ public class AuthorityInterceptorConfigurer implements WebMvcConfigurer {
         }
         registry.addInterceptor(authorizeInterceptor)
                 .addPathPatterns(patternList)
-                .excludePathPatterns(this.uriAuthorityManager.getExcudeList());
+                .excludePathPatterns(this.uriAuthorityManager.getExcludeList());
     }
 
 }

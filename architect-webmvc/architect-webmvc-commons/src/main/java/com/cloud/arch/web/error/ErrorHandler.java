@@ -39,6 +39,13 @@ public interface ErrorHandler extends Supplier<ApiBizException> {
     }
 
     /**
+     * 构造返回ApiReturn
+     */
+    default ApiReturn<?> result() {
+        return ApiReturn.from(this);
+    }
+
+    /**
      * 目标对象校验
      * 1.支持传入布尔对象
      * 3.字符串非空校验

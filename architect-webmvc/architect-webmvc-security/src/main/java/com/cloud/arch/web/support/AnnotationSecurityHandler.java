@@ -12,7 +12,7 @@ import org.aopalliance.intercept.MethodInvocation;
 @Slf4j
 public class AnnotationSecurityHandler implements MethodInterceptor {
 
-    private final AuthorizationMetadataFactory metaDataFactory = new AuthorizationMetadataFactory();
+    private final AuthorizationMetadataFactory metadataFactory = new AuthorizationMetadataFactory();
     private final SecurityPrincipalProcessor   securityPrincipalProcessor;
 
     public AnnotationSecurityHandler(SecurityPrincipalProcessor securityPrincipalProcessor) {
@@ -28,11 +28,11 @@ public class AnnotationSecurityHandler implements MethodInterceptor {
      * 接口授权权限校验
      */
     private Object authorizedInvoke(MethodInvocation invocation) throws Throwable {
-        AuthorizationMetadata metaData = metaDataFactory.getAndCreate(invocation);
-        if (metaData.isEmptyAuthorization()) {
+        AuthorizationMetadata metadata = metadataFactory.getAndCreate(invocation);
+        if (metadata.isEmptyAuthorization()) {
             return invocation.proceed();
         }
-        boolean processResult = securityPrincipalProcessor.annotationAuthorize(metaData);
+        boolean processResult = securityPrincipalProcessor.annotationAuthorize(metadata);
         Assert.state(processResult, AuthorizationErrorHandler.AUTHORITY_FORBIDDEN);
         return invocation.proceed();
     }

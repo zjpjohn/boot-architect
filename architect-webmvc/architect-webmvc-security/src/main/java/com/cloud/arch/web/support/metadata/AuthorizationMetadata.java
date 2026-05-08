@@ -11,7 +11,6 @@ import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.NumericEntityUnescaper;
 import org.springframework.context.expression.AnnotatedElementKey;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 

@@ -14,18 +14,18 @@ import java.util.Objects;
 public class AuthorizationMetadataFactory {
 
     //权限校验方法元数据缓存
-    private final Map<AnnotatedElementKey, AuthorizationMetadata> metaDataCache = Maps.newConcurrentMap();
+    private final Map<AnnotatedElementKey, AuthorizationMetadata> metadataCache = Maps.newConcurrentMap();
 
     /**
-     * 获取并创建授权元数据
+     * 获取并创建授权元数据，已解析的方法元数据会缓存复用
      */
     public AuthorizationMetadata getAndCreate(MethodInvocation invocation) {
         Object              candidate   = Objects.requireNonNull(invocation.getThis());
         Class<?>            targetClass = AopUtils.getTargetClass(candidate);
         Method              method      = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
         AnnotatedElementKey elementKey  = new AnnotatedElementKey(method, targetClass);
-        return metaDataCache.computeIfAbsent(elementKey,
-                key -> new AuthorizationMetadata(targetClass, method, elementKey));
+        return metadataCache.computeIfAbsent(elementKey,
+                                             key -> new AuthorizationMetadata(targetClass, method, elementKey));
     }
 
 }

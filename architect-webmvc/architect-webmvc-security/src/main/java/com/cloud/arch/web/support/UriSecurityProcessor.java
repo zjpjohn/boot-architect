@@ -20,7 +20,7 @@ public class UriSecurityProcessor {
     }
 
     /**
-     * 判断是否标注ApiAuth注解 有注解存在方法不进行拦截
+     * 判断是否标注 Permission 注解，有注解存在方法不进行拦截
      */
     public boolean isAuthAnnotated(HandlerMethod target) {
         return target.hasMethodAnnotation(Permission.class)

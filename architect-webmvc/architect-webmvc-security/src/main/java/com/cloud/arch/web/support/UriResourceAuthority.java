@@ -45,7 +45,7 @@ public class UriResourceAuthority {
      */
     private final Set<String> roles   = Sets.newHashSet();
     /**
-     * 请求资源允许的访问权限集合，为空标识全部角色
+     * 请求资源允许的访问权限集合，为空表示全部权限
      */
     private final Set<String> permits = Sets.newHashSet();
 
@@ -60,7 +60,7 @@ public class UriResourceAuthority {
         }
         //用户访问域和用户角色权限不可全部都为空
         if (CollectionUtils.isEmpty(domains) && CollectionUtils.isEmpty(roles) && CollectionUtils.isEmpty(permits)) {
-            throw new IllegalArgumentException("domains,roles,authorities at least one not be null.");
+            throw new IllegalArgumentException("at least one of domains, roles, authorities must not be null.");
         }
         this.mode = mode;
         this.resource = resource;
@@ -136,6 +136,9 @@ public class UriResourceAuthority {
                                         triple.getRight());
     }
 
+    /**
+     * 解析逗号分隔的字符串为 Set，空值或通配符返回空集合
+     */
     private static Set<String> parseInfo(String target) {
         if (StringUtils.isBlank(target) || target.contains(Permission.DEFAULT_VALUE)) {
             return Collections.emptySet();
@@ -144,43 +147,70 @@ public class UriResourceAuthority {
     }
 
     /**
-     * 可能存在以下情况:
-     * 1.*
-     * 2.role(...) 或 permit(...)其中之一
-     * 3.role(...) and(or) permit(...)
+     * 解析角色权限表达式，可能存在以下情况:
+     * 1. * 通配符 → 返回空集合
+     * 2. role(...) 或 permit(...) 单一表达式 → 委托 parseSingle
+     * 3. role(...) and(or) permit(...) 组合表达式 → 委托 parseComposite
      */
     private static Triple<GrantMode, Set<String>, Set<String>> parseRoleOrAuthority(String target) {
-        if (target.isBlank() || target.contains(Permission.DEFAULT_VALUE) || !target.endsWith(SUFFIX)) {
+        if (isWildcard(target)) {
             return Triple.of(GrantMode.AND, Collections.emptySet(), Collections.emptySet());
         }
-        if (!(target.contains(GrantMode.AND_LOWER) ||
-              target.contains(GrantMode.AND_UPPER) ||
-              target.contains(GrantMode.OR_LOWER) ||
-              target.contains(GrantMode.OR_UPPER))) {
-            if (target.startsWith(PERMIT_PREFIX) && target.endsWith(SUFFIX)) {
-                Set<String> authority = parseSplit(target, PERMIT_PREFIX);
-                return Triple.of(GrantMode.AND, authority, Sets.newHashSet());
-            }
-            if (target.startsWith(ROLE_PREFIX) && target.endsWith(SUFFIX)) {
-                Set<String> role = parseSplit(target, ROLE_PREFIX);
-                return Triple.of(GrantMode.AND, Sets.newHashSet(), role);
-            }
-            throw new IllegalArgumentException("[" + target + "] role or permit config illegal.");
+        return isComposite(target) ? parseComposite(target) : parseSingle(target);
+    }
+
+    /**
+     * 判断是否为通配符/空值，无需解析角色和权限
+     */
+    private static boolean isWildcard(String target) {
+        return target.isBlank() || target.contains(Permission.DEFAULT_VALUE) || !target.endsWith(SUFFIX);
+    }
+
+    /**
+     * 判断是否为组合表达式（包含 and 或 or 关键字）
+     */
+    private static boolean isComposite(String target) {
+        return target.contains(GrantMode.AND_LOWER) ||
+               target.contains(GrantMode.AND_UPPER) ||
+               target.contains(GrantMode.OR_LOWER) ||
+               target.contains(GrantMode.OR_UPPER);
+    }
+
+    /**
+     * 解析单一角色或权限表达式，如 permit(xxx) 或 role(xxx)
+     */
+    private static Triple<GrantMode, Set<String>, Set<String>> parseSingle(String target) {
+        if (target.startsWith(PERMIT_PREFIX) && target.endsWith(SUFFIX)) {
+            return Triple.of(GrantMode.AND, parseSplit(target, PERMIT_PREFIX), Sets.newHashSet());
         }
-        Pair<GrantMode, String> negotiated = negotiateMode(target);
-        Assert.notNull(negotiated, "security mode must not null.");
-        String[] split = target.trim().split(negotiated.getValue());
-        Assert.state(split.length == 2, "[" + target + "] role or permit config illegal.");
-        String first = split[0].trim();
-        if (first.startsWith(ROLE_PREFIX) && first.endsWith(SUFFIX)) {
-            return parse(split, negotiated.getKey(), false);
-        }
-        if (first.startsWith(PERMIT_PREFIX) && first.endsWith(SUFFIX)) {
-            return parse(split, negotiated.getKey(), true);
+        if (target.startsWith(ROLE_PREFIX) && target.endsWith(SUFFIX)) {
+            return Triple.of(GrantMode.AND, Sets.newHashSet(), parseSplit(target, ROLE_PREFIX));
         }
         throw new IllegalArgumentException("[" + target + "] role or permit config illegal.");
     }
 
+    /**
+     * 解析组合角色权限表达式，如 role(xxx) and permit(yyy)
+     * 先协商连接模式(and/or)，再按分隔符拆分为两段分别解析
+     */
+    private static Triple<GrantMode, Set<String>, Set<String>> parseComposite(String target) {
+        Pair<GrantMode, String> mode = negotiateMode(target);
+        Assert.notNull(mode, "security mode must not null.");
+        String[] segments = target.trim().split(mode.getValue());
+        Assert.state(segments.length == 2, "[" + target + "] role or permit config illegal.");
+        String first = segments[0].trim();
+        if (first.startsWith(ROLE_PREFIX) && first.endsWith(SUFFIX)) {
+            return parseCompositeSegments(segments, mode.getKey(), false);
+        }
+        if (first.startsWith(PERMIT_PREFIX) && first.endsWith(SUFFIX)) {
+            return parseCompositeSegments(segments, mode.getKey(), true);
+        }
+        throw new IllegalArgumentException("[" + target + "] role or permit config illegal.");
+    }
+
+    /**
+     * 从表达式中协商连接模式（and/or），返回模式及其字符串表示
+     */
     private static Pair<GrantMode, String> negotiateMode(String target) {
         if (target.contains(GrantMode.AND_LOWER)) {
             return Pair.of(GrantMode.AND, GrantMode.AND_LOWER);
@@ -197,26 +227,22 @@ public class UriResourceAuthority {
         return null;
     }
 
-    private static Triple<GrantMode, Set<String>, Set<String>> parse(String[] values,
-                                                                     GrantMode mode,
-                                                                     boolean authFirst) {
-        Set<String> authority = Sets.newHashSet();
-        Set<String> role      = Sets.newHashSet();
-        String      first     = values[0].trim();
-        String      second    = values[1].trim();
-        if (authFirst) {
-            authority = parseSplit(first, PERMIT_PREFIX);
-        } else if (second.startsWith(ROLE_PREFIX)) {
-            role = parseSplit(second, ROLE_PREFIX);
-        }
-        if (!authFirst) {
-            role = parseSplit(first, ROLE_PREFIX);
-        } else if (second.startsWith(PERMIT_PREFIX)) {
-            authority = parseSplit(second, PERMIT_PREFIX);
-        }
-        return Triple.of(mode, authority, role);
+    /**
+     * 按分隔符拆分的两段表达式分别解析角色和权限，permitFirst 控制左右哪侧为权限
+     */
+    private static Triple<GrantMode, Set<String>, Set<String>> parseCompositeSegments(String[] segments,
+                                                                                      GrantMode mode,
+                                                                                      boolean permitFirst) {
+        String      left    = segments[0].trim();
+        String      right   = segments[1].trim();
+        Set<String> permits = permitFirst ? parseSplit(left, PERMIT_PREFIX) : parseSplit(right, PERMIT_PREFIX);
+        Set<String> roles   = permitFirst ? parseSplit(right, ROLE_PREFIX) : parseSplit(left, ROLE_PREFIX);
+        return Triple.of(mode, permits, roles);
     }
 
+    /**
+     * 去除表达式的前缀和右括号，按逗号拆分提取值集合
+     */
     private static Set<String> parseSplit(String target, String prefix) {
         String replace = target.trim().replace(prefix, "").replace(SUFFIX, "");
         return Arrays.stream(replace.split(",")).map(String::trim).collect(Collectors.toSet());

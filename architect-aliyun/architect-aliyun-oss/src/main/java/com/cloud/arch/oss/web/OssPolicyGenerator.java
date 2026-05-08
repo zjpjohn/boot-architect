@@ -16,7 +16,7 @@ public class OssPolicyGenerator {
     private final OssCloudProperties properties;
 
     public OssPolicyGenerator(OSSClient client, OssCloudProperties properties) {
-        this.client     = client;
+        this.client = client;
         this.properties = properties;
     }
 

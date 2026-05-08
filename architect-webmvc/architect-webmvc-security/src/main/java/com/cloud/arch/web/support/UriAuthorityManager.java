@@ -62,7 +62,7 @@ public class UriAuthorityManager implements DisposableBean {
     /**
      * 获取拦截器排除的请求uri集合
      */
-    public List<String> getExcudeList() {
+    public List<String> getExcludeList() {
         //默认添加静态资源
         Set<String> values = Sets.newHashSet(WebTokenConstants.STATIC_RESOURCES);
         //web公共配置

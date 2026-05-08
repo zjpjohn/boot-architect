@@ -20,11 +20,11 @@ public class WebAuthorityProperties {
     /**
      * 是否开启权限校验
      */
-    private boolean      enable       = true;
+    private boolean      enable        = true;
     /**
      * 拦截请求url正则集合，多个正则以','分割
      */
-    private String       patterns     = DEFAULT_PATTERN;
+    private String       patterns      = DEFAULT_PATTERN;
     /**
      * 不拦截请求url正则集合，多个以','分割
      */
@@ -32,16 +32,20 @@ public class WebAuthorityProperties {
     /**
      * 是否开启权限校验缓存 开启-会对校验结果进行短时缓存 不开启-每一次都校验
      */
-    private boolean      cached       = false;
+    private boolean      cached        = false;
     /**
      * 开启授权结果缓存后缓存最大容量
      */
-    private Integer      cacheMaxSize = 1024;
+    private Integer      cacheMaxSize  = 1024;
     /**
      * 授权结果缓存过期时间单位分钟,默认-5分钟
      */
     @DurationUnit(ChronoUnit.MINUTES)
-    private Duration     cacheExpire  = Duration.ofMinutes(5);
+    private Duration     cacheExpire   = Duration.ofMinutes(5);
+    /**
+     * 位置访问域处理行为：true-放行，false-拒绝（默认）
+     */
+    private boolean      unknownDomain = false;
     /**
      * 基于url资源的权限校验集合
      * 如果未配置则不启用权限拦截器
@@ -52,7 +56,7 @@ public class WebAuthorityProperties {
      * /job/execute | post,put | system | permit(job:write)
      * /job/execute | get | system | permit(job:write,job:read)
      */
-    private List<String> resources    = Lists.newArrayList();
+    private List<String> resources     = Lists.newArrayList();
 
     public List<UriResourceAuthority> parse() {
         return this.resources.stream().map(UriResourceAuthority::parse).toList();

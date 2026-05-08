@@ -14,17 +14,20 @@ public class AnnotationMethodsResolver {
         this.annotationType = annotationType;
     }
 
+    /**
+     * 判断指定类是否有方法标注了目标注解
+     */
     public boolean hasAnnotatedMethods(Class<?> clazz) {
-        final AtomicBoolean founded = new AtomicBoolean(false);
+        final AtomicBoolean found = new AtomicBoolean(false);
         ReflectionUtils.doWithMethods(clazz, method -> {
-            if (founded.get()) {
+            if (found.get()) {
                 return;
             }
             Annotation annotation = AnnotationUtils.getAnnotation(method, annotationType);
             if (annotation != null) {
-                founded.set(true);
+                found.set(true);
             }
         });
-        return founded.get();
+        return found.get();
     }
 }
