@@ -1,25 +1,30 @@
 package com.cloud.arch.event.subscribe;
 
-import com.cloud.arch.event.commons.ApplicationContextHolder;
 import com.cloud.arch.event.core.subscribe.SubscribeEventMetadata;
 import com.cloud.arch.event.core.subscribe.SubscribeHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
 /**
  * 领域事件订阅处理器，在幂等保护下消费事件，支持 SpEL 表达式提取分片键和幂等键。
+ * <p>
+ * 通过 {@link ApplicationEventPublisher} 发布事件，业务方使用 Spring {@code @EventListener}
+ * 注解方法接收并处理事件。
  */
 @Slf4j
 public class EventSubscribeHandler implements SubscribeHandler {
 
     private static final String EMPTY_SHARDING = "";
 
-    private final IdempotentChecker idempotentChecker;
+    private final IdempotentChecker         idempotentChecker;
+    private final ApplicationEventPublisher publisher;
 
-    public EventSubscribeHandler(IdempotentChecker idempotentChecker) {
+    public EventSubscribeHandler(IdempotentChecker idempotentChecker, ApplicationEventPublisher publisher) {
         this.idempotentChecker = idempotentChecker;
+        this.publisher         = publisher;
     }
 
     /**
@@ -37,7 +42,7 @@ public class EventSubscribeHandler implements SubscribeHandler {
             if (idempotentChecker.isProcessed(idempotent)) {
                 return;
             }
-            ApplicationContextHolder.publishEvent(event);
+            publisher.publishEvent(event);
         } catch (Exception error) {
             throwable = error;
             throw error;

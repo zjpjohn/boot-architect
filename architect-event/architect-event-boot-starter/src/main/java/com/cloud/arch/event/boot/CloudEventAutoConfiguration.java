@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
@@ -100,8 +101,9 @@ public class CloudEventAutoConfiguration {
         }
 
         @Bean
-        public EventSubscribeHandler eventSubscribeHandler(IdempotentChecker idempotentChecker) {
-            return new EventSubscribeHandler(idempotentChecker);
+        public EventSubscribeHandler eventSubscribeHandler(IdempotentChecker idempotentChecker,
+                                                            ApplicationEventPublisher publisher) {
+            return new EventSubscribeHandler(idempotentChecker, publisher);
         }
 
         @Bean
