@@ -7,6 +7,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.regex.Pattern;
 
+/**
+ * API 版本协商工具，负责校验版本号格式、从请求中提取版本号，并与目标版本条件进行匹配。
+ */
 @UtilityClass
 public class VersionConditionNegotiate {
 

@@ -7,7 +7,7 @@ import com.cloud.arch.event.core.publish.EventMetadataFactory;
 import com.cloud.arch.event.core.publish.MessageQueuePublisher;
 import com.cloud.arch.event.props.PublishEventProperties;
 import com.cloud.arch.event.publisher.EventPublisherSynchronization;
-import com.cloud.arch.event.subscribe.EventSubScribeHandler;
+import com.cloud.arch.event.subscribe.EventSubscribeHandler;
 import com.cloud.arch.event.subscribe.IdempotentChecker;
 import com.cloud.arch.event.subscribe.IdempotentCleanScheduler;
 import com.cloud.arch.event.subscribe.impl.TransactionIdempotentChecker;
@@ -28,6 +28,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
+/**
+ * 领域事件自动配置，按需装配发布端（事务同步器 + 消息队列发布器）和订阅端（幂等检查 + 清理调度）。
+ */
 @Slf4j
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
@@ -52,6 +55,9 @@ public class CloudEventAutoConfiguration {
         return new ApplicationContextHolder();
     }
 
+    /**
+     * 事件发布端配置：消息队列发布器、事务同步器、事件元数据工厂。
+     */
     @Slf4j
     @Configuration
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
@@ -78,6 +84,9 @@ public class CloudEventAutoConfiguration {
 
     }
 
+    /**
+     * 事件订阅端配置：幂等检查器、事件处理器、幂等记录清理调度。
+     */
     @Slf4j
     @Configuration
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
@@ -91,8 +100,8 @@ public class CloudEventAutoConfiguration {
         }
 
         @Bean
-        public EventSubScribeHandler eventSubScribeHandler(IdempotentChecker idempotentChecker) {
-            return new EventSubScribeHandler(idempotentChecker);
+        public EventSubscribeHandler eventSubscribeHandler(IdempotentChecker idempotentChecker) {
+            return new EventSubscribeHandler(idempotentChecker);
         }
 
         @Bean

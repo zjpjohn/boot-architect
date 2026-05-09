@@ -8,6 +8,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 
 import java.util.List;
 
+/**
+ * 事务同步器：事务提交前持久化远程事件，提交后异步推送到消息队列，完成后清理领域上下文。
+ */
 @Slf4j
 public class EventPublisherSynchronization implements TransactionSynchronization {
 

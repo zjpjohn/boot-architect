@@ -14,6 +14,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 
+/**
+ * RocketMQ 5.x 消息队列扩展配置，按需创建 RocketMQ 事件发布器和订阅处理器。
+ */
 @Slf4j
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)

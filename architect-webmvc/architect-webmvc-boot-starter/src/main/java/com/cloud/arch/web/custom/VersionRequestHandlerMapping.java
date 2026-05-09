@@ -12,6 +12,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import java.lang.reflect.Method;
 import java.util.Optional;
 
+/**
+ * API 版本控制 HandlerMapping，根据类和方法上的 {@link ApiVersion} 注解自动生成版本路由条件。
+ */
 @Getter
 @AllArgsConstructor
 public class VersionRequestHandlerMapping extends RequestMappingHandlerMapping {

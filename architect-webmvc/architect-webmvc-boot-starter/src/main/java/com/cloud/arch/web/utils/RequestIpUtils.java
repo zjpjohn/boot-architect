@@ -24,7 +24,7 @@ public class RequestIpUtils {
      * 获取当前请求的ip地址
      */
     public static String getIpAddress() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         return Optional.ofNullable(attributes)
                        .map(ServletRequestAttributes::getRequest)
                        .map(RequestIpUtils::getIpAddress)
@@ -48,7 +48,7 @@ public class RequestIpUtils {
             if (StringUtils.isEmpty(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
                 ip = request.getHeader("Proxy-Client-IP");
             }
-            if (StringUtils.isEmpty(ip) || ip.isEmpty() || UNKNOWN.equalsIgnoreCase(ip)) {
+            if (StringUtils.isEmpty(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
                 ip = request.getHeader("WL-Proxy-Client-IP");
             }
             if (StringUtils.isEmpty(ip) || UNKNOWN.equalsIgnoreCase(ip)) {
@@ -69,10 +69,10 @@ public class RequestIpUtils {
                     ip = ip.substring(0, index);
                 }
             }
-            return ip.equals(LOCALHOST_IP) ? LOCALHOST_IP1 : ip;
+            return LOCALHOST_IP.equals(ip) ? LOCALHOST_IP1 : ip;
         } catch (Exception e) {
             log.error("get servlet request ip exception:", e);
-            throw new RuntimeException("get servlet request ip exception.", e);
+            throw new IllegalStateException("get servlet request ip exception.", e);
         }
     }
 

@@ -10,15 +10,20 @@ import org.springframework.core.convert.converter.ConverterFactory;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 枚举参数转换工厂，将请求中的字符串转换为 {@link Value} 枚举实例。
+ */
 @Slf4j
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class EnumConverterFactory implements ConverterFactory<String, Value> {
 
+    @SuppressWarnings("rawtypes")
     private final ConcurrentHashMap<Class<?>, EnumValueConverter> converterMap = new ConcurrentHashMap<>(64);
 
     @Override
     public <T extends Value> Converter<String, T> getConverter(Class<T> targetType) {
-        return converterMap.computeIfAbsent(targetType, key -> new EnumValueConverter(targetType));
+        @SuppressWarnings("unchecked")
+        Converter<String, T> converter = converterMap.computeIfAbsent(targetType, key -> new EnumValueConverter(targetType));
+        return converter;
     }
 
     private static class EnumValueConverter<K extends Comparable<K>, V extends Value<K>>

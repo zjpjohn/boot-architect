@@ -16,6 +16,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 
+/**
+ * Pulsar 消息队列扩展配置，按需创建 Pulsar 客户端、事件发布器和订阅处理器。
+ */
 @Slf4j
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)

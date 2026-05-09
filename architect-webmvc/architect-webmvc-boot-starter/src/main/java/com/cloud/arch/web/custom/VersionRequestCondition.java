@@ -4,6 +4,9 @@ import com.cloud.arch.web.props.WebmvcProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.servlet.mvc.condition.RequestCondition;
 
+/**
+ * API 版本请求匹配条件，基于版本号进行路由匹配和比较，用于实现多版本接口共存。
+ */
 public record VersionRequestCondition(RequestVersion version, WebmvcProperties.VersionConfig config)
         implements RequestCondition<VersionRequestCondition> {
 

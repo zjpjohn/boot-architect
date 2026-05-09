@@ -11,6 +11,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.util.List;
 
+/**
+ * 自定义 WebMVC 注册器，注入统一响应体 Advice 到 HandlerAdapter 和异常解析器，并支持 API 版本控制。
+ */
 public record CustomWebMvcRegistrations(UniformResponseBodyAdvice responseBodyAdvice, WebmvcProperties properties)
         implements WebMvcRegistrations {
 

@@ -1,6 +1,5 @@
 package com.cloud.arch.event.commons;
 
-import com.cloud.arch.event.core.publish.PublishEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -8,6 +7,9 @@ import org.springframework.context.ApplicationContextAware;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Spring 容器持有者，为静态工具方法提供 ApplicationContext 引用，用于获取 Bean 和发布本地领域事件。
+ */
 @Slf4j
 public class ApplicationContextHolder implements ApplicationContextAware {
 
@@ -32,6 +34,7 @@ public class ApplicationContextHolder implements ApplicationContextAware {
         try {
             return context.getBean(type);
         } catch (BeansException ignored) {
+            // Bean 不存在返回 null，无需抛出异常
         }
         return null;
     }
@@ -40,13 +43,6 @@ public class ApplicationContextHolder implements ApplicationContextAware {
      * 发布领域事件
      */
     public static void publishEvent(Object event) {
-        context.publishEvent(event);
-    }
-
-    /**
-     * 发布publish event事件
-     */
-    public static void publish(PublishEvent event) {
         context.publishEvent(event);
     }
 

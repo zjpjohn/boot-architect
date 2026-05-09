@@ -1,5 +1,8 @@
 package com.cloud.arch.event.subscribe;
 
+/**
+ * 幂等检查器抽象基类，提供 {@link #isProcessed} 和 {@link #markProcessed} 模板逻辑，支持按异常类型分类处理。
+ */
 public abstract class AbstractIdempotentChecker implements IdempotentChecker {
 
     private Class<Exception> retryFor;

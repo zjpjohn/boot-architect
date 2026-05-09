@@ -9,6 +9,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * 幂等记录清理调度器，利用分布式互斥锁定时清理过期的幂等记录，避免多节点重复执行。
+ */
 public class IdempotentCleanScheduler implements SmartInitializingSingleton {
 
     public static final String IDEMPOTENT_CLEAN_MUTEX = "idempotent_clean_mutex";

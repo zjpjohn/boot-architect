@@ -7,6 +7,9 @@ import org.springframework.boot.convert.DurationUnit;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * 领域事件配置属性，绑定 {@code com.cloud.event} 前缀，包含发布端线程池和订阅端清理调度参数。
+ */
 @Data
 @ConfigurationProperties(prefix = "com.cloud.event")
 public class PublishEventProperties {

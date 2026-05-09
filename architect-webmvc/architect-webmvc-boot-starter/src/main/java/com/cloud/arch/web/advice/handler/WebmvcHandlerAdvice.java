@@ -29,9 +29,13 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * WebMVC 异常统一处理，覆盖参数校验、业务异常、HTTP 标准错误码等场景。
+ */
 @Slf4j
 @ControllerAdvice
 public class WebmvcHandlerAdvice implements Ordered {
@@ -53,6 +57,7 @@ public class WebmvcHandlerAdvice implements Ordered {
                                   .getFieldErrors()
                                   .stream()
                                   .map(FieldError::getDefaultMessage)
+                                  .filter(Objects::nonNull)
                                   .collect(Collectors.joining(";"));
         return ApiReturn.badRequest(message, HttpStatus.BAD_REQUEST.value());
     }
@@ -66,11 +71,12 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ExceptionHandler(value = ConstraintViolationException.class)
     public ApiReturn<String> exception(ConstraintViolationException exception) {
         if (log.isWarnEnabled()) {
-            log.error(exception.getMessage(), exception);
+            log.warn(exception.getMessage(), exception);
         }
         String message = exception.getConstraintViolations()
                                   .stream()
                                   .map(ConstraintViolation::getMessage)
+                                  .filter(Objects::nonNull)
                                   .collect(Collectors.joining(";"));
         return ApiReturn.badRequest(message, HttpStatus.BAD_REQUEST.value());
     }
@@ -92,7 +98,7 @@ public class WebmvcHandlerAdvice implements Ordered {
             IllegalArgumentException.class,})
     public ApiReturn<String> error(Exception error) {
         if (log.isWarnEnabled()) {
-            log.error(error.getMessage(), error);
+            log.warn(error.getMessage(), error);
         }
         String message = Optional.ofNullable(NestedExceptionUtils.getRootCause(error))
                                  .map(Throwable::getMessage)
@@ -141,7 +147,7 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ExceptionHandler(value = DuplicateKeyException.class)
     public ApiReturn<String> duplicateError(DuplicateKeyException error) {
         if (log.isWarnEnabled()) {
-            log.error(error.getMessage(), error);
+            log.warn(error.getMessage(), error);
         }
         return ApiReturn.badRequest("has duplicated data.", 400);
     }
@@ -153,7 +159,7 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ExceptionHandler(value = {HttpMediaTypeNotSupportedException.class, HttpMediaTypeNotAcceptableException.class})
     public ApiReturn<String> mediaTypeError(Exception error) {
         if (log.isWarnEnabled()) {
-            log.error(error.getMessage(), error);
+            log.warn(error.getMessage(), error);
         }
         return ApiReturn.unsupportedMedia(error.getMessage());
     }

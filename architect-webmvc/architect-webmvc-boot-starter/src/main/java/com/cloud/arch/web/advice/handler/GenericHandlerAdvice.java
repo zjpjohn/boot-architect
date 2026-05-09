@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+/**
+ * 通用全局异常兜底处理器，捕获所有未被其他 Advice 处理的 {@link Exception}。
+ */
 @Slf4j
 @ControllerAdvice
 public class GenericHandlerAdvice implements Ordered {

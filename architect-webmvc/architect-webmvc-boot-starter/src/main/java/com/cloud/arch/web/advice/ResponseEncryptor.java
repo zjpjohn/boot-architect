@@ -14,6 +14,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * 响应体加密工具，支持 CBC/ECB 两种 AES 加密模式，将响应数据加密后返回。
+ */
 @Slf4j
 public class ResponseEncryptor {
 
@@ -37,7 +40,7 @@ public class ResponseEncryptor {
         String                         body    = convertBody(data);
         WebmvcProperties.EncryptConfig encrypt = properties.getEncrypt();
         String                         mode    = encrypt.getMode().toLowerCase();
-        if (DEFAULT_MODE.equalsIgnoreCase(mode)) {
+        if (DEFAULT_MODE.equals(mode)) {
             return encryptCbc(encrypt.getPadding(), encrypt.getHeader(), body, message, response);
         }
         return encryptEcb(encrypt.getPadding(), encrypt.getHeader(), body, message, response);
@@ -56,7 +59,7 @@ public class ResponseEncryptor {
         String headerValue = encryptHeader(key, ivr);
         response.getHeaders().set(header, headerValue);
         String type = padding.toLowerCase();
-        if (DEFAULT_PADDING.equalsIgnoreCase(type)) {
+        if (DEFAULT_PADDING.equals(type)) {
             String encrypt = AESKit.CBC.pkc7Enc(body, key, ivr);
             return new BodyData<>(message, HttpStatus.OK.value(), encrypt);
         }
@@ -76,7 +79,7 @@ public class ResponseEncryptor {
         String headerValue = encryptHeader(key);
         response.getHeaders().set(header, headerValue);
         String type = padding.toLowerCase();
-        if (DEFAULT_PADDING.equalsIgnoreCase(type)) {
+        if (DEFAULT_PADDING.equals(type)) {
             String encrypt = AESKit.ECB.pkc7Enc(body, key);
             return new BodyData<>(message, HttpStatus.OK.value(), encrypt);
         }

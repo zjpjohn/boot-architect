@@ -9,6 +9,9 @@ import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 
 import java.time.LocalDateTime;
 
+/**
+ * 事务型幂等检查器，包装 JDBC 幂等检查器，在事务上下文中执行幂等标记，根据处理结果提交或回滚。
+ */
 @Getter
 public class TransactionIdempotentChecker extends AbstractIdempotentChecker {
 

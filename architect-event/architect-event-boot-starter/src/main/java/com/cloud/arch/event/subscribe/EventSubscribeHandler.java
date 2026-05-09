@@ -5,21 +5,20 @@ import com.cloud.arch.event.core.subscribe.SubscribeEventMetadata;
 import com.cloud.arch.event.core.subscribe.SubscribeHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.util.Optional;
 
+/**
+ * 领域事件订阅处理器，在幂等保护下消费事件，支持 SpEL 表达式提取分片键和幂等键。
+ */
 @Slf4j
-public class EventSubScribeHandler implements SubscribeHandler {
+public class EventSubscribeHandler implements SubscribeHandler {
 
-    private static final String           EMPTY_SHARDING   = "";
-    private final        ExpressionParser expressionParser = new SpelExpressionParser();
+    private static final String EMPTY_SHARDING = "";
 
     private final IdempotentChecker idempotentChecker;
 
-    public EventSubScribeHandler(IdempotentChecker idempotentChecker) {
+    public EventSubscribeHandler(IdempotentChecker idempotentChecker) {
         this.idempotentChecker = idempotentChecker;
     }
 
@@ -74,11 +73,10 @@ public class EventSubScribeHandler implements SubscribeHandler {
             return EMPTY_SHARDING;
         }
         try {
-            StandardEvaluationContext context    = new StandardEvaluationContext(event);
-            Object                    shardValue = expressionParser.parseExpression(shardField).getValue(context);
-            return Optional.ofNullable(shardValue).map(Object::toString).orElse("");
+            String shardValue = SpElExpressionParser.evaluate(shardField, event, String.class);
+            return Optional.ofNullable(shardValue).orElse("");
         } catch (Exception error) {
-            log.warn(error.getMessage(), error);
+            log.warn("getShardingKey failed for shardField={}", shardField, error);
         }
         return EMPTY_SHARDING;
     }
@@ -95,11 +93,10 @@ public class EventSubScribeHandler implements SubscribeHandler {
             return eventKey;
         }
         try {
-            StandardEvaluationContext context = new StandardEvaluationContext(event);
-            Object                    key     = expressionParser.parseExpression(keySpel).getValue(context);
-            return Optional.ofNullable(key).map(Object::toString).filter(StringUtils::isNotBlank).orElse(eventKey);
+            String key = SpElExpressionParser.evaluate(keySpel, event, String.class);
+            return Optional.ofNullable(key).filter(StringUtils::isNotBlank).orElse(eventKey);
         } catch (Exception error) {
-            log.warn(error.getMessage(), error);
+            log.warn("getEventKey failed for keySpel={}", keySpel, error);
         }
         return eventKey;
     }

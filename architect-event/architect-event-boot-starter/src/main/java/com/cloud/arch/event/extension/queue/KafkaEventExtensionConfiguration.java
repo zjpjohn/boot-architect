@@ -20,6 +20,9 @@ import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 
+/**
+ * Kafka 消息队列扩展配置，按需创建 Kafka 事件发布器和订阅处理器。
+ */
 @Slf4j
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
@@ -41,7 +44,11 @@ public class KafkaEventExtensionConfiguration {
                                                              KafkaListenerEndpointRegistry endpointRegistry,
                                                              MessageHandlerMethodFactory handlerMethodFactory,
                                                              ConcurrentKafkaListenerContainerFactory<String, String> containerFactory) {
-        return new KafkaSubscriberProcessor(eventCodec, properties, endpointRegistry, handlerMethodFactory, containerFactory);
+        return new KafkaSubscriberProcessor(eventCodec,
+                                            properties,
+                                            endpointRegistry,
+                                            handlerMethodFactory,
+                                            containerFactory);
     }
 
 }

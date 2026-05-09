@@ -8,6 +8,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
 
+/**
+ * 基于 JDBC 的幂等检查器，通过 INSERT IGNORE 去重、DELETE 清理，实现消息消费的幂等保证。
+ */
 @Getter
 public class JdbcIdempotentChecker extends AbstractIdempotentChecker {
 
@@ -32,9 +35,7 @@ public class JdbcIdempotentChecker extends AbstractIdempotentChecker {
     }
 
     /**
-     * 标记消息处理完成
-     *
-     * @param idempotent 幂等信息
+     * 标记消息处理完成，成功后无需额外操作（INSERT IGNORE 已记录幂等）。
      */
     @Override
     public void markSuccess(EventIdempotent idempotent) {

@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * 领域事件发布器，提供静态方法在事务上下文中发布本地和远程领域事件，基于 ThreadLocal 暂存事件，事务提交后统一发送。
+ */
 @Slf4j
 @UtilityClass
 public class DomainEventPublisher {

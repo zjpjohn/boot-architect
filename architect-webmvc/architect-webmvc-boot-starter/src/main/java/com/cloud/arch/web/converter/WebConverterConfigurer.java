@@ -6,6 +6,9 @@ import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Web 类型转换配置，注册枚举和日期时间转换器到 Spring MVC 的 {@link org.springframework.format.FormatterRegistry}。
+ */
 public record WebConverterConfigurer(WebMvcProperties properties) implements WebMvcConfigurer {
 
     @Override

@@ -15,6 +15,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import java.lang.reflect.Method;
 
+/**
+ * 字典数据暴露端点，启动时自动注册 {@code /dictionary} 接口，支持按名称查询枚举字典。
+ */
 @Slf4j
 @AllArgsConstructor
 public class DictionaryEndpoint implements InitializingBean {
@@ -39,7 +42,7 @@ public class DictionaryEndpoint implements InitializingBean {
      * 注册字典暴露端点到spring mvc
      */
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         String             endpoint    = properties.getDictionary().getEndpoint();
         RequestMappingInfo mappingInfo = RequestMappingInfo.paths(endpoint).methods(RequestMethod.GET).build();
         Method             method      = DictionaryEndpoint.class.getMethod("dictionary", String.class);

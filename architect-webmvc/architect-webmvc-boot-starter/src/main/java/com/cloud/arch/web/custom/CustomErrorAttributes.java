@@ -13,6 +13,9 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.util.Map;
 
+/**
+ * 自定义错误属性，统一 404 和拦截器异常的错误响应格式，返回 JSON 结构的错误数据。
+ */
 public class CustomErrorAttributes extends DefaultErrorAttributes {
 
     /**
@@ -39,7 +42,11 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
         if (error instanceof ApiBizException exception) {
             return exception.getStatus().value();
         }
-        return (Integer)request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE, RequestAttributes.SCOPE_REQUEST);
+        Object statusCode = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE, RequestAttributes.SCOPE_REQUEST);
+        if (statusCode instanceof Integer code) {
+            return code;
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
 
 }

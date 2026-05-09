@@ -16,6 +16,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Role;
 
+/**
+ * RocksDB 领域事件存储扩展配置，按需创建 RocksDB 存储、HTTP 补偿通道、失败补偿调度器。
+ */
 @Slf4j
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)

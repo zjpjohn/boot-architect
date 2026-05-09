@@ -4,6 +4,5 @@ com.cloud.arch.event.extension.queue.PulsarEventExtensionConfiguration
 com.cloud.arch.event.extension.queue.RabbitEventExtensionConfiguration
 com.cloud.arch.event.extension.queue.RocketOnsEventExtensionConfiguration
 com.cloud.arch.event.extension.queue.RocketV5EventExtensionConfiguration
-com.cloud.arch.event.extension.queue.RocketV5EventExtensionConfiguration
 com.cloud.arch.event.extension.storage.JdbcStorageExtensionConfiguration
 com.cloud.arch.event.extension.storage.RocksdbStorageExtensionConfiguration

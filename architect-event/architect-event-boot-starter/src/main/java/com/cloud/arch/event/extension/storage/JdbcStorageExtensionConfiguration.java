@@ -21,6 +21,9 @@ import org.springframework.context.annotation.Role;
 import javax.sql.DataSource;
 
 
+/**
+ * JDBC 领域事件存储扩展配置，按需创建 JDBC 事件仓储、补偿处理器及补偿调度器。
+ */
 @Slf4j
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)

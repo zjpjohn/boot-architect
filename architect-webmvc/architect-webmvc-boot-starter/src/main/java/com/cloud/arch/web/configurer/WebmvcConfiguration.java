@@ -67,7 +67,7 @@ public class WebmvcConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(WebmvcHandlerAdvice.class)
-    public WebmvcHandlerAdvice webMvcHandlerAdvice() {
+    public WebmvcHandlerAdvice webmvcHandlerAdvice() {
         return new WebmvcHandlerAdvice();
     }
 

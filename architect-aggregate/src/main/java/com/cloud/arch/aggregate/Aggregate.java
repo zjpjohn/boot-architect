@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -38,9 +39,9 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     @SuppressWarnings("unchecked")
     public Aggregate(R root, DeepCopier copier) {
         Preconditions.checkNotNull(root, "聚合根对象不允许为空.");
-        this.root        = root;
+        this.root = root;
         this.targetClass = (Class<R>) root.getClass();
-        this.snapshot    = copier.copy(root);
+        this.snapshot = copier.copy(root);
     }
 
     public Aggregate(R root, DeepCopier copier, Repository<K, R> repository) {
@@ -111,32 +112,20 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     }
 
     /**
-     * 获取更新数据后的聚合实例
+     * 获取更新数据后的聚合实例，仅包含变更字段。
+     *
+     * @return 包含变更字段的新聚合实例；若为新聚合或未发生变更则返回 {@code null}
+     * @apiNote 推荐使用 {@link #ifChanged()} 获取 Optional 返回值，避免空指针风险
      */
     public R changed() {
-        if (!this.isNew()) {
-            try {
-                R                 result  = newInstance(this.targetClass);
-                Collection<Field> fields  = ReflectionUtils.getDeepDeclaredFields(this.targetClass);
-                boolean           changed = false;
-                for (Field field : fields) {
-                    if (field.getAnnotation(Ignore.class) != null) {
-                        continue;
-                    }
-                    Object value = field.get(root);
-                    if (!DeepEquals.deepEquals(value, field.get(snapshot))) {
-                        field.set(result, value);
-                        changed = true;
-                    }
-                }
-                if (changed) {
-                    result.setVersion(root.getVersion());
-                    result.setId(root.getId());
-                    return result;
-                }
-            } catch (Exception error) {
-                throw new RuntimeException(error);
-            }
+        if (isNew()) {
+            return null;
+        }
+        R result = newInstance(this.targetClass);
+        if (scanChangedFields(this.targetClass, root, snapshot, null, (field, value) -> field.set(result, value))) {
+            result.setVersion(root.getVersion());
+            result.setId(root.getId());
+            return result;
         }
         return null;
     }
@@ -151,35 +140,21 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     }
 
     /**
-     * 获取分组情况下更新数据后的聚合实例
+     * 获取分组情况下更新数据后的聚合实例，仅包含变更字段。
      *
      * @param group 操作分组
+     * @return 包含变更字段的新聚合实例；若为新聚合或未发生变更则返回 {@code null}
+     * @apiNote 推荐使用 {@link #ifChanged(String)} 获取 Optional 返回值，避免空指针风险
      */
     public R changed(String group) {
-        if (!this.root.isNew()) {
-            try {
-                R                 result  = newInstance(targetClass);
-                Collection<Field> fields  = ReflectionUtils.getDeepDeclaredFields(this.targetClass);
-                boolean           changed = false;
-                for (Field field : fields) {
-                    Ignore annotation = field.getAnnotation(Ignore.class);
-                    if (annotation != null && !Arrays.asList(annotation.group()).contains(group)) {
-                        continue;
-                    }
-                    Object value = field.get(root);
-                    if (!DeepEquals.deepEquals(value, field.get(snapshot))) {
-                        changed = true;
-                        field.set(result, value);
-                    }
-                }
-                if (changed) {
-                    result.setVersion(root.getVersion());
-                    result.setId(root.getId());
-                    return result;
-                }
-            } catch (Exception error) {
-                throw new RuntimeException(error);
-            }
+        if (root.isNew()) {
+            return null;
+        }
+        R result = newInstance(targetClass);
+        if (scanChangedFields(this.targetClass, root, snapshot, group, (field, value) -> field.set(result, value))) {
+            result.setVersion(root.getVersion());
+            result.setId(root.getId());
+            return result;
         }
         return null;
     }
@@ -189,21 +164,8 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
      */
     public Set<String> changedFields() {
         Set<String> results = Sets.newHashSet();
-        if (!this.root.isNew()) {
-            try {
-                Collection<Field> fields = ReflectionUtils.getDeepDeclaredFields(this.targetClass);
-                for (Field field : fields) {
-                    if (field.getAnnotation(Ignore.class) != null) {
-                        continue;
-                    }
-                    Object value = field.get(root);
-                    if (!DeepEquals.deepEquals(value, field.get(snapshot))) {
-                        results.add(field.getName());
-                    }
-                }
-            } catch (Exception error) {
-                throw new RuntimeException(error);
-            }
+        if (!root.isNew()) {
+            scanChangedFields(this.targetClass, root, snapshot, null, (field, value) -> results.add(field.getName()));
         }
         return results;
     }
@@ -215,21 +177,8 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
      */
     public Set<String> changedFields(String group) {
         Set<String> results = Sets.newHashSet();
-        if (!this.root.isNew()) {
-            try {
-                Collection<Field> fields = ReflectionUtils.getDeepDeclaredFields(this.targetClass);
-                for (Field field : fields) {
-                    Ignore annotation = field.getAnnotation(Ignore.class);
-                    if (annotation != null && !Lists.newArrayList(annotation.group()).contains(group)) {
-                        continue;
-                    }
-                    if (!DeepEquals.deepEquals(field.get(root), field.get(snapshot))) {
-                        results.add(field.getName());
-                    }
-                }
-            } catch (Exception error) {
-                throw new RuntimeException(error);
-            }
+        if (!root.isNew()) {
+            scanChangedFields(this.targetClass, root, snapshot, group, (field, value) -> results.add(field.getName()));
         }
         return results;
     }
@@ -239,29 +188,64 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
         T        newEntity   = loader.apply(root);
         T        oldEntity   = loader.apply(snapshot);
         Class<T> entityClass = (Class<T>) newEntity.getClass();
-        try {
-            T                 result  = newInstance(entityClass);
-            Collection<Field> fields  = ReflectionUtils.getDeepDeclaredFields(entityClass);
-            boolean           changed = false;
-            for (Field field : fields) {
-                if (field.getAnnotation(Ignore.class) != null) {
-                    continue;
-                }
-                Object value = field.get(newEntity);
-                if (!DeepEquals.deepEquals(value, field.get(oldEntity))) {
-                    changed = true;
-                    field.set(result, value);
-                }
-            }
-            if (changed) {
-                result.setId(newEntity.getId());
-                result.setVersion(newEntity.getVersion());
-                return Optional.of(result);
-            }
-        } catch (Exception error) {
-            throw new RuntimeException(error);
+        T        result      = newInstance(entityClass);
+        if (scanChangedFields(entityClass, newEntity, oldEntity, null, (field, value) -> field.set(result, value))) {
+            result.setId(newEntity.getId());
+            result.setVersion(newEntity.getVersion());
+            return Optional.of(result);
         }
         return Optional.empty();
+    }
+
+
+    @FunctionalInterface
+    private interface FieldCollector {
+        void accept(Field field, Object value) throws Exception;
+    }
+
+    /**
+     * 遍历字段对比新旧值，将变更字段交由 collector 收集。
+     *
+     * @param targetClass 待扫描的类
+     * @param newSource   新值来源（root 或新实体）
+     * @param oldSource   旧值来源（snapshot 或旧实体）
+     * @param group       分组过滤，{@code null} 表示不按分组过滤
+     * @param collector   变更收集器 ({@link Field}, 新值) → void
+     * @return true 至少一个字段发生变更
+     */
+    private boolean scanChangedFields(Class<?> targetClass,
+                                      Object newSource,
+                                      Object oldSource,
+                                      String group,
+                                      FieldCollector collector) {
+        try {
+            Collection<Field> fields  = ReflectionUtils.getDeepDeclaredFields(targetClass);
+            boolean           changed = false;
+            for (Field field : fields) {
+                if (shouldIgnore(field, group)) {
+                    continue;
+                }
+                Object newValue = field.get(newSource);
+                if (!DeepEquals.deepEquals(newValue, field.get(oldSource))) {
+                    changed = true;
+                    collector.accept(field, newValue);
+                }
+            }
+            return changed;
+        } catch (Exception e) {
+            throw new AggregateException(e);
+        }
+    }
+
+    /**
+     * 判断字段是否应跳过变更扫描。
+     */
+    private boolean shouldIgnore(Field field, String group) {
+        Ignore annotation = field.getAnnotation(Ignore.class);
+        if (annotation == null) {
+            return false;
+        }
+        return StringUtils.isBlank(group) || !Arrays.asList(annotation.group()).contains(group);
     }
 
     /**
@@ -355,7 +339,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
         Preconditions.checkNotNull(id, "id must not be null.");
         return entities.stream().filter(e -> id.equals(e.getId())).findFirst().orElseThrow(() -> {
             String error = String.format("can not find entity by id: %s", id);
-            return new NullPointerException(error);
+            return new AggregateException(error);
         });
     }
 
@@ -363,7 +347,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
         try {
             return targetClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new AggregateException(e);
         }
     }
 

@@ -12,6 +12,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+/**
+ * 时间参数转换工厂，支持 {@link java.util.Date}、{@link java.time.LocalDate}、{@link java.time.LocalTime}、{@link java.time.LocalDateTime} 类型的字符串转换。
+ */
 public class TimeConverterFactory {
 
     private static final String TIME_FORMAT_PATTERN = "HH:mm:ss";
@@ -21,7 +24,7 @@ public class TimeConverterFactory {
     private TimeConverterFactory() {
     }
 
-    private static String ofDefault(String format, String defaultVal) {
+    private static String defaultIfBlank(String format, String defaultVal) {
         if (StringUtils.hasText(format)) {
             return format;
         }
@@ -34,7 +37,7 @@ public class TimeConverterFactory {
         private final String            pattern;
 
         public LocalDateConverter(WebMvcProperties.Format format) {
-            this.pattern   = ofDefault(format.getDate(), DATE_FORMAT_PATTERN);
+            this.pattern   = defaultIfBlank(format.getDate(), DATE_FORMAT_PATTERN);
             this.formatter = DateTimeFormatter.ofPattern(pattern);
         }
 
@@ -53,7 +56,7 @@ public class TimeConverterFactory {
         private final String            pattern;
 
         public LocalTimeConverter(WebMvcProperties.Format format) {
-            this.pattern   = ofDefault(format.getTime(), TIME_FORMAT_PATTERN);
+            this.pattern   = defaultIfBlank(format.getTime(), TIME_FORMAT_PATTERN);
             this.formatter = DateTimeFormatter.ofPattern(pattern);
         }
 
@@ -72,7 +75,7 @@ public class TimeConverterFactory {
         private final String            pattern;
 
         public LocalDateTimeConverter(WebMvcProperties.Format format) {
-            this.pattern   = ofDefault(format.getDateTime(), DATE_TIME_PATTERN);
+            this.pattern   = defaultIfBlank(format.getDateTime(), DATE_TIME_PATTERN);
             this.formatter = DateTimeFormatter.ofPattern(pattern);
         }
 
@@ -91,7 +94,7 @@ public class TimeConverterFactory {
         private final String pattern;
 
         public DateTimeConverter(WebMvcProperties.Format format) {
-            this.pattern = ofDefault(format.getDateTime(), DATE_TIME_PATTERN);
+            this.pattern = defaultIfBlank(format.getDateTime(), DATE_TIME_PATTERN);
         }
 
         @Override
