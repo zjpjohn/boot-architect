@@ -23,8 +23,12 @@ public class AsyncCompensateScheduler implements SmartInitializingSingleton {
     private final AsyncTaskProperties properties;
 
     public void compensate() {
-        List<AsyncTxEvent> txEvents = repository.queryFailed(properties.getBatch(), properties.getPeriod());
-        retryQueue.delay(txEvents);
+        try {
+            List<AsyncTxEvent> txEvents = repository.queryFailed(properties.getBatch(), properties.getPeriod());
+            retryQueue.delay(txEvents);
+        } catch (Exception e) {
+            log.error("async compensate task error.", e);
+        }
     }
 
     @Override

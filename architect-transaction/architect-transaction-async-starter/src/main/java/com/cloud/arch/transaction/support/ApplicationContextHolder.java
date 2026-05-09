@@ -13,6 +13,9 @@ public class ApplicationContextHolder {
      * 获取指定类型的Bean
      */
     public static <T> T getBean(Class<T> type) {
+        if (context == null) {
+            throw new IllegalStateException("ApplicationContext not initialized.");
+        }
         return context.getBean(type);
     }
 

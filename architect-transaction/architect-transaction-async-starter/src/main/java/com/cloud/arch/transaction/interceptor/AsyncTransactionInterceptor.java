@@ -33,8 +33,8 @@ public class AsyncTransactionInterceptor {
         }
         try {
             return joinPoint.proceed(arguments);
-        } catch (Throwable error) {
-            throw new RuntimeException(error.getMessage(), error);
+        } catch (Exception error) {
+            throw new IllegalStateException(error.getMessage(), error);
         }
     }
 

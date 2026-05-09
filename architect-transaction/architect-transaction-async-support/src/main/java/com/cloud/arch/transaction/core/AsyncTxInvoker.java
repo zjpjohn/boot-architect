@@ -121,7 +121,7 @@ public class AsyncTxInvoker {
         try {
             this.method.invoke(this.target, arguments);
         } catch (Exception error) {
-            throw new RuntimeException(error.getMessage(), error);
+            throw new IllegalStateException(error.getMessage(), error);
         }
     }
 
@@ -132,7 +132,7 @@ public class AsyncTxInvoker {
             this.transactionManager.commit(transaction);
         } catch (Exception error) {
             this.transactionManager.rollback(transaction);
-            throw new RuntimeException(error.getMessage(), error);
+            throw new IllegalStateException(error.getMessage(), error);
         }
     }
 

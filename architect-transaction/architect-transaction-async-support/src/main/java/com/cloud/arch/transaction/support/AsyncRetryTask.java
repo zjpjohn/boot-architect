@@ -4,7 +4,7 @@ import com.cloud.arch.transaction.core.AsyncTxEvent;
 import com.google.common.primitives.Ints;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +12,7 @@ public record AsyncRetryTask(AsyncTxEvent event) implements Delayed {
 
     private Long timestamp() {
         LocalDateTime nextTime = this.event.getNextTime();
-        return nextTime.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        return nextTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
     @Override

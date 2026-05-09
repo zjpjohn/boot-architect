@@ -45,6 +45,7 @@ public class AsyncRetryQueue implements SmartInitializingSingleton, DisposableBe
                     task = this.delayQueue.take();
                 }
             } catch (InterruptedException ignore) {
+                log.warn("async retry worker interrupted.");
             }
         }
         while (this.startState.get());
