@@ -30,9 +30,9 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
     private final CloudCacheProperties       properties;
 
     public CacheEvictManager(CacheManager cacheManager, CloudCacheProperties properties) {
-        this.cacheManager  = cacheManager;
-        this.properties    = properties;
-        this.delayQueue    = new DelayQueue<>();
+        this.cacheManager = cacheManager;
+        this.properties = properties;
+        this.delayQueue = new DelayQueue<>();
         this.triggerWorker = new Thread(this::triggerDelayEvict, "cache-evict-trigger-thread");
     }
 
@@ -52,8 +52,7 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
                 log.warn("trigger delay cache evict task interrupted exception:", error);
                 Thread.currentThread().interrupt();
             }
-        }
-        while (this.startState.get());
+        } while (this.startState.get());
     }
 
     /**
@@ -95,7 +94,9 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
         int pendingSize = this.delayQueue.size();
         if (pendingSize >= this.properties.getMaxDelayEvictSize()) {
             log.warn("延迟删除队列已满(size:{}/max:{})，丢弃key[{}]的延迟双删任务",
-                     pendingSize, this.properties.getMaxDelayEvictSize(), event.getKey());
+                     pendingSize,
+                     this.properties.getMaxDelayEvictSize(),
+                     event.getKey());
             return;
         }
         long           evictAt        = System.currentTimeMillis() + this.properties.getDelayEvictInterval();
