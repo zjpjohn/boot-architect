@@ -15,7 +15,7 @@ public class UriSecurityProcessor {
     private final UriAuthorityManager        uriAuthorityManager;
 
     public UriSecurityProcessor(SecurityPrincipalProcessor securityProcessor, UriAuthorityManager uriAuthorityManager) {
-        this.securityProcessor   = securityProcessor;
+        this.securityProcessor = securityProcessor;
         this.uriAuthorityManager = uriAuthorityManager;
     }
 
@@ -23,8 +23,8 @@ public class UriSecurityProcessor {
      * 判断是否标注 Permission 注解，有注解存在方法不进行拦截
      */
     public boolean isAuthAnnotated(HandlerMethod target) {
-        return target.hasMethodAnnotation(Permission.class)
-                || target.getBeanType().getAnnotation(Permission.class) != null;
+        return target.hasMethodAnnotation(Permission.class) ||
+               target.getBeanType().getAnnotation(Permission.class) != null;
     }
 
     /**
@@ -37,8 +37,8 @@ public class UriSecurityProcessor {
         }
         String authDomain = request.getHeader(WebTokenConstants.ACCESS_SOURCE_HEADER);
         String identity   = request.getHeader(WebTokenConstants.AUTH_IDENTITY_HEADER);
-        Assert.state(StringUtils.hasText(authDomain), AuthorizationErrorHandler.CHANNEL_NULL);
-        Assert.state(StringUtils.hasText(identity), AuthorizationErrorHandler.AUTH_IDENTITY_NONE);
+        AuthorizationErrorHandler.CHANNEL_NULL.check(authDomain);
+        AuthorizationErrorHandler.AUTH_IDENTITY_NONE.check(identity);
         return securityProcessor.uriAuthorize(uriResource, handlerMethod, identity, authDomain);
     }
 

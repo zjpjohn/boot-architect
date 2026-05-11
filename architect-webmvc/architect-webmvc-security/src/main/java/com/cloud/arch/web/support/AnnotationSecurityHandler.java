@@ -33,7 +33,7 @@ public class AnnotationSecurityHandler implements MethodInterceptor {
             return invocation.proceed();
         }
         boolean processResult = securityPrincipalProcessor.annotationAuthorize(metadata);
-        Assert.state(processResult, AuthorizationErrorHandler.AUTHORITY_FORBIDDEN);
+        AuthorizationErrorHandler.AUTHORITY_FORBIDDEN.check(processResult);
         return invocation.proceed();
     }
 

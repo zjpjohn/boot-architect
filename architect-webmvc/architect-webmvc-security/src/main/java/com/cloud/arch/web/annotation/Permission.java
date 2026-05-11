@@ -20,13 +20,11 @@ public @interface Permission {
 
     /**
      * 权限集合
-     * 说明：多个权限用','分隔
      */
     String[] permit() default DEFAULT_VALUE;
 
     /**
      * 角色集合
-     * 说明：多个角色用','分隔
      */
     String[] role() default DEFAULT_VALUE;
 

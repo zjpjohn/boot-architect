@@ -1,5 +1,6 @@
 package com.cloud.arch.web.error;
 
+import com.cloud.arch.web.domain.ApiReturn;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -33,13 +34,20 @@ public class ApiBizException extends RuntimeException {
         this(status, code, error, false, data);
     }
 
-    public ApiBizException(HttpStatus status, Integer code, String error, boolean writableStackTrace,
-        Serializable data) {
+    public ApiBizException(HttpStatus status,
+                           Integer code,
+                           String error,
+                           boolean writableStackTrace,
+                           Serializable data) {
         super(error, null, false, writableStackTrace);
         this.status = status;
-        this.code   = code;
-        this.error  = error;
-        this.data   = data;
+        this.code = code;
+        this.error = error;
+        this.data = data;
+    }
+
+    public ApiReturn<?> errReturn() {
+        return new ApiReturn<>(this.status, this.code, null, this.error, this.data);
     }
 
     public static ApiBizException from(ErrorHandler handler) {

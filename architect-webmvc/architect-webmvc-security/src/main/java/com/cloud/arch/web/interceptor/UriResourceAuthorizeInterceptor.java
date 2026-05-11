@@ -2,6 +2,7 @@ package com.cloud.arch.web.interceptor;
 
 import com.alibaba.fastjson2.JSON;
 import com.cloud.arch.web.domain.ApiReturn;
+import com.cloud.arch.web.error.ApiBizException;
 import com.cloud.arch.web.support.AuthorizationErrorHandler;
 import com.cloud.arch.web.support.UriSecurityProcessor;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +38,11 @@ public class UriResourceAuthorizeInterceptor implements AsyncHandlerInterceptor 
                 apiReturn = AuthorizationErrorHandler.AUTHORITY_FORBIDDEN.result();
             } catch (Exception error) {
                 log.error("URI资源权限校验异常", error);
-                apiReturn = AuthorizationErrorHandler.AUTH_INTERNAL_ERROR.result();
+                if (error instanceof ApiBizException ex) {
+                    apiReturn = ex.errReturn();
+                } else {
+                    apiReturn = AuthorizationErrorHandler.AUTH_INTERNAL_ERROR.result();
+                }
             }
             writeError(response, apiReturn);
             return false;
