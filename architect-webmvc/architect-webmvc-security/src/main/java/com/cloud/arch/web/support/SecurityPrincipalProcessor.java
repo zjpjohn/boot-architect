@@ -8,7 +8,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -30,12 +29,11 @@ import java.util.Set;
 public class SecurityPrincipalProcessor implements ApplicationContextAware, SmartInitializingSingleton {
 
     private final Map<String, SecurityPrincipal> principalAuthorities = Maps.newHashMap();
-    private final WebAuthorityProperties         properties;
-    private       AuthorizeCacheManager          cacheManager;
+    private final AuthorizeCacheManager          cacheManager;
     private       ApplicationContext             applicationContext;
 
-    public SecurityPrincipalProcessor(WebAuthorityProperties properties) {
-        this.properties = properties;
+    public SecurityPrincipalProcessor(AuthorizeCacheManager cacheManager) {
+        this.cacheManager = cacheManager;
     }
 
     /**
@@ -48,14 +46,10 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
         if (!metaData.isValidDomain(authDomain)) {
             return false;
         }
+        GrantAuthority    authority         = metaData.requireAuthority(request);
         SecurityPrincipal principalSecurity = principalAuthorities.get(authDomain);
-        if (principalSecurity == null) {
-            return properties.isUnknownDomain();
-        }
-        GrantAuthority authority   = metaData.requireAuthority(request);
-        Set<String>    roles       = authority.roles();
-        Set<String>    authorities = authority.permits();
-        if (CollectionUtils.isEmpty(roles) && CollectionUtils.isEmpty(authorities)) {
+        if (principalSecurity == null || authority.isEmpty()) {
+            //当系统未配置权限处理器或者权限/角色都为空直接返回true
             return true;
         }
         try {
@@ -84,12 +78,8 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
             return false;
         }
         SecurityPrincipal principalAuthority = principalAuthorities.get(authDomain);
-        if (principalAuthority == null) {
-            return properties.isUnknownDomain();
-        }
-        Set<String> roles       = uriResource.getRoles();
-        Set<String> authorities = uriResource.getPermits();
-        if (CollectionUtils.isEmpty(roles) && CollectionUtils.isEmpty(authorities)) {
+        if (principalAuthority == null || uriResource.isEmptyRoleAndPermits()) {
+            //当系统未配置对应域的权限处理器或者角色权限为空直接放行
             return true;
         }
         //从缓存中查找是否存在已校验的缓存结果
@@ -98,7 +88,7 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
         if (cachedResult != null) {
             return cachedResult.authorized();
         }
-        GrantAuthority grantAuthority  = new GrantAuthority(identity, uriResource.getMode(), roles, authorities);
+        GrantAuthority grantAuthority  = uriResource.authority(identity);
         GrantedResult  authorityResult = grantAuthority.decide(principalAuthority);
         //缓存权限校验结果
         this.cacheManager.cacheAuthorize(cacheKey, authorityResult);
@@ -119,7 +109,6 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
 
     @Override
     public void afterSingletonsInstantiated() {
-        this.cacheManager = this.getBean(AuthorizeCacheManager.class);
         List<SecurityPrincipal> authorities = this.getBeans(SecurityPrincipal.class);
         if (CollectionUtils.isNotEmpty(authorities)) {
             Map<String, SecurityPrincipal> authorityMap = Maps.uniqueIndex(authorities, SecurityPrincipal::domain);
@@ -130,15 +119,6 @@ public class SecurityPrincipalProcessor implements ApplicationContextAware, Smar
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
-    }
-
-    public <T> T getBean(Class<? extends T> type) {
-        try {
-            return applicationContext.getBean(type);
-        } catch (BeansException error) {
-            log.error(error.getMessage(), error);
-        }
-        return null;
     }
 
     public <T> List<T> getBeans(Class<? extends T> type) {

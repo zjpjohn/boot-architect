@@ -55,7 +55,7 @@ public class AuthorizationMetadata {
      */
     public GrantAuthority requireAuthority(HttpServletRequest request) {
         String identity = request.getHeader(WebTokenConstants.AUTH_IDENTITY_HEADER);
-        Assert.state(StringUtils.isNotBlank(identity), AuthorizationErrorHandler.AUTH_IDENTITY_NONE);
+        AuthorizationErrorHandler.AUTH_IDENTITY_NONE.check(identity);
         return new GrantAuthority(identity, authority.mode, this.authority.roles, this.authority.permits);
     }
 

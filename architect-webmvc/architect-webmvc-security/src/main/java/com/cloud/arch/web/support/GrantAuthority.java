@@ -19,6 +19,14 @@ import java.util.Set;
 @Slf4j
 public record GrantAuthority(String identity, GrantMode mode, Set<String> roles, Set<String> permits) {
 
+    public GrantAuthority(String identity) {
+        this(identity, GrantMode.AND, Collections.emptySet(), Collections.emptySet());
+    }
+
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(roles) && CollectionUtils.isEmpty(permits);
+    }
+
     /**
      * 用户角色权限校验
      */
@@ -30,7 +38,7 @@ public record GrantAuthority(String identity, GrantMode mode, Set<String> roles,
     /**
      * 校验角色权限
      *
-     * @param roles       用户角色集合
+     * @param roles   用户角色集合
      * @param permits 用户权限集合
      */
     public GrantedResult decide(Set<String> roles, Set<String> permits) {

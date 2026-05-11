@@ -85,6 +85,20 @@ public class UriResourceAuthority {
     }
 
     /**
+     * 构建鉴权信息
+     */
+    public GrantAuthority authority(String identity) {
+        return new GrantAuthority(identity, mode, this.roles, this.permits);
+    }
+
+    /**
+     * 空权限或角色判断
+     */
+    public boolean isEmptyRoleAndPermits() {
+        return CollectionUtils.isEmpty(roles) && CollectionUtils.isEmpty(permits);
+    }
+
+    /**
      * 资源匹配计算
      *
      * @param requestUri 请求uri

@@ -22,6 +22,7 @@ import java.util.Set;
 public class UriAuthorityManager implements DisposableBean {
 
     private final WebAuthorityProperties                         properties;
+    //web通用配置
     private final ObjectProvider<WebShareProperties>             shareConfig;
     //已配置的uri权限资源集合
     private final List<UriResourceAuthority>                     resources;

@@ -24,19 +24,20 @@ public class UriResourceAuthorizeInterceptor implements AsyncHandlerInterceptor 
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response,
+                             Object handler) throws Exception {
         if (handler instanceof HandlerMethod handlerMethod) {
-            ApiReturn<Object> apiReturn;
+            ApiReturn<?> apiReturn;
             try {
                 //注解权限优先级高于基于uri配置的权限
                 if (processor.isAuthAnnotated(handlerMethod) || processor.authorize(request, handlerMethod)) {
                     return true;
                 }
-                apiReturn = ApiReturn.forbidden(AuthorizationErrorHandler.AUTHORITY_FORBIDDEN.getError());
+                apiReturn = AuthorizationErrorHandler.AUTHORITY_FORBIDDEN.result();
             } catch (Exception error) {
                 log.error("URI资源权限校验异常", error);
-                apiReturn = ApiReturn.serverError(AuthorizationErrorHandler.AUTH_INTERNAL_ERROR.getError());
+                apiReturn = AuthorizationErrorHandler.AUTH_INTERNAL_ERROR.result();
             }
             writeError(response, apiReturn);
             return false;
