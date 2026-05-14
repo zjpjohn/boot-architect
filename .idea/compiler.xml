@@ -86,8 +86,8 @@
         <module name="architect-idempotent-starter" />
         <module name="architect-mutex-lock-support" />
         <module name="architect-event-queue-rocketmq-ons" />
-        <module name="architect-pulsar-boot-starter" />
         <module name="web-example" />
+        <module name="architect-pulsar-boot-starter" />
         <module name="architect-webmvc-commons" />
         <module name="architect-webmvc-security" />
         <module name="architect-webmvc-webtoken-commons" />

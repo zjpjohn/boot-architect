@@ -35,14 +35,14 @@ public class DictionaryEndpoint implements InitializingBean {
         if (StringUtils.isBlank(name)) {
             return ApiReturn.success("all dictionary list.", dictionaryFactory.list());
         }
-        return ApiReturn.success(name + " dictionary detail.", dictionaryFactory.of(name));
+        return ApiReturn.success(name + "dictionary detail.", dictionaryFactory.of(name));
     }
 
     /**
      * 注册字典暴露端点到spring mvc
      */
     @Override
-    public void afterPropertiesSet() {
+    public void afterPropertiesSet() throws Exception {
         String             endpoint    = properties.getDictionary().getEndpoint();
         RequestMappingInfo mappingInfo = RequestMappingInfo.paths(endpoint).methods(RequestMethod.GET).build();
         Method             method      = DictionaryEndpoint.class.getMethod("dictionary", String.class);
