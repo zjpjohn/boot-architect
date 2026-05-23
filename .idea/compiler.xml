@@ -87,7 +87,6 @@
         <module name="architect-mutex-lock-support" />
         <module name="architect-event-queue-rocketmq-ons" />
         <module name="web-example" />
-        <module name="architect-pulsar-boot-starter" />
         <module name="architect-webmvc-commons" />
         <module name="architect-webmvc-security" />
         <module name="architect-webmvc-webtoken-commons" />
@@ -99,7 +98,6 @@
         <module name="idempotent-example" />
         <module name="multi-redis-example" />
         <module name="architect-token-support" />
-        <module name="architect-pulsar-commons" />
         <module name="architect-event-storage-rocksdb" />
         <module name="architect-token-jwt" />
         <module name="architect-event-queue-pulsar" />
@@ -134,6 +132,38 @@
         <module name="architect-webmvc-jackson" />
         <module name="architect-ip2region" />
         <module name="architect-operate-spring-starter" />
+      </profile>
+      <profile name="Annotation profile for architect-pulsar-boot-starter" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.5/spring-boot-configuration-processor-3.5.5.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.5/spring-boot-configuration-processor-3.5.5.jar" />
+        </processorPath>
+        <module name="architect-pulsar-boot-starter" />
+      </profile>
+      <profile name="Annotation profile for architect-pulsar-commons" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.5/spring-boot-configuration-processor-3.5.5.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/atteo/classindex/classindex/3.13/classindex-3.13.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.5/spring-boot-configuration-processor-3.5.5.jar" />
+        </processorPath>
+        <module name="architect-pulsar-commons" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="25">
