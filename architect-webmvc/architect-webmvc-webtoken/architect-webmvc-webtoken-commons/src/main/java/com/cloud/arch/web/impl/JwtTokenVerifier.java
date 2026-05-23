@@ -16,9 +16,9 @@ public class JwtTokenVerifier implements ITokenVerifier {
     public JwtTokenVerifier(WebTokenProperties props,
                             ITokenBlackListValidator tokenValidator,
                             IHttpAuthSourceManager sourceManager) {
-        this.props          = props;
+        this.props = props;
         this.tokenValidator = tokenValidator;
-        this.sourceManager  = sourceManager;
+        this.sourceManager = sourceManager;
     }
 
     @Override
@@ -28,6 +28,10 @@ public class JwtTokenVerifier implements ITokenVerifier {
 
     @Override
     public VerifyResult verify(String token) {
+        //授权token Bearer前缀替换
+        if (token.startsWith(WebTokenConstants.BEARER_PREFIX_KEY)) {
+            token = token.substring(7).trim();
+        }
         //token校验，成功返回payload数据
         Map<String, Object> payload = JwtTokenUtils.verify(token, props.getSecret());
         //token有效性校验

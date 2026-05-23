@@ -46,7 +46,7 @@ public abstract class WebTokenConstants {
     /**
      * 授权header标识
      */
-    public static final String   AUTH_TOKEN_HEADER     = "authentication";
+    public static final String   AUTH_TOKEN_HEADER     = "Authentication";
     /**
      * payload标识
      */
@@ -64,6 +64,10 @@ public abstract class WebTokenConstants {
      */
     public static final String   JWT_CLAIM_TOKEN_KEY   = "tokenId";
     /**
+     * token beader前缀
+     */
+    public static final String   BEARER_PREFIX_KEY     = "Bearer";
+    /**
      * 请求用户标识header
      */
     public static final String   AUTH_IDENTITY_HEADER  = "Auth-Request-Identity";
@@ -74,8 +78,7 @@ public abstract class WebTokenConstants {
     /**
      * 静态资源集合
      */
-    public static final String[] STATIC_RESOURCES      = {
-            "/**/*.html",
+    public static final String[] STATIC_RESOURCES      = {"/**/*.html",
             "/**/*.css",
             "/**/*.js",
             "/**/*.png",
@@ -83,7 +86,6 @@ public abstract class WebTokenConstants {
             "/**/*.jpeg",
             "/**/*.JPG",
             "/**/*.webp",
-            "/**/*.ico"
-    };
+            "/**/*.ico"};
 
 }
