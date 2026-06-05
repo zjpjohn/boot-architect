@@ -127,7 +127,7 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
     }
 
     public Page<T> page(PageWhere where) {
-        return where.page(this.where(where));
+        return this.where(where).page(where.of());
     }
 
     public int update(T value) {
@@ -135,11 +135,11 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
     }
 
     public int update(T value, boolean ignoreNulls) {
-       return this.baseMapper.updateByQuery(value, ignoreNulls, this);
+        return this.baseMapper.updateByQuery(value, ignoreNulls, this);
     }
 
     public int delete() {
-       return this.baseMapper.deleteByQuery(this);
+        return this.baseMapper.deleteByQuery(this);
     }
 
     /**
@@ -155,7 +155,7 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
     }
 
     public Pager<T> pager(PageWhere where) {
-        return where.pager(this.where(where));
+        return this.where(where).pager(where.of());
     }
 
     public static <E> Query<E> of(Class<E> entityClass) {

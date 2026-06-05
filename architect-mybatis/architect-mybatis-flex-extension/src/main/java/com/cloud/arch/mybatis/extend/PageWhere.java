@@ -1,6 +1,5 @@
 package com.cloud.arch.mybatis.extend;
 
-import com.cloud.arch.page.Pager;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import jakarta.validation.constraints.Min;
@@ -22,12 +21,8 @@ public class PageWhere implements Consumer<QueryWrapper> {
 
     }
 
-    public <T> Page<T> page(Query<T> query) {
-        return query.page(this.page, this.limit);
-    }
-
-    public <T> Pager<T> pager(Query<T> query) {
-        return query.pager(this.page, this.limit);
+    public <T> Page<T> of() {
+        return Page.of(this.page, this.limit);
     }
 
 }
