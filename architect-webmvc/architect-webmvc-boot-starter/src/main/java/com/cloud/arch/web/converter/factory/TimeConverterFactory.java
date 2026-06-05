@@ -37,7 +37,7 @@ public class TimeConverterFactory {
         private final String            pattern;
 
         public LocalDateConverter(WebMvcProperties.Format format) {
-            this.pattern   = defaultIfBlank(format.getDate(), DATE_FORMAT_PATTERN);
+            this.pattern = defaultIfBlank(format.getDate(), DATE_FORMAT_PATTERN);
             this.formatter = DateTimeFormatter.ofPattern(pattern);
         }
 
@@ -56,7 +56,7 @@ public class TimeConverterFactory {
         private final String            pattern;
 
         public LocalTimeConverter(WebMvcProperties.Format format) {
-            this.pattern   = defaultIfBlank(format.getTime(), TIME_FORMAT_PATTERN);
+            this.pattern = defaultIfBlank(format.getTime(), TIME_FORMAT_PATTERN);
             this.formatter = DateTimeFormatter.ofPattern(pattern);
         }
 
@@ -75,7 +75,7 @@ public class TimeConverterFactory {
         private final String            pattern;
 
         public LocalDateTimeConverter(WebMvcProperties.Format format) {
-            this.pattern   = defaultIfBlank(format.getDateTime(), DATE_TIME_PATTERN);
+            this.pattern = defaultIfBlank(format.getDateTime(), DATE_TIME_PATTERN);
             this.formatter = DateTimeFormatter.ofPattern(pattern);
         }
 
