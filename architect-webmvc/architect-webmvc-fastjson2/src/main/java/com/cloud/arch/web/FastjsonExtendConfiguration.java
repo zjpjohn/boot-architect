@@ -8,6 +8,7 @@ import com.alibaba.fastjson2.support.spring6.http.converter.FastJsonHttpMessageC
 import com.alibaba.fastjson2.support.spring6.webservlet.view.FastJsonJsonView;
 import com.cloud.arch.enums.Value;
 import com.cloud.arch.web.extension.*;
+import com.cloud.arch.web.mask.MaskValueFilter;
 import com.google.common.collect.Lists;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
@@ -47,10 +48,11 @@ public class FastjsonExtendConfiguration implements WebMvcConfigurer, Initializi
         jsonConfig.setWriteContentLength(properties.isWriteContentLength());
         jsonConfig.setWriterFeatures(writerFeatures());
         jsonConfig.setReaderFeatures(readFeatures());
+        jsonConfig.setWriterFilters(new MaskValueFilter());
         converter.setFastJsonConfig(jsonConfig);
         converter.setDefaultCharset(properties.getCharset());
         converter.setSupportedMediaTypes(Collections.singletonList(MediaType.APPLICATION_JSON));
-        converters.add(0, converter);
+        converters.addFirst(converter);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.cloud.arch.web;
 
 import com.cloud.arch.web.enums.EnumDeserializerModifier;
 import com.cloud.arch.web.enums.EnumSerializerModifier;
+import com.cloud.arch.web.mask.MaskSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -67,6 +68,8 @@ public class JacksonExtendConfiguration {
             // 自定义枚举序列化or反序列化处理
             builder.modules(new SimpleModule().setDeserializerModifier(new EnumDeserializerModifier())
                                               .setSerializerModifier(new EnumSerializerModifier()));
+            // 敏感字段掩码处理
+            builder.modules(new SimpleModule().addSerializer(new MaskSerializer()));
         };
     }
 
