@@ -52,4 +52,10 @@ public @interface CacheResult {
      * L2缓存配置信息
      */
     Remote remote() default @Remote();
+
+    /**
+     * 是否允许缓存预热，默认 false。
+     * 仅作用于预热扫描器，对 AOP 缓存拦截无影响。
+     */
+    boolean warmup() default false;
 }

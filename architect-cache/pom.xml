@@ -17,6 +17,7 @@
         <module>architect-hotkey</module>
         <module>architect-cache-support</module>
         <module>architect-cache-hotkey</module>
+        <module>architect-cache-warmup</module>
     </modules>
 
     <dependencyManagement>
