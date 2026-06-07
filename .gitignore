@@ -124,6 +124,7 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .flattened-pom.xml
+.claude/
 .mvn/timing.properties
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar

@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(ls -la architect-cache/.claude/)",
-      "Bash(cat architect-cache/.claude/settings.json)"
-    ]
-  }
-}
