@@ -1,7 +1,6 @@
 package com.cloud.arch.web.advice;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONReader;
 import com.alibaba.fastjson2.JSONWriter;
 import com.cloud.arch.web.annotation.ApiBody;
 import com.cloud.arch.web.domain.BodyData;
@@ -36,12 +35,16 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
     }
 
     private ApiBody getAnnotation(MethodParameter parameter) {
-        return Optional.ofNullable(parameter.getMethodAnnotation(ApiBody.class))
-                       .orElseGet(() -> parameter.getDeclaringClass().getAnnotation(ApiBody.class));
+        ApiBody annotation = parameter.getMethodAnnotation(ApiBody.class);
+        if (annotation != null) {
+            return annotation;
+        }
+        return parameter.getDeclaringClass().getAnnotation(ApiBody.class);
     }
 
     private boolean isSseEmitter(MethodParameter returnType) {
-        Class<?> methodReturnType = Optional.ofNullable(returnType.getMethod()).map(Method::getReturnType).orElse(null);
+        Method   method           = returnType.getMethod();
+        Class<?> methodReturnType = method != null ? method.getReturnType() : null;
         if (methodReturnType != null && ResponseBodyEmitter.class.isAssignableFrom(methodReturnType)) {
             return true;
         }
