@@ -28,9 +28,9 @@ public class WarmUpProperties {
     private boolean failFast = false;
 
     /**
-     * 是否全局异步执行
+     * 预热超时（秒）
      */
-    private boolean async = false;
+    private long timeoutSeconds = 120;
 
     /**
      * 分布式锁等待超时（秒）
@@ -54,7 +54,6 @@ public class WarmUpProperties {
 
     @Data
     public static class TaskConfig {
-        private Boolean            async;
         private Long               timeout;
         private List<List<Object>> args = new ArrayList<>();
     }

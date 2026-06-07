@@ -52,7 +52,9 @@ public class WarmUpAutoConfiguration {
     public WarmUpExecutor warmUpExecutor(WarmUpCoordinator coordinator,
                                          WarmUpMetrics metrics,
                                          WarmUpProperties properties) {
-        return new WarmUpExecutor(coordinator, metrics, properties.getLockWaitSeconds(), properties.isAsync(), 120);
+        return new WarmUpExecutor(coordinator, metrics,
+                                  properties.getLockWaitSeconds(),
+                                  properties.getTimeoutSeconds());
     }
 
     @Bean

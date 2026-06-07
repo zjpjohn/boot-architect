@@ -3,6 +3,7 @@ package com.cloud.arch.cache.warmup.core;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 手动预热 API，支持按缓存名触发预热，参数可从配置或调用方传入
@@ -23,12 +24,12 @@ public class WarmUpTemplate {
     /**
      * 按缓存名预热，参数从 YAML 配置读取
      */
-    public WarmUpResult warmUp(String cacheName) {
+    public CompletableFuture<WarmUpResult> warmUp(String cacheName) {
         List<Object[]>   args  = argsProvider.provide(cacheName);
         List<WarmUpTask> tasks = registry.getTasksByCache(cacheName);
         if (tasks.isEmpty()) {
             log.warn("[WarmUp] no registered methods for cache={}", cacheName);
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
         return executor.execute(cacheName, args, tasks);
     }
@@ -36,11 +37,11 @@ public class WarmUpTemplate {
     /**
      * 按缓存名预热，参数由调用方提供
      */
-    public WarmUpResult warmUp(String cacheName, List<Object[]> args) {
+    public CompletableFuture<WarmUpResult> warmUp(String cacheName, List<Object[]> args) {
         List<WarmUpTask> tasks = registry.getTasksByCache(cacheName);
         if (tasks.isEmpty()) {
             log.warn("[WarmUp] no registered methods for cache={}", cacheName);
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
         return executor.execute(cacheName, args, tasks);
     }

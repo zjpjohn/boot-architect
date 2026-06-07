@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 预热任务扫描器，在容器启动完成后扫描所有 @CacheResult(warmup=true) 的方法并注册到 WarmUpRegistry
@@ -75,11 +76,7 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
             return;
         }
 
-        if (properties.isAsync()) {
-            com.cloud.arch.cache.utils.CacheThreadPoolExecutor.run(() -> doExecute(targetCaches));
-        } else {
-            doExecute(targetCaches);
-        }
+        com.cloud.arch.cache.utils.CacheThreadPoolExecutor.run(() -> doExecute(targetCaches));
     }
 
     private void scan() {
@@ -160,14 +157,22 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
         if (log.isInfoEnabled()) {
             log.info("[WarmUp] starting auto warm-up, {} caches", cacheNames.size());
         }
-        long               start   = System.currentTimeMillis();
-        List<WarmUpResult> results = new ArrayList<>();
+        long                                         start   = System.currentTimeMillis();
+        List<CompletableFuture<List<WarmUpResult>>>  futures = new ArrayList<>();
         for (String cacheName : cacheNames) {
-            List<Object[]>     args  = argsProvider.provide(cacheName);
-            List<WarmUpTask>   tasks = registry.getTasksByCache(cacheName);
-            List<WarmUpResult> r     = executor.executeAll(cacheName, args, tasks);
-            if (r != null) {
-                results.addAll(r);
+            List<Object[]>   args  = argsProvider.provide(cacheName);
+            List<WarmUpTask> tasks = registry.getTasksByCache(cacheName);
+            futures.add(executor.executeAll(cacheName, args, tasks));
+        }
+        List<WarmUpResult> results = new ArrayList<>();
+        for (CompletableFuture<List<WarmUpResult>> future : futures) {
+            try {
+                List<WarmUpResult> r = future.join();
+                if (r != null) {
+                    results.addAll(r);
+                }
+            } catch (Exception e) {
+                log.warn("[WarmUp] cache warm-up failed", e);
             }
         }
         long duration = System.currentTimeMillis() - start;

@@ -95,7 +95,6 @@ public class WarmUpMetrics {
 
     public void report(List<WarmUpResult> results) {
         if (log.isInfoEnabled()) {
-            log.info("[WarmUp] ==== Cache Warm-Up Summary ====");
             results.stream().collect(Collectors.groupingBy(WarmUpResult::getCacheName)).forEach((cacheName, list) -> {
                 int  totalCount    = list.stream().mapToInt(WarmUpResult::getTotalCount).sum();
                 int  successCount  = list.stream().mapToInt(WarmUpResult::getSuccessCount).sum();
