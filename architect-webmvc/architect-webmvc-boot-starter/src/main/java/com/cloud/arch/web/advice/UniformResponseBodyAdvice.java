@@ -41,8 +41,14 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
     }
 
     private boolean isSseEmitter(MethodParameter returnType) {
-        Class<?> type = Optional.ofNullable(returnType.getMethod()).map(Method::getReturnType).orElse(null);
-        return type != null && ResponseBodyEmitter.class.isAssignableFrom(type);
+        Class<?> methodReturnType = Optional.ofNullable(returnType.getMethod()).map(Method::getReturnType).orElse(null);
+        if (methodReturnType != null && ResponseBodyEmitter.class.isAssignableFrom(methodReturnType)) {
+            return true;
+        }
+        // 异步场景：Spring 重分发时 ConcurrentResultMethodParameter.getParameterType() 返回解析后的实际类型
+        // 当参数类型与方法返回类型不同，说明经历了异步解包，需要检查解析后的类型是否为 SSE
+        Class<?> paramType = returnType.getParameterType();
+        return paramType != methodReturnType && ResponseBodyEmitter.class.isAssignableFrom(paramType);
     }
 
     private boolean isStreamReturnType(MethodParameter returnType) {
@@ -67,7 +73,7 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         String      message     = message(annotation);
         BodyData<?> wrappedBody = wrapBody(annotation, body, message, response);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        if (body instanceof String) {
+        if (body == null || body instanceof String) {
             return JSON.toJSONString(wrappedBody, JSONWriter.Feature.WriteLongAsString);
         }
         return wrappedBody;

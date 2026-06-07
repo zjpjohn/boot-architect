@@ -14,7 +14,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+
+import org.springframework.web.context.request.async.DeferredResult;
 
 @Slf4j
 @ApiBody
@@ -66,6 +69,35 @@ public class WebMvcController {
     @GetMapping("/test6")
     public Gender test6() {
         return Gender.FEMALE;
+    }
+
+    @GetMapping("/async/future")
+    public CompletableFuture<String> asyncFuture() {
+        return CompletableFuture.supplyAsync(() -> "async future result");
+    }
+
+    @GetMapping("/async/null")
+    public CompletableFuture<String> asyncNull() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @GetMapping("/async/callable")
+    public Callable<String> asyncCallable() {
+        return () -> "async callable result";
+    }
+
+    @GetMapping("/async/deferred")
+    public DeferredResult<String> asyncDeferred() {
+        DeferredResult<String> deferred = new DeferredResult<>(5000L);
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            deferred.setResult("async deferred result");
+        });
+        return deferred;
     }
 
     @GetMapping(value = "/sse")
