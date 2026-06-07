@@ -11,7 +11,6 @@
 
     <groupId>com.boot.architect</groupId>
     <artifactId>architect-xmodules</artifactId>
-    <version>1.0</version>
 
     <packaging>pom</packaging>
     <modules>
@@ -28,6 +27,11 @@
         <module>mybatis-flex-example</module>
         <module>mybatis-plus-example</module>
     </modules>
+
+    <properties>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <dependencyManagement>
         <dependencies>

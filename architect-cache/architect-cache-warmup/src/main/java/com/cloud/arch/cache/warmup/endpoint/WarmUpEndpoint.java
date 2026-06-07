@@ -35,13 +35,13 @@ public class WarmUpEndpoint {
      * 无 body 则使用 YAML 配置的 args
      */
     @PostMapping(value = "/cache/{cacheName}")
-    public WarmUpResult warmUpCache(@PathVariable String cacheName,
-                                    @RequestBody(required = false) List<List<Object>> args) {
+    public CompletableFuture<WarmUpResult> warmUpCache(@PathVariable String cacheName,
+                                                       @RequestBody(required = false) List<List<Object>> args) {
         if (CollectionUtils.isEmpty(args)) {
-            return warmUpTemplate.warmUp(cacheName).join();
+            return warmUpTemplate.warmUp(cacheName);
         }
         List<Object[]> argsList = args.stream().map(List::toArray).toList();
-        return warmUpTemplate.warmUp(cacheName, argsList).join();
+        return warmUpTemplate.warmUp(cacheName, argsList);
     }
 
     /**

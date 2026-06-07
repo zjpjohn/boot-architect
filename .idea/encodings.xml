@@ -29,6 +29,8 @@
     <file url="file://$PROJECT_DIR$/architect-cache/architect-cache-hotkey/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-cache/architect-cache-support/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-cache/architect-cache-support/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/architect-cache/architect-cache-warmup/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/architect-cache/architect-cache-warmup/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-cache/architect-hotkey/architect-hotkey-admin/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-cache/architect-hotkey/architect-hotkey-admin/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-cache/architect-hotkey/architect-hotkey-client/src/main/java" charset="UTF-8" />
@@ -57,8 +59,6 @@
     <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/architect-event-queue-rabbitmq/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/architect-event-queue-rocketmq-ons/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/architect-event-queue-rocketmq-ons/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/architect-event-queue-rocketmq-v4x/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/architect-event-queue-rocketmq-v4x/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/architect-event-queue-rocketmq-v5x/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/architect-event-queue-rocketmq-v5x/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-event/architect-event-queue/src/main/java" charset="UTF-8" />
@@ -129,8 +129,6 @@
     <file url="file://$PROJECT_DIR$/architect-rocketmq/architect-rocketmq-commons/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-rocketmq/architect-rocketmq-ons-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-rocketmq/architect-rocketmq-ons-starter/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/architect-rocketmq/architect-rocketmq-v4x-starter/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/architect-rocketmq/architect-rocketmq-v4x-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-rocketmq/architect-rocketmq-v5x-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-rocketmq/architect-rocketmq-v5x-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/architect-rocketmq/src/main/java" charset="UTF-8" />
@@ -229,6 +227,5 @@
     <file url="file://$PROJECT_DIR$/architect-xmodules/web-example/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
-    <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>
