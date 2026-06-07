@@ -33,7 +33,7 @@ public class WarmUpExecutor {
         this.lockWaitSeconds = lockWaitSeconds;
         this.globalAsync = globalAsync;
         this.globalTimeout = globalTimeout;
-        this.conversionService = new DefaultConversionService();
+        this.conversionService = DefaultConversionService.getSharedInstance();
     }
 
     /**
@@ -100,7 +100,8 @@ public class WarmUpExecutor {
         result.setTotalCount(argsList.size());
 
         long taskStart    = System.currentTimeMillis();
-        int  successCount = 0;
+        long timeoutMillis = timeoutSeconds * 1000;
+        int  successCount  = 0;
 
         for (int i = 0; i < argsList.size(); i++) {
             Object[] args = argsList.get(i);
@@ -126,7 +127,7 @@ public class WarmUpExecutor {
                 break; // 匹配到第一个参数个数一致的方法就停止
             }
 
-            if (timeoutSeconds > 0 && (System.currentTimeMillis() - taskStart) > timeoutSeconds * 1000) {
+            if (timeoutSeconds > 0 && (System.currentTimeMillis() - taskStart) > timeoutMillis) {
                 log.warn("[WarmUp] timeout for cache={}, processed {}/{}, stopping", cacheName, i + 1, argsList.size());
                 break;
             }

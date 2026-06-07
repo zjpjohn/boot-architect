@@ -131,6 +131,7 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
                 WarmUpTask task = new WarmUpTask();
                 task.setCacheNames(cr.names());
                 task.setBeanName(effectiveBeanName);
+                task.setRemark(cr.remark());
                 task.setTargetBean(targetBean);
                 task.setMethod(method);
                 for (String name : cr.names()) {

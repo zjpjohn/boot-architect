@@ -12,6 +12,7 @@ public class WarmUpTask {
     private String   cacheName;
     private String[] cacheNames;
     private String   beanName;
+    private String   remark;
     private Object   targetBean;
     private Method   method;
 }

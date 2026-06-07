@@ -1,8 +1,10 @@
 package com.cloud.arch.cache.warmup.endpoint;
 
+import com.cloud.arch.cache.warmup.core.WarmUpMeta;
 import com.cloud.arch.cache.warmup.core.WarmUpResult;
 import com.cloud.arch.cache.warmup.core.WarmUpTemplate;
 import com.cloud.arch.web.annotation.ApiBody;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,5 +42,21 @@ public class WarmUpEndpoint {
                 .map(List::toArray)
                 .toList();
         return warmUpTemplate.warmUp(cacheName, argsList);
+    }
+
+    /**
+     * 查询所有可预热缓存的元数据
+     */
+    @GetMapping(value = "/caches", produces = "application/json")
+    public List<WarmUpMeta> getCaches() {
+        return warmUpTemplate.metas();
+    }
+
+    /**
+     * 查询单个缓存预热的元数据详情
+     */
+    @GetMapping(value = "/caches/{cacheName}", produces = "application/json")
+    public WarmUpMeta getCache(@PathVariable String cacheName) {
+        return warmUpTemplate.meta(cacheName);
     }
 }

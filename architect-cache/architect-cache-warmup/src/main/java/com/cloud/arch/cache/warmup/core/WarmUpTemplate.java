@@ -44,4 +44,29 @@ public class WarmUpTemplate {
         }
         return executor.execute(cacheName, args, tasks);
     }
+
+    /**
+     * 获取所有可预热缓存的元数据
+     */
+    public List<WarmUpMeta> metas() {
+        return registry.getAllMetas(argsProvider);
+    }
+
+    /**
+     * 获取单个缓存名的元数据
+     */
+    public WarmUpMeta meta(String cacheName) {
+        List<WarmUpTask> tasks = registry.getTasksByCache(cacheName);
+        if (tasks.isEmpty()) {
+            return null;
+        }
+        WarmUpMeta meta = new WarmUpMeta();
+        meta.setCacheName(cacheName);
+        meta.setRemark(tasks.get(0).getRemark());
+        meta.setSampleArgs(argsProvider.provide(cacheName));
+        meta.setMethods(tasks.stream()
+                .map(registry::toMethodMeta)
+                .toList());
+        return meta;
+    }
 }

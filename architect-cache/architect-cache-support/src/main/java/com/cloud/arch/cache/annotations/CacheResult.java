@@ -58,4 +58,9 @@ public @interface CacheResult {
      * 仅作用于预热扫描器，对 AOP 缓存拦截无影响。
      */
     boolean warmup() default false;
+
+    /**
+     * 缓存备注，配合 warmup 使用，说明该缓存的业务场景
+     */
+    String remark() default "";
 }
