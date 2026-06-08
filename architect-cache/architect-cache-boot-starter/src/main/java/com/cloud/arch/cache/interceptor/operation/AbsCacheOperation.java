@@ -21,15 +21,17 @@ public abstract class AbsCacheOperation<T extends Annotation> {
     private       String      keyGenerator;
     private       String      cacheResolver;
     private       String      condition;
+    private       Class<?>    returnType;
 
     public AbsCacheOperation(Method method, T annotation, CacheAction cacheAction) {
         this(method, false, annotation, cacheAction);
     }
 
     public AbsCacheOperation(Method method, boolean allowNullValue, T annotation, CacheAction cacheAction) {
-        this.annotation     = annotation;
+        this.annotation = annotation;
         this.allowNullValue = allowNullValue;
         this.setName(method.toString());
+        this.returnType = method.getReturnType();
         this.build(method, annotation, cacheAction);
     }
 
@@ -76,7 +78,8 @@ public abstract class AbsCacheOperation<T extends Annotation> {
 
     private void validateOperation() {
         if (StringUtils.hasText(key) && StringUtils.hasText(keyGenerator)) {
-            throw new IllegalArgumentException("Invalid cache annotation on 'key' and 'keyGenerator' attribute, these attributes are mutually.");
+            throw new IllegalArgumentException(
+                    "Invalid cache annotation on 'key' and 'keyGenerator' attribute, these attributes are mutually.");
         }
     }
 

@@ -21,10 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 public class CacheOperationCachedSource implements CacheOperationSource, DisposableBean {
 
-    private static final Collection<AbsCacheOperation<? extends Annotation>>              NULL_CACHING_ATTRIBUTE
-                                                                                                         = Collections.emptyList();
-    private final        Map<Object, Collection<AbsCacheOperation<? extends Annotation>>> attributeCache
-                                                                                                         = new ConcurrentHashMap<>(1024);
+    private static final Collection<AbsCacheOperation<? extends Annotation>>              NULL_CACHING_ATTRIBUTE = Collections.emptyList();
+    private final        Map<Object, Collection<AbsCacheOperation<? extends Annotation>>> attributeCache         = new ConcurrentHashMap<>(
+            128);
 
     private final CacheAnnotationParser annotationParser;
     private final boolean               publicMethodsOnly;
@@ -32,8 +31,8 @@ public class CacheOperationCachedSource implements CacheOperationSource, Disposa
 
     public CacheOperationCachedSource(CloudCacheProperties properties, CacheResolver cacheResolver) {
         this.publicMethodsOnly = properties.isOnlyPublic();
-        this.cacheResolver     = cacheResolver;
-        this.annotationParser  = new CacheAnnotationParser(properties.isAllowNullValue());
+        this.cacheResolver = cacheResolver;
+        this.annotationParser = new CacheAnnotationParser(properties.isAllowNullValue());
     }
 
     @Override
@@ -53,7 +52,8 @@ public class CacheOperationCachedSource implements CacheOperationSource, Disposa
             return null;
         }
         Object cacheKey = cacheKey(method, targetType);
-        return Optional.ofNullable(this.attributeCache.get(cacheKey)).filter(value -> value != NULL_CACHING_ATTRIBUTE)
+        return Optional.ofNullable(this.attributeCache.get(cacheKey))
+                       .filter(value -> value != NULL_CACHING_ATTRIBUTE)
                        .orElse(null);
     }
 
@@ -64,8 +64,9 @@ public class CacheOperationCachedSource implements CacheOperationSource, Disposa
         if (CollectionUtils.isEmpty(annotations)) {
             return;
         }
-        Collection<AbsCacheOperation<? extends Annotation>> operations
-                = annotationParser.parseAnnotations(targetType, method, annotations);
+        Collection<AbsCacheOperation<? extends Annotation>> operations = annotationParser.parseAnnotations(targetType,
+                                                                                                           method,
+                                                                                                           annotations);
         if (CollectionUtils.isEmpty(operations)) {
             operations = NULL_CACHING_ATTRIBUTE;
         }
@@ -77,9 +78,33 @@ public class CacheOperationCachedSource implements CacheOperationSource, Disposa
     @Override
     public void cacheBuild() {
         if (!CollectionUtils.isEmpty(attributeCache)) {
-            attributeCache.values().stream().flatMap(Collection::stream).filter(AbsCacheOperation::canBuildCache)
+            validateReturnTypeConsistency();
+            attributeCache.values()
+                          .stream()
+                          .flatMap(Collection::stream)
+                          .filter(AbsCacheOperation::canBuildCache)
                           .forEach(cacheResolver::resolveCache);
         }
+    }
+
+    private void validateReturnTypeConsistency() {
+        Map<String, Class<?>> seen = new HashMap<>();
+        attributeCache.values()
+                      .stream()
+                      .flatMap(Collection::stream)
+                      .filter(AbsCacheOperation::canBuildCache)
+                      .forEach(op -> op.getCacheNames().forEach(cacheName -> {
+                          Class<?> existing = seen.putIfAbsent(cacheName, op.getReturnType());
+                          if (existing != null && !existing.equals(op.getReturnType())) {
+                              String message = String.format(
+                                      "Cache name '%s' 存在类型冲突: %s (%s) vs %s (已注册)。同名缓存方法的返回类型必须一致。",
+                                      cacheName,
+                                      op.getReturnType().getSimpleName(),
+                                      op.getName(),
+                                      existing.getSimpleName());
+                              throw new IllegalArgumentException(message);
+                          }
+                      }));
     }
 
     protected Object cacheKey(Method method, Class<?> targetClass) {
