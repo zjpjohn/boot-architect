@@ -77,34 +77,29 @@ public class CacheOperationCachedSource implements CacheOperationSource, Disposa
 
     @Override
     public void cacheBuild() {
-        if (!CollectionUtils.isEmpty(attributeCache)) {
-            validateReturnTypeConsistency();
-            attributeCache.values()
-                          .stream()
-                          .flatMap(Collection::stream)
-                          .filter(AbsCacheOperation::canBuildCache)
-                          .forEach(cacheResolver::resolveCache);
+        if (CollectionUtils.isEmpty(attributeCache)) {
+            return;
         }
-    }
-
-    private void validateReturnTypeConsistency() {
         Map<String, Class<?>> seen = new HashMap<>();
         attributeCache.values()
                       .stream()
                       .flatMap(Collection::stream)
                       .filter(AbsCacheOperation::canBuildCache)
-                      .forEach(op -> op.getCacheNames().forEach(cacheName -> {
-                          Class<?> existing = seen.putIfAbsent(cacheName, op.getReturnType());
-                          if (existing != null && !existing.equals(op.getReturnType())) {
-                              String message = String.format(
-                                      "Cache name '%s' 存在类型冲突: %s (%s) vs %s (已注册)。同名缓存方法的返回类型必须一致。",
-                                      cacheName,
-                                      op.getReturnType().getSimpleName(),
-                                      op.getName(),
-                                      existing.getSimpleName());
-                              throw new IllegalArgumentException(message);
-                          }
-                      }));
+                      .forEach(op -> {
+                          op.getCacheNames().forEach(cacheName -> {
+                              Class<?> existing = seen.putIfAbsent(cacheName, op.getReturnType());
+                              if (existing != null && !existing.equals(op.getReturnType())) {
+                                  String message = String.format(
+                                          "Cache name '%s' 存在类型冲突: %s (%s) vs %s (已注册)。同名缓存方法的返回类型必须一致。",
+                                          cacheName,
+                                          op.getReturnType().getSimpleName(),
+                                          op.getName(),
+                                          existing.getSimpleName());
+                                  throw new IllegalArgumentException(message);
+                              }
+                          });
+                          cacheResolver.resolveCache(op);
+                      });
     }
 
     protected Object cacheKey(Method method, Class<?> targetClass) {
