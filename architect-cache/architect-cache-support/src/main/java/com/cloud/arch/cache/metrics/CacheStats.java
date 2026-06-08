@@ -5,28 +5,34 @@ public final class CacheStats {
     private static final CacheStats EMPTY_STATS = new CacheStats();
 
     // 本地缓存命中率
-    private long hitL1Count = 0;
+    private long hitL1Count       = 0;
     // 命中缓存
-    private long hitCount = 0;
+    private long hitCount         = 0;
     // 未命中缓存
-    private long missCount = 0;
+    private long missCount        = 0;
     // 缓存加载成功
     private long loadSuccessCount = 0;
     // 缓存加载失败
-    private long loadFailCount = 0;
+    private long loadFailCount    = 0;
     // 缓存加载总时间
-    private long totalLoadTime = 0;
+    private long totalLoadTime    = 0;
     // 缓存失效次数
-    private long evictCount = 0;
+    private long evictCount       = 0;
     // 缓存失效元素总次数
-    private long evictWeight = 0;
+    private long evictWeight      = 0;
 
     public CacheStats() {
 
     }
 
-    public CacheStats(long hitCount, long missCount, long hitL1Count, long loadSuccessCount, long loadFailCount,
-        long totalLoadTime, long evictCount, long evictWeight) {
+    public CacheStats(long hitCount,
+                      long missCount,
+                      long hitL1Count,
+                      long loadSuccessCount,
+                      long loadFailCount,
+                      long totalLoadTime,
+                      long evictCount,
+                      long evictWeight) {
         this.hitCount = hitCount;
         this.missCount = missCount;
         this.hitL1Count = hitL1Count;
@@ -78,27 +84,27 @@ public final class CacheStats {
     }
 
     public double hitL1Rate() {
-        return hitCount == 0 ? 1.0 : (double)hitL1Count / hitCount;
+        return hitCount == 0 ? 1.0 : (double) hitL1Count / hitCount;
     }
 
     public double hitRate() {
         long requestCount = requestCount();
-        return requestCount == 0 ? 1.0 : (double)hitCount / requestCount;
+        return requestCount == 0 ? 1.0 : (double) hitCount / requestCount;
     }
 
     public double missRate() {
         long requestCount = requestCount();
-        return requestCount == 0 ? 1.0 : (double)missCount / requestCount;
+        return requestCount == 0 ? 1.0 : (double) missCount / requestCount;
     }
 
     public double averageLoadPenalty() {
         long totalLoadCount = saturatedAdd(loadSuccessCount, loadFailCount);
-        return (totalLoadCount == 0) ? 0.0 : (double)totalLoadTime / totalLoadCount;
+        return (totalLoadCount == 0) ? 0.0 : (double) totalLoadTime / totalLoadCount;
     }
 
     public double loadFailRate() {
         long totalLoadCount = saturatedAdd(loadSuccessCount, loadFailCount);
-        return totalLoadCount == 0 ? 1.0 : (double)loadFailCount / totalLoadCount;
+        return totalLoadCount == 0 ? 1.0 : (double) loadFailCount / totalLoadCount;
     }
 
     private static long saturatedAdd(long a, long b) {

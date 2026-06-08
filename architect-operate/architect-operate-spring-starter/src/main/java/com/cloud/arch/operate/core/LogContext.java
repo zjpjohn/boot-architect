@@ -34,14 +34,14 @@ public class LogContext {
     private final RequestContext context;
 
     public LogContext(ProceedingJoinPoint joinPoint, Long takenTime, Throwable throwable) {
-        this.method      = ((MethodSignature) joinPoint.getSignature()).getMethod();
-        this.annotation  = method.getAnnotation(OpLog.class);
-        this.target      = joinPoint.getTarget();
+        this.method = ((MethodSignature) joinPoint.getSignature()).getMethod();
+        this.annotation = method.getAnnotation(OpLog.class);
+        this.target = joinPoint.getTarget();
         this.targetClass = this.target.getClass();
-        this.context     = new RequestContext();
-        this.takenTime   = takenTime;
-        this.state       = throwable != null ? 1 : 0;
-        this.error       = errorMessage(throwable);
+        this.context = new RequestContext();
+        this.takenTime = takenTime;
+        this.state = throwable != null ? 1 : 0;
+        this.error = errorMessage(throwable);
     }
 
     private String errorMessage(Throwable throwable) {
@@ -107,11 +107,11 @@ public class LogContext {
 
         public RequestContext() {
             HttpServletRequest request = this.request();
-            this.method     = request.getMethod();
-            this.params     = this.paramsMap(request);
+            this.method = request.getMethod();
+            this.params = this.paramsMap(request);
             this.requestUri = request.getRequestURI();
             this.operatorId = this.operateId(request);
-            this.requestIp  = RequestUtils.ipAddress(request);
+            this.requestIp = RequestUtils.ipAddress(request);
         }
 
         private HttpServletRequest request() {

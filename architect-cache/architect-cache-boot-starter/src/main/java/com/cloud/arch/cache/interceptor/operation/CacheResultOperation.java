@@ -27,8 +27,10 @@ public class CacheResultOperation extends AbsCacheOperation<CacheResult> {
         this.setKeyGenerator(annotation.keyGenerator());
         this.setCondition(annotation.condition());
         this.setUnless(annotation.unless());
-        this.settings
-                = CacheSettings.build(annotation.enableLocal(), this.isAllowNullValue(), annotation.remote(), annotation.local());
+        this.settings = CacheSettings.build(annotation.enableLocal(),
+                                            this.isAllowNullValue(),
+                                            annotation.remote(),
+                                            annotation.local());
     }
 
     @Override

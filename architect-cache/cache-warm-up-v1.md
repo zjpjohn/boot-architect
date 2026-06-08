@@ -18,6 +18,7 @@
 **第一步：引入依赖**
 
 ```xml
+
 <dependency>
     <groupId>com.cloud.arch</groupId>
     <artifactId>architect-cache-warmup</artifactId>
@@ -29,11 +30,12 @@
 在已有的 `@CacheResult` 方法上加 `warmup=true`：
 
 ```java
+
 @Service
 public class HotDataService {
 
     @CacheResult(names = "user_cache", key = "#userId",
-                 warmup = true, remark = "用户信息缓存，按用户ID预热")
+            warmup = true, remark = "用户信息缓存，按用户ID预热")
     public User getUser(Long userId) {
         return userMapper.selectById(userId);
     }
@@ -48,8 +50,8 @@ com.cloud.cache.warm-up:
   tasks:
     user_cache:
       args:
-        - [1001]    # 启动后自动预热 userId=1001
-        - [1002]
+        - [ 1001 ]    # 启动后自动预热 userId=1001
+        - [ 1002 ]
 ```
 
 启动应用后，`SmartInitializingSingleton` 回调自动触发扫描和预热，无需额外代码。
@@ -61,8 +63,8 @@ com.cloud.cache.warm-up:
 ```java
 // 声明可预热的方法
 @CacheResult(names = "order_cache", key = "#orderId",
-             warmup = true, remark = "订单缓存")
-public Order getOrder(String orderId) { ... }
+        warmup = true, remark = "订单缓存")
+public Order getOrder(String orderId) { ...}
 ```
 
 ```yaml
@@ -73,9 +75,9 @@ com.cloud.cache.warm-up:
   tasks:
     order_cache:
       args:
-        - ["ORDER_001"]
-        - ["ORDER_002"]
-        - ["ORDER_003"]
+        - [ "ORDER_001" ]
+        - [ "ORDER_002" ]
+        - [ "ORDER_003" ]
 ```
 
 启动日志输出：
@@ -96,18 +98,20 @@ com.cloud.cache.warm-up:
 #### 定时任务
 
 ```java
+
 @Component
 public class WarmUpJob {
 
-    @Autowired private WarmUpTemplate warmUpTemplate;
+    @Autowired
+    private WarmUpTemplate warmUpTemplate;
 
     @Scheduled(cron = "0 0 6 * * ?")          // 每天 6:00
     public void morningWarmUp() {
         warmUpTemplate.warmUp("user_cache")    // 参数从 YAML 配置读取
-                .thenAccept(result -> log.info("morning warm-up: {}/{} in {}ms",
-                        result.getSuccessCount(),
-                        result.getTotalCount(),
-                        result.getDurationMs()));
+                      .thenAccept(result -> log.info("morning warm-up: {}/{} in {}ms",
+                                                     result.getSuccessCount(),
+                                                     result.getTotalCount(),
+                                                     result.getDurationMs()));
     }
 }
 ```
@@ -116,11 +120,15 @@ public class WarmUpJob {
 
 ```java
 List<Object[]> customArgs = List.of(
-    new Object[]{"EAST", 1001L},
-    new Object[]{"WEST", 1002L}
+        new Object[]{"EAST", 1001L},
+        new Object[]{"WEST", 1002L}
 );
-warmUpTemplate.warmUp("order_cache", customArgs)
-        .thenAccept(result -> { ... });
+warmUpTemplate.
+
+warmUp("order_cache",customArgs)
+        .
+
+thenAccept(result ->{...});
 ```
 
 #### REST 端点
@@ -147,11 +155,11 @@ curl -X POST /actuator/warmup/cache/order_cache \
 
 ```json
 {
-    "cacheName": "order_cache",
-    "success": true,
-    "totalCount": 3,
-    "successCount": 3,
-    "durationMs": 67
+  "cacheName": "order_cache",
+  "success": true,
+  "totalCount": 3,
+  "successCount": 3,
+  "durationMs": 67
 }
 ```
 
@@ -159,20 +167,30 @@ GET 查询元数据响应示例：
 
 ```json
 {
-    "cacheName": "order_cache",
-    "remark": "订单缓存",
-    "methods": [
-        {
-            "beanName": "OrderService",
-            "methodName": "getOrder",
-            "paramTypes": ["String"]
-        }
+  "cacheName": "order_cache",
+  "remark": "订单缓存",
+  "methods": [
+    {
+      "beanName": "OrderService",
+      "methodName": "getOrder",
+      "paramTypes": [
+        "String"
+      ]
+    }
+  ],
+  "sampleArgs": [
+    [
+      "ORDER_001"
     ],
-    "sampleArgs": [["ORDER_001"], ["ORDER_002"]]
+    [
+      "ORDER_002"
+    ]
+  ]
 }
 ```
 
-拿到 `paramTypes` 和 `sampleArgs` 后，调用方就知道如何构造 `POST` 的 body，形成 [查询 → 执行配套链路](#73-查询--执行配套链路)。
+拿到 `paramTypes` 和 `sampleArgs` 后，调用方就知道如何构造 `POST` 的
+body，形成 [查询 → 执行配套链路](#73-查询--执行配套链路)。
 
 ### 2.4 异步处理
 
@@ -183,15 +201,33 @@ GET 查询元数据响应示例：
 WarmUpResult result = warmUpTemplate.warmUp("user_cache").join();
 
 // 异步链式
-warmUpTemplate.warmUp("user_cache")
-        .thenAccept(r -> log.info("done: {}/{}", r.getSuccessCount(), r.getTotalCount()))
-        .exceptionally(ex -> { log.error("failed", ex); return null; });
+warmUpTemplate.
+
+warmUp("user_cache")
+        .
+
+thenAccept(r ->log.
+
+info("done: {}/{}",r.getSuccessCount(),r.
+
+getTotalCount()))
+        .
+
+exceptionally(ex ->{log.
+
+error("failed",ex); return null;});
 
 // 组合多个缓存并行预热
-CompletableFuture.allOf(
-    warmUpTemplate.warmUp("user_cache"),
-    warmUpTemplate.warmUp("order_cache")
-).join();
+        CompletableFuture.
+
+allOf(
+        warmUpTemplate.warmUp("user_cache"),
+    warmUpTemplate.
+
+warmUp("order_cache")
+).
+
+join();
 ```
 
 ### 2.5 多实例部署
@@ -244,6 +280,7 @@ CompletableFuture.allOf(
 ```
 
 设计原则：
+
 - **独立模块**：`architect-cache-warmup`，与缓存核心解耦，按需引入
 - **不改造现有缓存核心类**：仅给 `@CacheResult` 加 `warmup`/`remark` 属性（增量、向后兼容）
 - **零注解入侵**：开发只需在已有的 `@CacheResult` 上加 `warmup=true`
@@ -279,18 +316,19 @@ public @interface CacheResult {
 ### 5.1 使用示例
 
 ```java
+
 @Service
 public class HotDataService {
 
     // 开发：声明该方法可预热，附带业务说明
     @CacheResult(names = "user_cache", key = "#userId",
-                 warmup = true, remark = "用户信息缓存，按用户ID预热")
-    public User getUser(Long userId) { ... }
+            warmup = true, remark = "用户信息缓存，按用户ID预热")
+    public User getUser(Long userId) { ...}
 
     // 组合 key 天然支持
     @CacheResult(names = "user_cache", key = "#region + ':' + #userId",
-                 warmup = true, remark = "用户信息缓存")
-    public User getUserByRegion(String region, Long userId) { ... }
+            warmup = true, remark = "用户信息缓存")
+    public User getUserByRegion(String region, Long userId) { ...}
 }
 ```
 
@@ -302,15 +340,15 @@ com.cloud.cache.warm-up:
   fail-fast: false
   timeout-seconds: 120          # 预热总超时（秒），超时后聚合已完成结果
   lock-wait-seconds: 30         # 分布式锁等待超时（秒）
-  caches: []                    # 要执行的缓存名，空 = 全部执行
+  caches: [ ]                    # 要执行的缓存名，空 = 全部执行
   tasks:
-    user_cache:                 # 对应 @CacheResult(names="user_cache")
+    user_cache: # 对应 @CacheResult(names="user_cache")
       args:
-        - [1001]
-        - [1002]
+        - [ 1001 ]
+        - [ 1002 ]
     order_cache:
       args:
-        - ["ORDER_123"]
+        - [ "ORDER_123" ]
 ```
 
 ### 5.3 启动扫描与执行流程
@@ -356,15 +394,16 @@ YAML 配置中的参数通过 Spring `ConversionService` 自动转换为方法�
 
 ```yaml
 args:
-  - ["EAST", 1001]    # 1001 是数字 → 自动转 Long
-  - ["WEST", "1002"]  # "1002" 是字符串 → 也自动转 Long
+  - [ "EAST", 1001 ]    # 1001 是数字 → 自动转 Long
+  - [ "WEST", "1002" ]  # "1002" 是字符串 → 也自动转 Long
 ```
 
 内部使用 `DefaultConversionService.getSharedInstance()` 复用 JVM 级别单例。
 
 ### 5.6 多方法匹配同一个缓存名
 
-一个缓存名可能对应多个 `@CacheResult` 方法（如 `getUser(id)` 和 `getUserByRegion(region, id)`）。执行时按参数个数匹配第一个合适的方法调用，AOP 一次性写入所有关联缓存。
+一个缓存名可能对应多个 `@CacheResult` 方法（如 `getUser(id)` 和 `getUserByRegion(region, id)`）。执行时按参数个数匹配第一个合适的方法调用，AOP
+一次性写入所有关联缓存。
 
 ---
 
@@ -396,7 +435,8 @@ public class WarmUpTemplate {
 @Component
 public class WarmUpJob {
 
-    @Autowired private WarmUpTemplate warmUpTemplate;
+    @Autowired
+    private WarmUpTemplate warmUpTemplate;
 
     @Scheduled(cron = "0 0 6 * * ?")
     public void morningWarmUp() {
@@ -407,13 +447,21 @@ public class WarmUpJob {
 }
 
 // ── 场景2：异步链式处理 ──
-warmUpTemplate.warmUp("user_cache")
-    .thenAccept(result -> log.info("warm-up done: {}/{}", result.getSuccessCount(), result.getTotalCount()));
+warmUpTemplate.
+
+warmUp("user_cache")
+    .
+
+thenAccept(result ->log.
+
+info("warm-up done: {}/{}",result.getSuccessCount(),result.
+
+getTotalCount()));
 
 // ── 场景3：调用方自传参数 ──
 List<Object[]> customArgs = List.of(
-    new Object[]{"EAST", 1001L},
-    new Object[]{"WEST", 1002L}
+        new Object[]{"EAST", 1001L},
+        new Object[]{"WEST", 1002L}
 );
 CompletableFuture<WarmUpResult> future = warmUpTemplate.warmUp("user_cache", customArgs);
 ```
@@ -424,11 +472,11 @@ CompletableFuture<WarmUpResult> future = warmUpTemplate.warmUp("user_cache", cus
 
 #### 6.3.1 端点一览
 
-| 方法 | 路径 | 说明 | 异步 |
-|------|------|------|------|
-| GET | `/actuator/warmup/caches` | 查询所有可预热缓存的元数据列表 | 否 |
-| GET | `/actuator/warmup/caches/{cacheName}` | 查询单个缓存的方法签名与示例参数 | 否 |
-| POST | `/actuator/warmup/cache/{cacheName}` | 触发手动预热（可选自定义参数） | 是 |
+| 方法   | 路径                                    | 说明               | 异步 |
+|------|---------------------------------------|------------------|----|
+| GET  | `/actuator/warmup/caches`             | 查询所有可预热缓存的元数据列表  | 否  |
+| GET  | `/actuator/warmup/caches/{cacheName}` | 查询单个缓存的方法签名与示例参数 | 否  |
+| POST | `/actuator/warmup/cache/{cacheName}`  | 触发手动预热（可选自定义参数）  | 是  |
 
 #### 6.3.2 端点配置
 
@@ -470,18 +518,19 @@ curl -X POST http://localhost:8080/actuator/warmup/cache/order_cache \
 
 **响应体：`CompletableFuture<WarmUpResult>`**
 
-Spring MVC 在 `UniformResponseBodyAdvice` 异步支持下自动等待 Future 完成后写入 HTTP 响应（`architect-webmvc` 模块提供异步返回值包装能力）。
+Spring MVC 在 `UniformResponseBodyAdvice` 异步支持下自动等待 Future 完成后写入 HTTP 响应（`architect-webmvc`
+模块提供异步返回值包装能力）。
 
 ```json
 {
-    "cacheName": "user_cache",
-    "beanName": null,
-    "methodName": null,
-    "success": true,
-    "totalCount": 2,
-    "successCount": 2,
-    "durationMs": 67,
-    "errorMessage": null
+  "cacheName": "user_cache",
+  "beanName": null,
+  "methodName": null,
+  "success": true,
+  "totalCount": 2,
+  "successCount": 2,
+  "durationMs": 67,
+  "errorMessage": null
 }
 ```
 
@@ -517,19 +566,21 @@ CompletableFuture<WarmUpResult> → Spring MVC → 写入 HTTP Response
 
 **HTTP 状态码与响应语义：**
 
-| 状态码 | 响应 body | 场景 | 说明 |
-|--------|-----------|------|------|
-| 200 | `WarmUpResult` | 预热正常完成 | `success=true`，`totalCount`/`successCount` 反映实际结果 |
-| 200 | `null` | 缓存名无注册方法 | `WarmUpTemplate` 日志 warn 级别 |
-| 200 | `null` | 分布式锁被其他节点持有 | `WarmUpExecutor` 日志 info 级别 skip |
-| 200 | `null` | 无配置参数且调用方未传参 | `WarmUpExecutor` 日志 info 级别 skip |
-| 200 | `WarmUpResult` | 预热触发但部分超时 | `success=true`，`successCount` ≤ `totalCount` |
+| 状态码 | 响应 body        | 场景           | 说明                                                |
+|-----|----------------|--------------|---------------------------------------------------|
+| 200 | `WarmUpResult` | 预热正常完成       | `success=true`，`totalCount`/`successCount` 反映实际结果 |
+| 200 | `null`         | 缓存名无注册方法     | `WarmUpTemplate` 日志 warn 级别                       |
+| 200 | `null`         | 分布式锁被其他节点持有  | `WarmUpExecutor` 日志 info 级别 skip                  |
+| 200 | `null`         | 无配置参数且调用方未传参 | `WarmUpExecutor` 日志 info 级别 skip                  |
+| 200 | `WarmUpResult` | 预热触发但部分超时    | `success=true`，`successCount` ≤ `totalCount`      |
 
-> **设计决策：** 所有"非异常"场景统一返回 HTTP 200，通过 `WarmUpResult` 字段和 `null` 值区分具体状态。预热是**非关键路径操作**，调用方不应因预热异常而触发 HTTP 层面的重试或告警。
+> **设计决策：** 所有"非异常"场景统一返回 HTTP 200，通过 `WarmUpResult` 字段和 `null` 值区分具体状态。预热是**非关键路径操作
+**，调用方不应因预热异常而触发 HTTP 层面的重试或告警。
 
 **超时行为：**
 
-`CompletableFuture.allOf(futures).orTimeout(timeoutSeconds)` —— 超时后 Future 以 `TimeoutException` 完成，`handle()` 中捕获异常并聚合已完成结果：
+`CompletableFuture.allOf(futures).orTimeout(timeoutSeconds)` —— 超时后 Future 以 `TimeoutException` 完成，`handle()`
+中捕获异常并聚合已完成结果：
 
 - 100 个 key 超时前已完成 73 个 → `totalCount=100, successCount=73, success=true`
 - 已完成的 73 个 key 已写入 L2/L1 缓存，可正常使用
@@ -550,16 +601,17 @@ curl http://localhost:8080/actuator/warmup/caches/user_cache
 #### 6.3.5 端点安全
 
 - 路径在 `/actuator` 下，天然复用 Spring Boot Actuator 安全体系：
-  - Spring Security 可基于 `management.endpoints.web.base-path` 统一管控
-  - 支持 `management.endpoint.health.roles` 等标准角色配置扩展
+    - Spring Security 可基于 `management.endpoints.web.base-path` 统一管控
+    - 支持 `management.endpoint.health.roles` 等标准角色配置扩展
 - **生产环境建议：**
-  - 对 `/actuator/warmup/**` 加权限控制，GET 允许只读角色，POST 限管理员角色
-  - 可通过 `com.cloud.cache.warm-up.rest-endpoint=false` 彻底关闭端点
+    - 对 `/actuator/warmup/**` 加权限控制，GET 允许只读角色，POST 限管理员角色
+    - 可通过 `com.cloud.cache.warm-up.rest-endpoint=false` 彻底关闭端点
 - **内网部署：** 配合 `management.server.port` 将 Actuator 暴露在独立管理端口（如 8081），与业务端口隔离
 
 #### 6.3.6 端点源码
 
 ```java
+
 @ApiBody
 @RestController
 @RequestMapping("/actuator/warmup")
@@ -597,6 +649,7 @@ public class WarmUpEndpoint {
 ### 6.4 WarmUpResult
 
 ```java
+
 @Data
 public class WarmUpResult {
     private String  cacheName;    // 缓存名
@@ -623,6 +676,7 @@ public class WarmUpResult {
 ### 7.1 WarmUpMeta（缓存级别）
 
 ```java
+
 @Data
 public class WarmUpMeta {
     private String           cacheName;   // 缓存名
@@ -635,6 +689,7 @@ public class WarmUpMeta {
 ### 7.2 MethodMeta（方法级别）
 
 ```java
+
 @Data
 public class MethodMeta {
     private String   beanName;    // 目标 Bean 名
@@ -664,10 +719,19 @@ GET /actuator/warmup/caches
       {
         "beanName": "hotDataService",
         "methodName": "getUser",
-        "paramTypes": ["Long"]
+        "paramTypes": [
+          "Long"
+        ]
       }
     ],
-    "sampleArgs": [[1001], [1002]]
+    "sampleArgs": [
+      [
+        1001
+      ],
+      [
+        1002
+      ]
+    ]
   },
   {
     "cacheName": "order_cache",
@@ -676,22 +740,31 @@ GET /actuator/warmup/caches
       {
         "beanName": "orderService",
         "methodName": "getOrder",
-        "paramTypes": ["String"]
+        "paramTypes": [
+          "String"
+        ]
       }
     ],
-    "sampleArgs": [["ORDER_001"], ["ORDER_002"]]
+    "sampleArgs": [
+      [
+        "ORDER_001"
+      ],
+      [
+        "ORDER_002"
+      ]
+    ]
   }
 ]
 ```
 
 **关键信息解读：**
 
-| 字段 | 用途 | 示例 |
-|------|------|------|
-| `cacheName` | POST 预热时的路径变量 `{cacheName}` | `user_cache` |
-| `remark` | 业务含义，帮助确认缓存用途 | "用户信息缓存，按用户ID预热" |
+| 字段                     | 用途                          | 示例                                             |
+|------------------------|-----------------------------|------------------------------------------------|
+| `cacheName`            | POST 预热时的路径变量 `{cacheName}` | `user_cache`                                   |
+| `remark`               | 业务含义，帮助确认缓存用途               | "用户信息缓存，按用户ID预热"                               |
 | `methods[].paramTypes` | 参数类型声明，构造 POST body 时必须类型匹配 | `["String", "Long"]` → body 中每项为 `["str", 数字]` |
-| `sampleArgs` | YAML 配置的示例参数，**格式可直接复用** | `[[1001],[1002]]` |
+| `sampleArgs`           | YAML 配置的示例参数，**格式可直接复用**    | `[[1001],[1002]]`                              |
 
 #### 步骤 2：构造参数并执行预热
 
@@ -729,9 +802,13 @@ done
 
 ```java
 CompletableFuture.allOf(
-    warmUpTemplate.warmUp("user_cache"),
-    warmUpTemplate.warmUp("order_cache")
-).join();
+        warmUpTemplate.warmUp("user_cache"),
+    warmUpTemplate.
+
+warmUp("order_cache")
+).
+
+join();
 ```
 
 #### 完整集成流程
@@ -775,14 +852,15 @@ cache:warmup:lock:order_cache
 
 ## 9. 监控指标（Micrometer）
 
-| 指标名 | 类型 | Tag | 含义 |
-|--------|------|-----|------|
-| `cache.warmup.total` | Counter | cache + status (success/failure) | 预热成功/失败条目数 |
-| `cache.warmup.duration` | Timer | cache | 每次预热耗时 |
-| `cache.warmup.lock.acquired` | Counter | cache | 锁获取成功次数 |
-| `cache.warmup.lock.skipped` | Counter | cache | 锁跳过次数（其他节点执行中） |
+| 指标名                          | 类型      | Tag                              | 含义             |
+|------------------------------|---------|----------------------------------|----------------|
+| `cache.warmup.total`         | Counter | cache + status (success/failure) | 预热成功/失败条目数     |
+| `cache.warmup.duration`      | Timer   | cache                            | 每次预热耗时         |
+| `cache.warmup.lock.acquired` | Counter | cache                            | 锁获取成功次数        |
+| `cache.warmup.lock.skipped`  | Counter | cache                            | 锁跳过次数（其他节点执行中） |
 
 日志摘要示例：
+
 ```
 [WarmUp] ==== Cache Warm-Up Summary ====
 [WarmUp] cache=user_cache success=3/3 duration=1250ms
@@ -820,6 +898,7 @@ architect-cache-warmup/src/main/java/com/cloud/arch/cache/warmup/
 ### Maven 依赖
 
 ```xml
+
 <dependency>
     <groupId>com.cloud.arch</groupId>
     <artifactId>architect-cache-warmup</artifactId>
@@ -827,24 +906,10 @@ architect-cache-warmup/src/main/java/com/cloud/arch/cache/warmup/
 ```
 
 依赖关系：
+
 - `architect-cache-support`（provided）
 - `architect-webmvc-boot-starter`
 - `architect-redisson`（optional，分布式锁）
 - `micrometer-core`（指标采集）
 - **JDK 21+**（虚拟线程）
 
----
-
-## 11. 与 v0 方案（@WarmUp 注解）的对比
-
-| 维度 | v0（@WarmUp） | v1（@CacheResult.warmup） |
-|------|--------------|--------------------------|
-| 注解 | 独立 `@WarmUp` + `tag` | `@CacheResult(warmup=true, remark="...")` |
-| 索引维度 | tag（业务方自定义） | cacheName（注解自带） |
-| 手动预热 | `WarmUpCacheLoader` + `cache.put()` | 走方法 → AOP，与自动预热一致 |
-| 组合 key | 不支持 | 天然支持（SpEL 拼装） |
-| 并发模型 | 串行 for 循环 | 虚拟线程 + CompletableFuture.allOf |
-| 返回类型 | 同步 WarmUpResult | CompletableFuture<WarmUpResult> |
-| 配置格式 | `tasks.<tag>.args` | `tasks.<cacheName>.args` |
-| 元数据查询 | 无 | GET /caches 返回方法签名 + 示例参数 |
-| 注解文件数 | 2（@WarmUp + @CacheResult） | 1（@CacheResult） |

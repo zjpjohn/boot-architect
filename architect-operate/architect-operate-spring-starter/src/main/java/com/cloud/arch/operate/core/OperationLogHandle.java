@@ -44,22 +44,22 @@ public class OperationLogHandle implements ConsumerListener<LogContext>, Environ
         try {
             List<Long>         idList   = CollectionUtils.toList(contexts, e -> e.getContext().getOperatorId());
             Map<Long, String>  operator = operatorResolver.resolve(idList);
-            List<OperationLog> logList  = contexts.stream().map(context -> build(context, operator)).toList();
+            String             tenantId = tenantResolver.resolve();
+            List<OperationLog> logList  = contexts.stream().map(context -> build(context, operator, tenantId)).toList();
             this.repository.save(logList);
         } catch (Exception error) {
             log.error("async save the operate logs error:", error);
         }
     }
 
-    private OperationLog build(LogContext context, Map<Long, String> operator) {
+    private OperationLog build(LogContext context, Map<Long, String> operator, String tenantId) {
         String       appNo    = environment.getProperty(APP_NAME_KEY);
-        String       tenantId = tenantResolver.resolve();
         List<String> excludes = properties.excludeList();
         return context.buildLog(appNo, tenantId, excludes, operator::get, this::locationResolve);
     }
 
     private String locationResolve(String ip) {
-        return Optional.ofNullable(ip).map(ipRegionSearcher::search).map(IpRegionResult::getAddress).orElse("");
+        return ipRegionSearcher.searchOpt(ip).map(IpRegionResult::getAddress).orElse("");
     }
 
     @Override
