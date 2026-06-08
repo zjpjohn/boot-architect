@@ -47,18 +47,13 @@ public class JdbcStorageExtensionConfiguration {
     }
 
     @Bean
-    public JdbcCompensateProcessor compensateProcessor(IDomainEventRepository eventRepository) {
-        return new JdbcCompensateProcessor(eventRepository);
+    public JdbcCompensateProcessor compensateProcessor(IDomainEventRepository eventRepository, JdbcCompensateProperties properties) {
+        return new JdbcCompensateProcessor(eventRepository, properties);
     }
 
     @Bean
-    public JdbcCompensateEventScheduler compensateEventScheduler(MutexTemplate mutexTemplate,
-                                                                 JdbcCompensateProperties properties,
-                                                                 IDomainEventRepository eventRepository,
-                                                                 JdbcCompensateProcessor compensateProcessor,
-                                                                 ObjectProvider<EventStatsManager> statsManagerProvider) {
-        JdbcCompensateEventScheduler scheduler = new JdbcCompensateEventScheduler(mutexTemplate, properties,
-                eventRepository, compensateProcessor);
+    public JdbcCompensateEventScheduler compensateEventScheduler(MutexTemplate mutexTemplate, JdbcCompensateProperties properties, IDomainEventRepository eventRepository, JdbcCompensateProcessor compensateProcessor, ObjectProvider<EventStatsManager> statsManagerProvider) {
+        JdbcCompensateEventScheduler scheduler = new JdbcCompensateEventScheduler(mutexTemplate, properties, eventRepository, compensateProcessor);
         statsManagerProvider.ifAvailable(scheduler::setEventStatsManager);
         return scheduler;
     }

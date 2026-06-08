@@ -45,9 +45,9 @@ public class PulsarEventPublisher implements EventPublisher, SmartInitializingSi
         Assert.state(StringUtils.isNotBlank(message.getData()), "消息内容不允许为空");
         Assert.state(StringUtils.isNotBlank(message.getKey()), "消息业务key不允许为空.");
         try {
-            Producer<String> producer = producerHolder.computeIfAbsent(message.getName(), this::createProducer);
-            TypedMessageBuilder<String> builder = producer.newMessage().key(message.getKey()).value(message.getData());
-            Long                        delay   = message.getDelay();
+            Producer<String>            producer = producerHolder.computeIfAbsent(message.getName(), this::createProducer);
+            TypedMessageBuilder<String> builder  = producer.newMessage().key(message.getKey()).value(message.getData());
+            Long                        delay    = message.getDelay();
             if (delay != null && delay > 0) {
                 builder.deliverAfter(delay, TimeUnit.MILLISECONDS);
             }
@@ -99,8 +99,7 @@ public class PulsarEventPublisher implements EventPublisher, SmartInitializingSi
             for (String keySet : keySets) {
                 String topic = resolver.resolveStringValue(keySet);
                 if (mapping.containsKey(topic)) {
-                    throw new IllegalArgumentException(String.format("duplicate message topic[%s] for mapping.",
-                                                                     topic));
+                    throw new IllegalArgumentException(String.format("duplicate message topic[%s] for mapping.", topic));
                 }
                 mapping.put(topic, metadata.getType());
             }
