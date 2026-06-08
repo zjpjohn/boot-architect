@@ -48,7 +48,9 @@ public class KafkaSubscriberProcessor extends AbsSubscriberProcessor implements 
     public void registerListeners(List<SubscribeEventMetadata> metadataList) {
         SubscribeHandler subscribeHandler = this.context.getBean(SubscribeHandler.class);
         // 注册事件订阅监听器
-        metadataList.stream().distinct().forEach(metaData -> this.registryHandler(metaData, subscribeHandler));
+        metadataList.stream().distinct().forEach(metaData -> {
+            this.registryHandler(metaData, subscribeHandler);
+        });
     }
 
     private void registryHandler(SubscribeEventMetadata registration, SubscribeHandler subscribeHandler) {

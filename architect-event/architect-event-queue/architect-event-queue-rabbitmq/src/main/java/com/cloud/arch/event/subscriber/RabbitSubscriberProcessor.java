@@ -50,7 +50,9 @@ public class RabbitSubscriberProcessor extends AbsSubscriberProcessor
         SubscribeHandler subscribeHandler = this.context.getBean(SubscribeHandler.class);
         metadataList.stream()
                     .distinct()
-                    .forEach(registration -> this.registrySubscriber(registration, subscribeHandler));
+                    .forEach(registration -> {
+                        this.registrySubscriber(registration, subscribeHandler);
+                    });
     }
 
     /**

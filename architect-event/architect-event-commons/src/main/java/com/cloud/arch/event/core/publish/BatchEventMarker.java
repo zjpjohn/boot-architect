@@ -1,5 +1,6 @@
 package com.cloud.arch.event.core.publish;
 
+import com.cloud.arch.event.metrics.EventStatsManager;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import com.cloud.arch.event.utils.Threads;
@@ -28,6 +29,7 @@ public class BatchEventMarker implements DisposableBean {
     private final IDomainEventRepository     repository;
     private final BufferedTrigger<MarkEntry> trigger;
     private final ExecutorService            executor;
+    private       EventStatsManager          statsManager = EventStatsManager.disabled();
 
     private record MarkEntry(PublishEventEntity entity, boolean succeeded) {
     }
@@ -55,6 +57,12 @@ public class BatchEventMarker implements DisposableBean {
                                       .build();
     }
 
+    public void setEventStatsManager(EventStatsManager statsManager) {
+        if (statsManager != null) {
+            this.statsManager = statsManager;
+        }
+    }
+
     public void markSucceeded(PublishEventEntity entity) {
         trigger.publish(new MarkEntry(entity, true));
     }
@@ -64,6 +72,7 @@ public class BatchEventMarker implements DisposableBean {
     }
 
     private void flush(List<MarkEntry> entries) {
+        statsManager.recordBatchMarkSize(entries.size());
         List<PublishEventEntity> succeeded = new ArrayList<>(entries.size());
         List<PublishEventEntity> failed    = new ArrayList<>(entries.size());
         for (MarkEntry entry : entries) {
@@ -74,10 +83,20 @@ public class BatchEventMarker implements DisposableBean {
             }
         }
         if (!succeeded.isEmpty()) {
-            repository.batchMarkSucceeded(succeeded);
+            try {
+                repository.batchMarkSucceeded(succeeded);
+                statsManager.recordBatchMarkSucceeded();
+            } catch (Exception e) {
+                statsManager.recordBatchMarkFailed();
+            }
         }
         if (!failed.isEmpty()) {
-            repository.batchMarkFailed(failed, null);
+            try {
+                repository.batchMarkFailed(failed, null);
+                statsManager.recordBatchMarkSucceeded();
+            } catch (Exception e) {
+                statsManager.recordBatchMarkFailed();
+            }
         }
     }
 

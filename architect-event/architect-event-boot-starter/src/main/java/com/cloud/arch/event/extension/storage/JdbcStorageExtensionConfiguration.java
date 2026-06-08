@@ -5,8 +5,10 @@ import com.cloud.arch.event.JdbcCompensateProcessor;
 import com.cloud.arch.event.JdbcCompensateProperties;
 import com.cloud.arch.event.JdbcDomainEventRepository;
 import com.cloud.arch.event.storage.IDomainEventRepository;
+import com.cloud.arch.event.metrics.EventStatsManager;
 import com.cloud.arch.mutex.MutexTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -53,8 +55,12 @@ public class JdbcStorageExtensionConfiguration {
     public JdbcCompensateEventScheduler compensateEventScheduler(MutexTemplate mutexTemplate,
                                                                  JdbcCompensateProperties properties,
                                                                  IDomainEventRepository eventRepository,
-                                                                 JdbcCompensateProcessor compensateProcessor) {
-        return new JdbcCompensateEventScheduler(mutexTemplate, properties, eventRepository, compensateProcessor);
+                                                                 JdbcCompensateProcessor compensateProcessor,
+                                                                 ObjectProvider<EventStatsManager> statsManagerProvider) {
+        JdbcCompensateEventScheduler scheduler = new JdbcCompensateEventScheduler(mutexTemplate, properties,
+                eventRepository, compensateProcessor);
+        statsManagerProvider.ifAvailable(scheduler::setEventStatsManager);
+        return scheduler;
     }
 
 }

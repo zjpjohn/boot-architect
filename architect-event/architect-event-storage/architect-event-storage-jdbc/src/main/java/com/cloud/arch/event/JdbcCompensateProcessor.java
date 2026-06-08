@@ -1,7 +1,6 @@
 package com.cloud.arch.event;
 
 import com.cloud.arch.event.core.publish.MessageQueuePublisher;
-import com.cloud.arch.event.core.publish.PublishResultHolder;
 import com.cloud.arch.event.storage.EventCompensateEntity;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.storage.PublishEventEntity;
@@ -35,15 +34,14 @@ public class JdbcCompensateProcessor implements ApplicationContextAware, SmartIn
         compensate.setId(IdWorker.nextId());
         compensate.setEventId(entity.getId());
         compensate.setShardingKey(entity.getShardingKey());
-        //发送开始时间
         compensate.setStartTime(System.currentTimeMillis());
-        //消息补偿发送
-        PublishResultHolder holder = publisher.doPublish(this.calcDelay(entity));
-        //发送失败错误信息
-        compensate.setFailedMsg(holder.getErrorMsg());
-        //发送耗时
-        compensate.setTaken(holder.getTaken());
-        //记录创建时间
+        long start = System.currentTimeMillis();
+        try {
+            publisher.doPublish(this.calcDelay(entity));
+        } catch (Exception error) {
+            compensate.setFailedMsg(error.getMessage());
+        }
+        compensate.setTaken(System.currentTimeMillis() - start);
         compensate.setGmtCreate(LocalDateTime.now());
         eventRepository.compensate(compensate);
     }

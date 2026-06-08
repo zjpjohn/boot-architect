@@ -2,6 +2,7 @@ package com.cloud.arch.event.subscribe;
 
 import com.cloud.arch.event.core.subscribe.SubscribeEventMetadata;
 import com.cloud.arch.event.core.subscribe.SubscribeHandler;
+import com.cloud.arch.event.metrics.EventStatsManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,10 +22,17 @@ public class EventSubscribeHandler implements SubscribeHandler {
 
     private final IdempotentChecker         idempotentChecker;
     private final ApplicationEventPublisher publisher;
+    private       EventStatsManager         statsManager = EventStatsManager.disabled();
 
     public EventSubscribeHandler(IdempotentChecker idempotentChecker, ApplicationEventPublisher publisher) {
         this.idempotentChecker = idempotentChecker;
-        this.publisher         = publisher;
+        this.publisher = publisher;
+    }
+
+    public void setEventStatsManager(EventStatsManager statsManager) {
+        if (statsManager != null) {
+            this.statsManager = statsManager;
+        }
     }
 
     /**
@@ -35,20 +43,25 @@ public class EventSubscribeHandler implements SubscribeHandler {
      */
     @Override
     public void handle(String eventKey, Object event, SubscribeEventMetadata metadata) {
-        // 获取分库分表分片键的值
-        EventIdempotent idempotent = this.idempotent(eventKey, metadata, event);
-        Throwable       throwable  = null;
+        long            metricStart = System.currentTimeMillis();
+        EventIdempotent idempotent  = this.idempotent(eventKey, metadata, event);
+        Throwable       throwable   = null;
         try {
             if (idempotentChecker.isProcessed(idempotent)) {
+                statsManager.statsCounter(metadata.getName())
+                            .recordConsumeDuplicate(System.currentTimeMillis() - metricStart);
                 return;
             }
             publisher.publishEvent(event);
         } catch (Exception error) {
             throwable = error;
+            statsManager.statsCounter(metadata.getName())
+                        .recordConsumeFailure(System.currentTimeMillis() - metricStart);
             throw error;
         } finally {
             idempotentChecker.markProcessed(idempotent, throwable);
         }
+        statsManager.statsCounter(metadata.getName()).recordConsumeSuccess(System.currentTimeMillis() - metricStart);
     }
 
     /**

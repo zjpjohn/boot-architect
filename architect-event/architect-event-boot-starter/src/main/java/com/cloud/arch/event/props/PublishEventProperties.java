@@ -17,11 +17,20 @@ public class PublishEventProperties {
     /**
      * 生产者配置
      */
+    private Metric     metric     = new Metric();
     private Publisher  publisher  = new Publisher();
     /**
      * 订阅者配置
      */
     private Subscriber subscriber = new Subscriber();
+
+    @Data
+    public static class Metric {
+        /**
+         * 是否启用 Micrometer 指标采集，默认 false
+         */
+        private boolean enabled = false;
+    }
 
     @Data
     public static class Publisher {

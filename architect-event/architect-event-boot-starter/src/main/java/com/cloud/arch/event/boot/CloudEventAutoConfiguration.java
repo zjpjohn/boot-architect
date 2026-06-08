@@ -6,6 +6,8 @@ import com.cloud.arch.event.commons.ApplicationContextHolder;
 import com.cloud.arch.event.core.publish.BatchEventMarker;
 import com.cloud.arch.event.core.publish.EventMetadataFactory;
 import com.cloud.arch.event.core.publish.MessageQueuePublisher;
+import com.cloud.arch.event.metrics.EventStatsManager;
+import com.cloud.arch.event.metrics.MicroMeterStatsManager;
 import com.cloud.arch.event.props.PublishEventProperties;
 import com.cloud.arch.event.publisher.EventPublisherSynchronization;
 import com.cloud.arch.event.storage.IDomainEventRepository;
@@ -15,6 +17,7 @@ import com.cloud.arch.event.subscribe.IdempotentCleanScheduler;
 import com.cloud.arch.event.subscribe.impl.TransactionIdempotentChecker;
 import com.cloud.arch.mutex.MutexTemplate;
 import com.cloud.arch.mutex.boot.CloudMutexAutoConfiguration;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import com.cloud.arch.event.JdbcCompensateProperties;
 import org.springframework.beans.factory.ObjectProvider;
@@ -60,6 +63,12 @@ public class CloudEventAutoConfiguration {
         return new ApplicationContextHolder();
     }
 
+    @Bean
+    @ConditionalOnProperty(prefix = "com.cloud.event.metric", name = "enabled", havingValue = "true")
+    public EventStatsManager eventStatsManager(MeterRegistry meterRegistry) {
+        return new MicroMeterStatsManager(meterRegistry);
+    }
+
     /**
      * 事件发布端配置：消息队列发布器、事务同步器、事件元数据工厂。
      */
@@ -76,10 +85,11 @@ public class CloudEventAutoConfiguration {
         }
 
         @Bean
-        public MessageQueuePublisher queuePublisher(PublishEventProperties properties) {
-            return new MessageQueuePublisher(properties.getPublisher().getPublishThreads(), properties.getPublisher()
-                                                                                                      .getMaxPublishThreads(), properties.getPublisher()
-                                                                                                                                         .getPublishCachedEventSize());
+        public MessageQueuePublisher queuePublisher(PublishEventProperties properties, ObjectProvider<EventStatsManager> statsManagerProvider) {
+            PublishEventProperties.Publisher props     = properties.getPublisher();
+            MessageQueuePublisher            publisher = new MessageQueuePublisher(props.getPublishThreads(), props.getMaxPublishThreads(), props.getPublishCachedEventSize());
+            statsManagerProvider.ifAvailable(publisher::setEventStatsManager);
+            return publisher;
         }
 
         @Bean
@@ -88,15 +98,17 @@ public class CloudEventAutoConfiguration {
         }
 
         @Bean
-        public BatchEventMarker batchEventMarker(IDomainEventRepository repository,
-                                                  ObjectProvider<JdbcCompensateProperties> compensateProperties) {
+        public BatchEventMarker batchEventMarker(IDomainEventRepository repository, ObjectProvider<JdbcCompensateProperties> compensateProperties, ObjectProvider<EventStatsManager> statsManagerProvider) {
             JdbcCompensateProperties props = compensateProperties.getIfAvailable();
+            BatchEventMarker         marker;
             if (props != null) {
-                return new BatchEventMarker(repository,
-                        props.getMarker().getMaxBatchSize(),
-                        props.getMarker().getStealInterval());
+                marker = new BatchEventMarker(repository, props.getMarker().getMaxBatchSize(), props.getMarker()
+                                                                                                    .getStealInterval());
+            } else {
+                marker = new BatchEventMarker(repository);
             }
-            return new BatchEventMarker(repository);
+            statsManagerProvider.ifAvailable(marker::setEventStatsManager);
+            return marker;
         }
 
     }
@@ -117,15 +129,14 @@ public class CloudEventAutoConfiguration {
         }
 
         @Bean
-        public EventSubscribeHandler eventSubscribeHandler(IdempotentChecker idempotentChecker,
-                                                            ApplicationEventPublisher publisher) {
-            return new EventSubscribeHandler(idempotentChecker, publisher);
+        public EventSubscribeHandler eventSubscribeHandler(IdempotentChecker idempotentChecker, ApplicationEventPublisher publisher, ObjectProvider<EventStatsManager> statsManagerProvider) {
+            EventSubscribeHandler handler = new EventSubscribeHandler(idempotentChecker, publisher);
+            statsManagerProvider.ifAvailable(handler::setEventStatsManager);
+            return handler;
         }
 
         @Bean
-        public IdempotentCleanScheduler idempotentCleanScheduler(IdempotentChecker idempotentChecker,
-                                                                 PublishEventProperties properties,
-                                                                 MutexTemplate mutexTemplate) {
+        public IdempotentCleanScheduler idempotentCleanScheduler(IdempotentChecker idempotentChecker, PublishEventProperties properties, MutexTemplate mutexTemplate) {
             return new IdempotentCleanScheduler(properties, mutexTemplate, idempotentChecker);
         }
 

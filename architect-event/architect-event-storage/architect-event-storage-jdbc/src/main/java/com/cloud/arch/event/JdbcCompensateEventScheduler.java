@@ -1,6 +1,7 @@
 package com.cloud.arch.event;
 
 import com.cloud.arch.event.core.publish.CompensateHandler;
+import com.cloud.arch.event.metrics.EventStatsManager;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import com.cloud.arch.mutex.MutexTemplate;
@@ -18,6 +19,7 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
     private final MutexTemplate            mutexTemplate;
     private final IDomainEventRepository   eventRepository;
     private final JdbcCompensateProcessor  compensateProcessor;
+    private       EventStatsManager        statsManager = EventStatsManager.disabled();
 
     public JdbcCompensateEventScheduler(MutexTemplate mutexTemplate,
                                         JdbcCompensateProperties properties,
@@ -29,17 +31,27 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
         this.compensateProcessor = compensateProcessor;
     }
 
+    public void setEventStatsManager(EventStatsManager statsManager) {
+        if (statsManager != null) {
+            this.statsManager = statsManager;
+        }
+    }
+
     /**
      * 补偿发送处理器：先补偿失败事件，再将超过最大重试次数的事件移入死信表。
      */
     @Override
     public void handle() {
+        long metricStart = System.currentTimeMillis();
+        statsManager.incrementCompensateCycle();
+
         final List<PublishEventEntity> entities = eventRepository.queryFailed(properties.getBatch(),
                                                                               properties.getMaxVersion(),
                                                                               properties.getBefore(),
                                                                               properties.getRange());
         if (!CollectionUtils.isEmpty(entities)) {
             entities.forEach(compensateProcessor::process);
+            statsManager.incrementCompensateRetry(entities.size());
         }
 
         final List<PublishEventEntity> deadCandidates = eventRepository.deadEventCandidates(properties.getBatch(),
@@ -50,7 +62,10 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
             deadCandidates.forEach(entity -> eventRepository.archiveDeadEvent(entity,
                                                                               "exceeded max retry version " +
                                                                               properties.getMaxVersion()));
+            statsManager.incrementCompensateDeadLetter(deadCandidates.size());
         }
+
+        statsManager.recordCompensateLatency(System.currentTimeMillis() - metricStart);
     }
 
     @Override

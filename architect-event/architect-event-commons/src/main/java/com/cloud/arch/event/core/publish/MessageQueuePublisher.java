@@ -1,11 +1,11 @@
 package com.cloud.arch.event.core.publish;
 
+import com.cloud.arch.event.metrics.EventStatsManager;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import com.cloud.arch.event.utils.Threads;
 import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -32,10 +32,17 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
     private       IDomainEventRepository eventRepository;
     private       BatchEventMarker       batchMarker;
     private       EventMetadataFactory   eventMetadataFactory;
+    private       EventStatsManager      statsManager = EventStatsManager.disabled();
     private       ApplicationContext     applicationContext;
 
     public MessageQueuePublisher(Integer asyncThreads, Integer asyncMaxThreads, Integer asyncQueueSize) {
         this.executorService = new ThreadPoolExecutor(asyncThreads, asyncMaxThreads, KEEP_ALIVE_TIME, TimeUnit.MINUTES, new ArrayBlockingQueue<>(asyncQueueSize), Threads.threadFactory("domain-event-publisher-"));
+    }
+
+    public void setEventStatsManager(EventStatsManager statsManager) {
+        if (statsManager != null) {
+            this.statsManager = statsManager;
+        }
     }
 
 
@@ -80,6 +87,7 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
                     executorService.submit(() -> doPublish(entity));
                 } catch (RejectedExecutionException e) {
                     log.warn("thread pool full, fallback to sync publish for event[{}]", entity.getId());
+                    statsManager.statsCounter(entity.getName()).recordPublishFallbackSync();
                     doPublish(entity);
                 }
             });
@@ -97,6 +105,7 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
             executorService.submit(() -> consumer.accept(entity));
         } catch (RejectedExecutionException e) {
             log.warn("thread pool full, fallback to sync process for event[{}]", entity.getId());
+            statsManager.statsCounter(entity.getName()).recordPublishFallbackSync();
             consumer.accept(entity);
         }
     }
@@ -106,26 +115,25 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
      *
      * @param entity 消息实体信息
      */
-    public PublishResultHolder doPublish(PublishEventEntity entity) {
-        Stopwatch           stopwatch = Stopwatch.createStarted();
-        PublishResultHolder holder    = new PublishResultHolder();
+    public void doPublish(PublishEventEntity entity) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         try {
             eventPublisher.publish(entity.build());
+            long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            statsManager.statsCounter(entity.getName()).recordPublishSuccess(elapsed);
             if (log.isDebugEnabled()) {
-                log.debug("publish event to message queue -> id:[{}] success,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                log.debug("publish event to message queue -> id:[{}] success,taken:[{}]", entity.getId(), elapsed);
             }
         } catch (Throwable throwable) {
-            log.error("publish event to message queue -> id:[{}] error,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS), throwable);
-            holder.setSuccess(false);
-            holder.setThrowable(throwable);
+            long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            log.error("publish event to message queue -> id:[{}] error,taken:[{}]", entity.getId(), elapsed, throwable);
+            statsManager.statsCounter(entity.getName()).recordPublishFailure(elapsed);
             try {
                 batchMarker.markFailed(entity);
             } catch (Throwable error) {
-                holder.setThrowable(error);
                 log.error("mark publish event state -> id:[{}] error,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS), error);
             }
-            holder.setTaken(stopwatch.elapsed(TimeUnit.MILLISECONDS));
-            return holder;
+            return;
         }
         try {
             batchMarker.markSucceeded(entity);
@@ -133,17 +141,10 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
                 log.debug("mark publish event state -> id:[{}] success,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
             }
         } catch (Throwable error) {
-            holder.setSuccess(false);
-            holder.setThrowable(error);
             log.error("mark publish event state -> id:[{}] error,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS), error);
         }
-        holder.setTaken(stopwatch.elapsed(TimeUnit.MILLISECONDS));
-        return holder;
     }
 
-    /**
-     * 判断是否已配置消息队列和事件存储。
-     */
     public boolean isConfigured() {
         return eventPublisher != null && eventRepository != null;
     }
@@ -164,6 +165,7 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
         batchMarker = this.getBean(BatchEventMarker.class);
         eventMetadataFactory = this.getBean(EventMetadataFactory.class);
         Assert.notNull(eventMetadataFactory, "publish event factory bean not exist,please confirm right config!");
+        statsManager.registerThreadPoolGauges((ThreadPoolExecutor) executorService);
     }
 
     private <T> T getBean(Class<T> type) {
