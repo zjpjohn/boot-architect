@@ -1,7 +1,6 @@
 package com.cloud.arch.event;
 
 import com.cloud.arch.event.rocksdb.RocksdbStorage;
-import com.cloud.arch.event.storage.EventCompensateEntity;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.storage.PublishEventEntity;
 
@@ -37,10 +36,6 @@ public class RocksDomainEventRepository implements IDomainEventRepository {
     public List<PublishEventEntity> queryFailed(int limit, int maxVersion, Duration before, Duration range) {
         final long millis = System.currentTimeMillis();
         return rocksdbStorage.getEvents(millis - before.toMillis(), limit);
-    }
-
-    @Override
-    public void compensate(EventCompensateEntity entity) {
     }
 
 }

@@ -26,34 +26,20 @@ import java.util.concurrent.ConcurrentMap;
 @UtilityClass
 public class DomainEventPublisher {
 
+    private static final Integer                         ENABLE_REMOTE_KEY  = 1;
+    public static final  String                          EMPTY_SHARDING_KEY = "";
+    private static final ThreadLocal<EventContext>       CTX                = ThreadLocal.withInitial(EventContext::new);
+    private static final ThreadLocal<Boolean>            synchronization    = ThreadLocal.withInitial(() -> Boolean.FALSE);
+    private static final ConcurrentMap<Integer, Boolean> remoteIndicator    = new ConcurrentHashMap<>(2);
+
     /**
-     * 远程消息开启标识key
+     * 线程内事件暂存上下文。
      */
-    private static final Integer                               ENABLE_REMOTE_KEY  = 1;
-    /**
-     * 空shardingKey
-     */
-    public static final  String                                EMPTY_SHARDING_KEY = "";
-    /**
-     * 当前线程本地领域事件
-     */
-    private static final ThreadLocal<List<Object>>             localEvents        = ThreadLocal.withInitial(LinkedList::new);
-    /**
-     * 暂存当前线程领域事件实体
-     */
-    private static final ThreadLocal<List<PublishEventEntity>> remoteEvents       = ThreadLocal.withInitial(LinkedList::new);
-    /**
-     * 当前线程是否注册领域事件同步器
-     */
-    private static final ThreadLocal<Boolean>                  synchronization    = ThreadLocal.withInitial(() -> Boolean.FALSE);
-    /**
-     * 当前线程事件源分库分表shardingKey
-     */
-    private static final ThreadLocal<String>                   shardingContext    = ThreadLocal.withInitial(() -> EMPTY_SHARDING_KEY);
-    /**
-     * 是否开启远程队列标识缓存
-     */
-    private static final ConcurrentMap<Integer, Boolean>       remoteIndicator    = new ConcurrentHashMap<>(2);
+    private static class EventContext {
+        List<Object>             locals      = new LinkedList<>();
+        List<PublishEventEntity> remotes     = new LinkedList<>();
+        String                   shardingKey = EMPTY_SHARDING_KEY;
+    }
 
     /**
      * 设置当前领域事件集合的shardingKey
@@ -62,14 +48,14 @@ public class DomainEventPublisher {
      */
     public static void shardingKey(String shardingKey) {
         Assert.state(StringUtils.isNotBlank(shardingKey), "分库分表key不允许为空.");
-        shardingContext.set(shardingKey);
+        CTX.get().shardingKey = shardingKey;
     }
 
     /**
      * 获取当前领域上下文的shardingKey
      */
     public static String shardingKey() {
-        return shardingContext.get();
+        return CTX.get().shardingKey;
     }
 
     /**
@@ -79,21 +65,17 @@ public class DomainEventPublisher {
      */
     public static void publish(Object event) {
         if (!synchronization.get()) {
-            //判断是否配置spring事务
             boolean transactionActive = TransactionSynchronizationManager.isActualTransactionActive();
             Assert.state(transactionActive, "领域事件未处于事务中，请配置spring事务.");
-            //注册当前领域上下文的事务同步器，一次方法调用只需要注册一次
             EventPublisherSynchronization eventSynchronization = ApplicationContextHolder.getBean(
                     EventPublisherSynchronization.class);
             TransactionSynchronizationManager.registerSynchronization(eventSynchronization);
             synchronization.set(Boolean.TRUE);
         }
-        //领域事件上下文存储泛化事件,泛化事件只支持远程事件
         if ((event instanceof GenericEvent genericEvent) && enableRemoteQueue()) {
             addGenericEvent(genericEvent);
             return;
         }
-        //领域上下文存储领域事件
         List<PublishEvent> publishEvents = EventMetadataFactory.create(shardingKey(), event, enableRemoteQueue());
         publishEvents.forEach(DomainEventPublisher::addEvent);
     }
@@ -104,7 +86,7 @@ public class DomainEventPublisher {
     private static boolean enableRemoteQueue() {
         return remoteIndicator.computeIfAbsent(ENABLE_REMOTE_KEY, key -> {
             MessageQueuePublisher queuePublisher = ApplicationContextHolder.getBean(MessageQueuePublisher.class);
-            return queuePublisher.isNotNull();
+            return queuePublisher.isConfigured();
         });
     }
 
@@ -112,7 +94,7 @@ public class DomainEventPublisher {
      * 获取暂存的领域事件对象
      */
     static List<PublishEventEntity> getEntities() {
-        return Collections.unmodifiableList(remoteEvents.get());
+        return Collections.unmodifiableList(CTX.get().remotes);
     }
 
     /**
@@ -121,11 +103,10 @@ public class DomainEventPublisher {
     private static void addGenericEvent(GenericEvent event) {
         EventCodec         eventCodec = ApplicationContextHolder.getBean(EventCodec.class);
         PublishEventEntity entity     = GenericEvent.toEntity(event, eventCodec);
-        //事件自定义shardingKey为空,使用全局shardingKey
         if (StringUtils.isBlank(entity.getShardingKey())) {
             entity.setShardingKey(shardingKey());
         }
-        remoteEvents.get().add(entity);
+        CTX.get().remotes.add(entity);
     }
 
     /**
@@ -135,24 +116,24 @@ public class DomainEventPublisher {
      */
     private static void addEvent(PublishEvent event) {
         if (event.getMetadata().isLocal()) {
-            localEvents.get().add(event.getEvent());
+            CTX.get().locals.add(event.getEvent());
             return;
         }
-        remoteEvents.get().add(event.toEntity());
+        CTX.get().remotes.add(event.toEntity());
     }
 
     /**
      * 获取当前领域上下文的本地领域事件集合
      */
     static List<Object> getLocals() {
-        return Collections.unmodifiableList(localEvents.get());
+        return Collections.unmodifiableList(CTX.get().locals);
     }
 
     /**
      * 获取当前领域上下文的跨应用领域事件集合
      */
     static List<PublishEventEntity> getRemotes() {
-        return Collections.unmodifiableList(remoteEvents.get());
+        return Collections.unmodifiableList(CTX.get().remotes);
     }
 
     /**
@@ -160,9 +141,7 @@ public class DomainEventPublisher {
      */
     static void clear() {
         synchronization.remove();
-        localEvents.remove();
-        remoteEvents.remove();
-        shardingContext.remove();
+        CTX.remove();
     }
 
 }

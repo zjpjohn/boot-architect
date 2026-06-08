@@ -46,10 +46,10 @@ public class RocketEventSubscriber implements InitializingBean, DisposableBean {
                                  List<SubscribeEventMetadata> registrations,
                                  SubscribeHandler subscribeHandler) {
         Assert.state(StringUtils.hasText(group), "consumer group不允许为空.");
-        this.group            = group;
-        this.properties       = properties;
-        this.eventCodec       = eventCodec;
-        this.registrations    = registrations;
+        this.group = group;
+        this.properties = properties;
+        this.eventCodec = eventCodec;
+        this.registrations = registrations;
         this.subscribeHandler = subscribeHandler;
     }
 
@@ -69,9 +69,9 @@ public class RocketEventSubscriber implements InitializingBean, DisposableBean {
             // 消息tag解析校验
             String tagRegex = registration.getFilter();
             // 消息过滤tag配置规则:不允许为空、不允许为'*'、不允许包含'||'
-            boolean tagValidation = StringUtils.hasText(tagRegex)
-                    && !RocketEventPublisher.ROCKETMQ_ALL_TAG_REGEX.equals(tagRegex)
-                    && tagRegex.contains(COMPOSITE_TAG_DELIMITER);
+            boolean tagValidation = StringUtils.hasText(tagRegex) &&
+                                    !RocketEventPublisher.ROCKETMQ_ALL_TAG_REGEX.equals(tagRegex) &&
+                                    !tagRegex.contains(COMPOSITE_TAG_DELIMITER);
             Assert.state(tagValidation, "请配置具有业务意义的消息tag.");
             Assert.state(!metas.contains(topic, tagRegex), "同一topic消息主题下不允许配置相同tag.");
             // 缓存监听类型元数据
@@ -87,8 +87,8 @@ public class RocketEventSubscriber implements InitializingBean, DisposableBean {
      */
     private void createConsumer() throws MQClientException {
         RPCHook rpcHook = null;
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(properties.getAccessKey())
-                && org.apache.commons.lang3.StringUtils.isNotBlank(properties.getSecretKey())) {
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(properties.getAccessKey()) &&
+            org.apache.commons.lang3.StringUtils.isNotBlank(properties.getSecretKey())) {
             rpcHook = new AclClientRPCHook(new SessionCredentials(properties.getAccessKey(),
                                                                   properties.getSecretKey()));
         }

@@ -43,16 +43,12 @@ public class BufferedTrigger<E> {
     private BufferedTrigger() {
     }
 
-    private BufferedTrigger(BlockingQueue<E> queue,
-                            ConsumerListener<E> consumer,
-                            ExecutorService executor,
-                            int batchSize,
-                            Duration timeout) {
-        this.queue     = queue;
-        this.consumer  = consumer;
-        this.executor  = executor;
+    private BufferedTrigger(BlockingQueue<E> queue, ConsumerListener<E> consumer, ExecutorService executor, int batchSize, Duration timeout) {
+        this.queue = queue;
+        this.consumer = consumer;
+        this.executor = executor;
         this.batchSize = batchSize;
-        this.timeout   = timeout;
+        this.timeout = timeout;
     }
 
     /**
@@ -157,11 +153,7 @@ public class BufferedTrigger<E> {
         }
 
         public BufferedTrigger<E> build() {
-            BufferedTrigger<E> trigger = new BufferedTrigger<>(this.queue,
-                                                               this.listener,
-                                                               this.executor,
-                                                               this.batchSize,
-                                                               this.timeout);
+            BufferedTrigger<E> trigger = new BufferedTrigger<>(this.queue, this.listener, this.executor, this.batchSize, this.timeout);
             if (consumers == 1) {
                 return trigger.single();
             }
@@ -201,9 +193,9 @@ public class BufferedTrigger<E> {
         private final List<TriggerTask<E>> tasks;
 
         public MultiStrategy(Integer size, BufferedTrigger<E> trigger) {
-            this.size    = size;
+            this.size = size;
             this.trigger = trigger;
-            this.tasks   = this.buildTasks();
+            this.tasks = this.buildTasks();
         }
 
         private List<TriggerTask<E>> buildTasks() {

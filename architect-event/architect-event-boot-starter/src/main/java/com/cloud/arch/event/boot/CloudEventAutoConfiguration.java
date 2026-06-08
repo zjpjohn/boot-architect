@@ -3,10 +3,12 @@ package com.cloud.arch.event.boot;
 import com.cloud.arch.event.codec.EventCodec;
 import com.cloud.arch.event.codec.FastJson2EventCodec;
 import com.cloud.arch.event.commons.ApplicationContextHolder;
+import com.cloud.arch.event.core.publish.BatchEventMarker;
 import com.cloud.arch.event.core.publish.EventMetadataFactory;
 import com.cloud.arch.event.core.publish.MessageQueuePublisher;
 import com.cloud.arch.event.props.PublishEventProperties;
 import com.cloud.arch.event.publisher.EventPublisherSynchronization;
+import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.subscribe.EventSubscribeHandler;
 import com.cloud.arch.event.subscribe.IdempotentChecker;
 import com.cloud.arch.event.subscribe.IdempotentCleanScheduler;
@@ -14,6 +16,8 @@ import com.cloud.arch.event.subscribe.impl.TransactionIdempotentChecker;
 import com.cloud.arch.mutex.MutexTemplate;
 import com.cloud.arch.mutex.boot.CloudMutexAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import com.cloud.arch.event.JdbcCompensateProperties;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -81,6 +85,18 @@ public class CloudEventAutoConfiguration {
         @Bean
         public EventPublisherSynchronization eventPublisherSynchronization(MessageQueuePublisher queuePublisher) {
             return new EventPublisherSynchronization(queuePublisher);
+        }
+
+        @Bean
+        public BatchEventMarker batchEventMarker(IDomainEventRepository repository,
+                                                  ObjectProvider<JdbcCompensateProperties> compensateProperties) {
+            JdbcCompensateProperties props = compensateProperties.getIfAvailable();
+            if (props != null) {
+                return new BatchEventMarker(repository,
+                        props.getMarker().getMaxBatchSize(),
+                        props.getMarker().getStealInterval());
+            }
+            return new BatchEventMarker(repository);
         }
 
     }

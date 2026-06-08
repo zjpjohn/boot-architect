@@ -96,9 +96,8 @@ public class RocksdbStorage implements SmartInitializingSingleton, DisposableBea
     public List<PublishEventEntity> getEvents(Long beforeMillis, int limit) {
         final List<PublishEventEntity> events        = Lists.newArrayList();
         final ColumnFamilyHandle       messageHandle = messageHandle();
-        try {
-            int                 count    = 0;
-            final RocksIterator iterator = this.rocksDB.newIterator(timeHandle(), READ_OPTIONS);
+        try (final RocksIterator iterator = this.rocksDB.newIterator(timeHandle(), READ_OPTIONS)) {
+            int count = 0;
             for (iterator.seekToFirst(); iterator.isValid(); iterator.next()) {
                 final byte[] eventId   = iterator.key();
                 final long   timestamp = Long.parseLong(new String(iterator.value(), StandardCharsets.UTF_8));
@@ -108,7 +107,7 @@ public class RocksdbStorage implements SmartInitializingSingleton, DisposableBea
                 final byte[]             data  = this.rocksDB.get(messageHandle, eventId);
                 final PublishEventEntity event = JSON.parseObject(data, PublishEventEntity.class);
                 events.add(event);
-                if (count++ >= limit) {
+                if (++count >= limit) {
                     break;
                 }
             }
@@ -128,7 +127,7 @@ public class RocksdbStorage implements SmartInitializingSingleton, DisposableBea
 
     private void initialize() {
         this.DB_OPTIONS.setCreateIfMissing(true).setCreateMissingColumnFamilies(true).setMaxOpenFiles(512)
-                       .setRowCache(new LRUCache(256 * SizeUnit.MB, 16, true, 5)).setMaxSubcompactions(10);
+                       .setRowCache(new LRUCache(16 * SizeUnit.MB, 16, true, 5)).setMaxSubcompactions(10);
         READ_OPTIONS.setPrefixSameAsStart(true);
         WRITE_OPTIONS_SYNC.setSync(true);
         BLOCK_BASED_TABLE_CONFIG.setFilterPolicy(BLOOM_FILTER).setCacheIndexAndFilterBlocks(true)

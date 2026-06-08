@@ -27,8 +27,15 @@ public class TransactionIdempotentChecker extends AbstractIdempotentChecker {
 
     @Override
     public boolean doProcessed(EventIdempotent idempotent) throws Exception {
-        localStatus.set(this.transactionManager.getTransaction(new DefaultTransactionAttribute()));
-        return this.idempotentChecker.doProcessed(idempotent);
+        TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionAttribute());
+        localStatus.set(status);
+        try {
+            return this.idempotentChecker.doProcessed(idempotent);
+        } catch (Exception e) {
+            this.transactionManager.rollback(status);
+            localStatus.remove();
+            throw e;
+        }
     }
 
     /**

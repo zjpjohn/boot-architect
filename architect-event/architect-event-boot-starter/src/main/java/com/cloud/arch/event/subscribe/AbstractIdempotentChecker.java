@@ -27,13 +27,15 @@ public abstract class AbstractIdempotentChecker implements IdempotentChecker {
     public abstract boolean doProcessed(EventIdempotent idempotent) throws Exception;
 
     /**
-     * 标记消息是否已经处理
-     *
-     * @param idempotent 幂等信息
-     * @param e          异常
+     * 标记消息处理结果。
+     * null 表示处理成功，非 Exception 的 Throwable（如 Error）视为失败以便重试。
      */
     @Override
     public void markProcessed(EventIdempotent idempotent, Throwable e) {
+        if (e == null) {
+            markSuccess(idempotent);
+            return;
+        }
         if (e instanceof Exception) {
             if (idempotentFor != null && idempotentFor.isAssignableFrom(e.getClass())) {
                 markSuccess(idempotent);
@@ -43,10 +45,8 @@ public abstract class AbstractIdempotentChecker implements IdempotentChecker {
                 markFailed(idempotent);
                 return;
             }
-            markFailed(idempotent);
-            return;
         }
-        markSuccess(idempotent);
+        markFailed(idempotent);
     }
 
     /**

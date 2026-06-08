@@ -6,7 +6,6 @@ import com.cloud.arch.event.core.publish.EventMetadataFactory;
 import com.cloud.arch.event.core.publish.EventPublisher;
 import com.cloud.arch.event.props.PulsarMqProperties;
 import com.google.common.collect.Maps;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.*;
@@ -19,20 +18,20 @@ import org.springframework.util.StringValueResolver;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class PulsarEventPublisher
-        implements EventPublisher, SmartInitializingSingleton, DisposableBean, EmbeddedValueResolverAware {
+public class PulsarEventPublisher implements EventPublisher, SmartInitializingSingleton, DisposableBean, EmbeddedValueResolverAware {
 
-    private final Map<String, Producer<String>> producerHolder = Maps.newHashMap();
+    private final Map<String, Producer<String>> producerHolder = new ConcurrentHashMap<>();
     private final PulsarClient                  pulsarClient;
     private final PulsarMqProperties            properties;
     private       StringValueResolver           resolver;
 
     public PulsarEventPublisher(PulsarClient pulsarClient, PulsarMqProperties properties) {
         this.pulsarClient = pulsarClient;
-        this.properties   = properties;
+        this.properties = properties;
     }
 
     /**
@@ -46,9 +45,9 @@ public class PulsarEventPublisher
         Assert.state(StringUtils.isNotBlank(message.getData()), "消息内容不允许为空");
         Assert.state(StringUtils.isNotBlank(message.getKey()), "消息业务key不允许为空.");
         try {
-            Producer<String>            producer = producerHolder.get(message.getName());
-            TypedMessageBuilder<String> builder  = producer.newMessage().key(message.getKey()).value(message.getData());
-            Long                        delay    = message.getDelay();
+            Producer<String> producer = producerHolder.computeIfAbsent(message.getName(), this::createProducer);
+            TypedMessageBuilder<String> builder = producer.newMessage().key(message.getKey()).value(message.getData());
+            Long                        delay   = message.getDelay();
             if (delay != null && delay > 0) {
                 builder.deliverAfter(delay, TimeUnit.MILLISECONDS);
             }
@@ -65,24 +64,27 @@ public class PulsarEventPublisher
     }
 
     @Override
-    @SneakyThrows
     public void afterSingletonsInstantiated() {
-        Map<String, Class<?>> mapping = this.getTopicEventMapping();
-        for (String topic : mapping.keySet()) {
-            Integer sendTimeout        = properties.getPublisher().getSendTimeout();
-            Integer maxPendingMessages = properties.getPublisher().getMaxPendingMessages();
-            Producer<String> producer = pulsarClient.newProducer(Schema.STRING)
-                                                    .topic(topic)
-                                                    .sendTimeout(sendTimeout, TimeUnit.SECONDS)
-                                                    .maxPendingMessages(maxPendingMessages)
-                                                    .create();
-            producerHolder.put(topic, producer);
-        }
+        this.getTopicEventMapping();
     }
 
     @Override
     public void setEmbeddedValueResolver(StringValueResolver resolver) {
         this.resolver = resolver;
+    }
+
+    private Producer<String> createProducer(String topic) {
+        try {
+            Integer sendTimeout        = properties.getPublisher().getSendTimeout();
+            Integer maxPendingMessages = properties.getPublisher().getMaxPendingMessages();
+            return pulsarClient.newProducer(Schema.STRING)
+                               .topic(topic)
+                               .sendTimeout(sendTimeout, TimeUnit.SECONDS)
+                               .maxPendingMessages(maxPendingMessages)
+                               .create();
+        } catch (PulsarClientException e) {
+            throw new RuntimeException("create pulsar producer for topic[" + topic + "] failed", e);
+        }
     }
 
     /**

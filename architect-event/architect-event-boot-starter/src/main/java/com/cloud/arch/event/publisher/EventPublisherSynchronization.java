@@ -27,7 +27,7 @@ public class EventPublisherSynchronization implements TransactionSynchronization
     @Override
     public void beforeCommit(boolean readOnly) {
         //远程领域事件本地持久化
-        if (queuePublisher.isNotNull()) {
+        if (queuePublisher.isConfigured()) {
             List<PublishEventEntity> remoteEvents = DomainEventPublisher.getRemotes();
             queuePublisher.initStorage(remoteEvents);
         }
@@ -40,15 +40,9 @@ public class EventPublisherSynchronization implements TransactionSynchronization
      */
     @Override
     public void afterCommit() {
-        try {
-            if (queuePublisher.isNotNull()) {
-                List<PublishEventEntity> entities = DomainEventPublisher.getEntities();
-                //将领域事件推送到消息队列
-                queuePublisher.publish(entities);
-            }
-        } catch (Exception error) {
-            //此处是线程池爆满而产生的错误，吞掉错误防止返回给前端
-            log.error("async publish domain event to message queue error:", error);
+        if (queuePublisher.isConfigured()) {
+            List<PublishEventEntity> entities = DomainEventPublisher.getEntities();
+            queuePublisher.publish(entities);
         }
     }
 
