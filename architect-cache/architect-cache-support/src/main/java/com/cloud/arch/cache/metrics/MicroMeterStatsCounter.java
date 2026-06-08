@@ -25,28 +25,73 @@ public class MicroMeterStatsCounter implements StatsCounter {
     private final DistributionSummary evictCount;
 
     public MicroMeterStatsCounter(MeterRegistry registry, String cacheName) {
-        this.registry    = registry;
-        this.tags        = Tags.of("cache", cacheName);
-        this.hitL1Count  = Counter.builder(GET_COUNTER_NAME).tags(TAG_RESULT_NAME, "hitLocal").tags(tags)
-                                  .description("The number of times local cache lookup methods have returned a cached value.")
-                                  .register(registry);
-        this.hitCount    = Counter.builder(GET_COUNTER_NAME).tag(TAG_RESULT_NAME, "hit").tags(tags)
-                                  .description("The number of all times cache lookup methods have returned a cached value.")
-                                  .register(registry);
-        this.missCount   = Counter.builder(GET_COUNTER_NAME).tag(TAG_RESULT_NAME, "miss").tags(tags)
-                                  .description("The number of times cache lookup methods have returned an uncached (newly load) value.")
-                                  .register(registry);
-        this.loadSuccess = Timer.builder(LOAD_TIMER_NAME).tag(TAG_RESULT_NAME, "success").tags(tags)
-                                .description("Successful cache loads of cache.").register(registry);
-        this.loadFail    = Timer.builder(LOAD_TIMER_NAME).tag(TAG_RESULT_NAME, "failure").tags(tags)
-                                .description("Failed cache loads of local cache.").register(registry);
-        this.evictCount  = DistributionSummary.builder(CACHE_EVICT_NAME).tag(TAG_RESULT_NAME, "evict").tags(tags)
-                                              .description("Entries evicted from local cache.").register(registry);
+        this.registry = registry;
+        this.tags = Tags.of("cache", cacheName);
+        this.hitL1Count = Counter.builder(GET_COUNTER_NAME)
+                                 .tags(TAG_RESULT_NAME, "hitLocal")
+                                 .tags(tags)
+                                 .description(
+                                         "The number of times local cache lookup methods have returned a cached value.")
+                                 .register(registry);
+        this.hitCount = Counter.builder(GET_COUNTER_NAME)
+                               .tag(TAG_RESULT_NAME, "hit")
+                               .tags(tags)
+                               .description("The number of all times cache lookup methods have returned a cached value.")
+                               .register(registry);
+        this.missCount = Counter.builder(GET_COUNTER_NAME)
+                                .tag(TAG_RESULT_NAME, "miss")
+                                .tags(tags)
+                                .description(
+                                        "The number of times cache lookup methods have returned an uncached (newly load) value.")
+                                .register(registry);
+        this.loadSuccess = Timer.builder(LOAD_TIMER_NAME)
+                                .tag(TAG_RESULT_NAME, "success")
+                                .tags(tags)
+                                .description("Successful cache loads of cache.")
+                                .register(registry);
+        this.loadFail = Timer.builder(LOAD_TIMER_NAME)
+                             .tag(TAG_RESULT_NAME, "failure")
+                             .tags(tags)
+                             .description("Failed cache loads of local cache.")
+                             .register(registry);
+        this.evictCount = DistributionSummary.builder(CACHE_EVICT_NAME)
+                                             .tag(TAG_RESULT_NAME, "evict")
+                                             .tags(tags)
+                                             .description("Entries evicted from local cache.")
+                                             .register(registry);
+
+        Gauge.builder("cache.hit.rate", () -> {
+            double total = hitCount.count() + missCount.count();
+            return total == 0 ? 1.0 : hitCount.count() / total;
+        }).tags(tags).description("Cache hit rate").register(registry);
+
+        Gauge.builder("cache.hit.l1.rate", () -> {
+            double hc = hitCount.count();
+            return hc == 0 ? 1.0 : hitL1Count.count() / hc;
+        }).tags(tags).description("L1 cache hit rate (local hits / total hits)").register(registry);
+
+        Gauge.builder("cache.miss.rate", () -> {
+            double total = hitCount.count() + missCount.count();
+            return total == 0 ? 0.0 : missCount.count() / total;
+        }).tags(tags).description("Cache miss rate").register(registry);
+
+        Gauge.builder("cache.load.avg.time", () -> {
+            long count = loadSuccess.count() + loadFail.count();
+            if (count == 0) return 0.0;
+            return (loadSuccess.totalTime(TimeUnit.NANOSECONDS) + loadFail.totalTime(TimeUnit.NANOSECONDS)) / count;
+        }).tags(tags).description("Average load penalty (nanoseconds)").register(registry);
+
+        Gauge.builder("cache.load.fail.rate", () -> {
+            long total = loadSuccess.count() + loadFail.count();
+            return total == 0 ? 0.0 : (double) loadFail.count() / total;
+        }).tags(tags).description("Cache load failure rate").register(registry);
     }
 
     public void registerSizeMetric(Cache cache) {
-        Gauge.builder(CACHE_SIZE_NAME, cache, Cache::cacheSize).tags(tags)
-             .description("The approximate number of entries in cache.").register(registry);
+        Gauge.builder(CACHE_SIZE_NAME, cache, Cache::cacheSize)
+             .tags(tags)
+             .description("The approximate number of entries in cache.")
+             .register(registry);
     }
 
     /**
@@ -107,12 +152,19 @@ public class MicroMeterStatsCounter implements StatsCounter {
      */
     @Override
     public CacheStats snapshot() {
-        return new CacheStats((long) this.hitCount.count(), (long) this.missCount.count(), (long) this.hitL1Count.count(), this.loadSuccess.count(), this.loadFail.count(), this.totalLoadTime(), this.evictCount.count(), (long) this.evictCount.totalAmount());
+        return new CacheStats((long) this.hitCount.count(),
+                              (long) this.missCount.count(),
+                              (long) this.hitL1Count.count(),
+                              this.loadSuccess.count(),
+                              this.loadFail.count(),
+                              this.totalLoadTime(),
+                              this.evictCount.count(),
+                              (long) this.evictCount.totalAmount());
     }
 
     private long totalLoadTime() {
-        return (long) this.loadSuccess.totalTime(TimeUnit.NANOSECONDS)
-               + (long) this.loadFail.totalTime(TimeUnit.NANOSECONDS);
+        return (long) this.loadSuccess.totalTime(TimeUnit.NANOSECONDS) +
+               (long) this.loadFail.totalTime(TimeUnit.NANOSECONDS);
     }
 
 }
