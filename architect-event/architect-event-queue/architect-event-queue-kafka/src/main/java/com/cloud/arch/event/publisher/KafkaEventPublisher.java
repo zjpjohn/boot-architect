@@ -10,6 +10,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 public class KafkaEventPublisher implements EventPublisher {
 
@@ -20,14 +21,21 @@ public class KafkaEventPublisher implements EventPublisher {
     }
 
     /**
-     * 发布跨应用领域事件
+     * 发布跨应用领域事件，同步等待 broker 确认后返回。
      *
      * @param message 事件消息
      */
     @Override
     public void publish(EventMessage message) {
         ProducerRecord<String, String> producerRecord = this.checkAndConvert(message);
-        template.send(producerRecord);
+        try {
+            template.send(producerRecord).get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Kafka send interrupted", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Kafka send failed", e);
+        }
     }
 
     /**
@@ -41,12 +49,7 @@ public class KafkaEventPublisher implements EventPublisher {
         Assert.state(StringUtils.hasText(message.getKey()), "消息业务key不允许为空.");
         RecordHeaders headers = new RecordHeaders();
         headers.add(KafkaEventConstants.EVENT_KEY, message.getKey().getBytes(StandardCharsets.UTF_8));
-        return new ProducerRecord<>(message.getName(),
-                                    null,
-                                    System.currentTimeMillis(),
-                                    message.getKey(),
-                                    message.getData(),
-                                    headers);
+        return new ProducerRecord<>(message.getName(), null, System.currentTimeMillis(), message.getKey(), message.getData(), headers);
     }
 
 }

@@ -37,7 +37,7 @@ public class RabbitEventListener implements ChannelAwareMessageListener {
             Object domainEvent = eventCodec.decode(payload, metadata.getType());
             subscribeHandler.handle(eventKey, domainEvent, metadata);
             channel.basicAck(deliveryTag, false);
-        } catch (Exception error) {
+        } catch (Throwable error) {
             log.error("rabbitmq consume message => key[{}] error:", eventKey, error);
             channel.basicNack(deliveryTag, false, true);
         }

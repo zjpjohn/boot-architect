@@ -16,8 +16,6 @@ import org.springframework.util.Assert;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * 领域事件发布器，提供静态方法在事务上下文中发布本地和远程领域事件，基于 ThreadLocal 暂存事件，事务提交后统一发送。
@@ -26,11 +24,10 @@ import java.util.concurrent.ConcurrentMap;
 @UtilityClass
 public class DomainEventPublisher {
 
-    private static final Integer                         ENABLE_REMOTE_KEY  = 1;
-    public static final  String                          EMPTY_SHARDING_KEY = "";
-    private static final ThreadLocal<EventContext>       CTX                = ThreadLocal.withInitial(EventContext::new);
-    private static final ThreadLocal<Boolean>            synchronization    = ThreadLocal.withInitial(() -> Boolean.FALSE);
-    private static final ConcurrentMap<Integer, Boolean> remoteIndicator    = new ConcurrentHashMap<>(2);
+    public static final     String                    EMPTY_SHARDING_KEY = "";
+    private static final    ThreadLocal<EventContext> CTX                = ThreadLocal.withInitial(EventContext::new);
+    private static final    ThreadLocal<Boolean>      synchronization    = ThreadLocal.withInitial(() -> Boolean.FALSE);
+    private static volatile Boolean                   remoteQueueEnabled;
 
     /**
      * 线程内事件暂存上下文。
@@ -67,8 +64,7 @@ public class DomainEventPublisher {
         if (!synchronization.get()) {
             boolean transactionActive = TransactionSynchronizationManager.isActualTransactionActive();
             Assert.state(transactionActive, "领域事件未处于事务中，请配置spring事务.");
-            EventPublisherSynchronization eventSynchronization = ApplicationContextHolder.getBean(
-                    EventPublisherSynchronization.class);
+            EventPublisherSynchronization eventSynchronization = ApplicationContextHolder.getBean(EventPublisherSynchronization.class);
             TransactionSynchronizationManager.registerSynchronization(eventSynchronization);
             synchronization.set(Boolean.TRUE);
         }
@@ -84,10 +80,11 @@ public class DomainEventPublisher {
      * 是否开启远程事件消息队列
      */
     private static boolean enableRemoteQueue() {
-        return remoteIndicator.computeIfAbsent(ENABLE_REMOTE_KEY, key -> {
+        if (remoteQueueEnabled == null) {
             MessageQueuePublisher queuePublisher = ApplicationContextHolder.getBean(MessageQueuePublisher.class);
-            return queuePublisher.isConfigured();
-        });
+            remoteQueueEnabled = queuePublisher.isConfigured();
+        }
+        return remoteQueueEnabled;
     }
 
     /**

@@ -98,6 +98,7 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
             this.producer.start();
         } catch (MQClientException e) {
             log.error("创建rocketmq生产者异常:", e);
+            throw new RuntimeException("RocketMQ producer start failed", e);
         }
     }
 }

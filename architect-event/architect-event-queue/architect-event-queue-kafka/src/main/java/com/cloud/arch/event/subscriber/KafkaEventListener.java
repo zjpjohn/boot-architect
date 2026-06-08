@@ -21,11 +21,9 @@ public class KafkaEventListener implements AcknowledgingMessageListener<String, 
     private final EventCodec             eventCodec;
     private final SubscribeHandler       subscribeHandler;
 
-    public KafkaEventListener(SubscribeEventMetadata metadata,
-                              EventCodec eventCodec,
-                              SubscribeHandler subscribeHandler) {
-        this.metadata         = metadata;
-        this.eventCodec       = eventCodec;
+    public KafkaEventListener(SubscribeEventMetadata metadata, EventCodec eventCodec, SubscribeHandler subscribeHandler) {
+        this.metadata = metadata;
+        this.eventCodec = eventCodec;
         this.subscribeHandler = subscribeHandler;
     }
 
@@ -45,7 +43,7 @@ public class KafkaEventListener implements AcknowledgingMessageListener<String, 
             Object domainEvent = eventCodec.decode(body, metadata.getType());
             subscribeHandler.handle(eventKey, domainEvent, metadata);
             acknowledgment.acknowledge();
-        } catch (Exception error) {
+        } catch (Throwable error) {
             log.error("kafka consume message => key[{}] error:", eventKey, error);
             acknowledgment.nack(Duration.ofSeconds(10));
         }

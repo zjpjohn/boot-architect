@@ -45,7 +45,7 @@ public class EventMessageListener implements MessageListener<String> {
             Object event = this.eventCodec.decode(message.getValue(), metadata.getType());
             this.handler.handle(eventKey, event, metadata);
             consumer.acknowledge(message);
-        } catch (Exception error) {
+        } catch (Throwable error) {
             log.error("subscriber handle event message => key [{}] error.", eventKey, error);
             consumer.negativeAcknowledge(message);
         }

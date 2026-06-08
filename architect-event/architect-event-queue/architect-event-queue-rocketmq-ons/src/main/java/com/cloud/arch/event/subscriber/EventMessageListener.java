@@ -41,7 +41,7 @@ public class EventMessageListener implements MessageListener {
             Object domainEvent = eventCodec.decode(event, metadata.getType());
             subscribeHandler.handle(eventKey, domainEvent, metadata);
             return Action.CommitMessage;
-        } catch (Exception error) {
+        } catch (Throwable error) {
             log.error("handle subscribe event message => key:[{}] error.", eventKey, error);
             return Action.ReconsumeLater;
         }

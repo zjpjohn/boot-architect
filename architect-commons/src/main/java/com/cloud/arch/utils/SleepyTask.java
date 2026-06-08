@@ -30,7 +30,7 @@ public abstract class SleepyTask implements Runnable {
             while (ready.compareAndSet(true, false)) {
                 try {
                     runTask();
-                } catch (RuntimeException error) {
+                } catch (Throwable error) {
                     log.error(error.getMessage(), error);
                 }
             }

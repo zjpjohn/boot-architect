@@ -3,6 +3,7 @@ package com.cloud.arch.event.core.subscribe;
 import com.cloud.arch.event.annotations.Subscribe;
 import com.cloud.arch.event.annotations.Subscribes;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.atteo.classindex.ClassIndex;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 public abstract class AbsSubscriberProcessor
         implements SmartInitializingSingleton, EmbeddedValueResolverAware, Ordered {
 
@@ -44,6 +46,9 @@ public abstract class AbsSubscriberProcessor
     @Override
     public void afterSingletonsInstantiated() {
         List<SubscribeEventMetadata> metadataList = this.scanListeners();
+        if (metadataList.isEmpty()) {
+            log.warn("no @Subscribe listeners found, check classindex annotation processor configuration");
+        }
         this.registerListeners(metadataList);
     }
 

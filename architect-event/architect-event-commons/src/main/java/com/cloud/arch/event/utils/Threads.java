@@ -8,6 +8,6 @@ public class Threads {
 
     public static ThreadFactory threadFactory(String domain) {
         String nameFormat = domain + "-%d";
-        return new ThreadFactoryBuilder().setDaemon(false).setNameFormat(nameFormat).build();
+        return new ThreadFactoryBuilder().setDaemon(true).setNameFormat(nameFormat).build();
     }
 }

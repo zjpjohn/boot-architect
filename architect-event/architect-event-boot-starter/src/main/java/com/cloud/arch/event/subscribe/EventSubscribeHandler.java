@@ -53,7 +53,7 @@ public class EventSubscribeHandler implements SubscribeHandler {
                 return;
             }
             publisher.publishEvent(event);
-        } catch (Exception error) {
+        } catch (Throwable error) {
             throwable = error;
             statsManager.statsCounter(metadata.getName())
                         .recordConsumeFailure(System.currentTimeMillis() - metricStart);

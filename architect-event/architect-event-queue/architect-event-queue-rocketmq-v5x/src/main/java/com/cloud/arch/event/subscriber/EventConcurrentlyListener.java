@@ -48,7 +48,7 @@ public class EventConcurrentlyListener implements MessageListenerConcurrently {
                 Object domainEvent = eventCodec.decode(event, metadata.getType());
                 subscribeHandler.handle(messageExt.getKeys(), domainEvent, metadata);
                 log.info("concurrently consume topic:[{}],tags:[{}}], message id:[{}] success,taken:[{}]ms", topic, tags, messageExt.getMsgId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.warn("concurrently consume message topic:[{}],message id:[{}] error,taken:[{}]ms", messageExt.getTopic(), messageExt.getMsgId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 context.setDelayLevelWhenNextConsume(delayLevelWhenNextConsume);
                 return ConsumeConcurrentlyStatus.RECONSUME_LATER;
