@@ -19,9 +19,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class MicroMeterStatsManager implements EventStatsManager {
 
-    private static final String COMPENSATE_CYCLE   = "domain.event.compensate.cycle";
-    private static final String COMPENSATE_EVENTS  = "domain.event.compensate.events";
-    private static final String COMPENSATE_LATENCY = "domain.event.compensate.latency";
+    private static final String COMPENSATE_CYCLE      = "domain.event.compensate.cycle";
+    private static final String COMPENSATE_EVENTS     = "domain.event.compensate.events";
+    private static final String COMPENSATE_LATENCY    = "domain.event.compensate.latency";
     private static final String THREADPOOL_QUEUE_SIZE = "domain.event.publisher.threadpool.queue.size";
     private static final String THREADPOOL_ACTIVE     = "domain.event.publisher.threadpool.active.threads";
     private static final String BATCH_MARK            = "domain.event.batch.mark";
@@ -43,36 +43,33 @@ public class MicroMeterStatsManager implements EventStatsManager {
         this.counters = new ConcurrentHashMap<>();
 
         this.compensateCycleCounter = Counter.builder(COMPENSATE_CYCLE)
-                .description("事件补偿周期执行次数")
-                .register(registry);
+                                             .description("事件补偿周期执行次数")
+                                             .register(registry);
         this.compensateRetryCount = Counter.builder(COMPENSATE_EVENTS)
-                .tags("type", "retry")
-                .description("补偿事件处理条数")
-                .register(registry);
+                                           .tags("type", "retry")
+                                           .description("补偿事件处理条数")
+                                           .register(registry);
         this.compensateDeadLetterCount = Counter.builder(COMPENSATE_EVENTS)
-                .tags("type", "dead_letter")
-                .description("补偿事件处理条数")
-                .register(registry);
-        this.compensateTimer = Timer.builder(COMPENSATE_LATENCY)
-                .description("补偿周期执行耗时")
-                .register(registry);
+                                                .tags("type", "dead_letter")
+                                                .description("补偿事件处理条数")
+                                                .register(registry);
+        this.compensateTimer = Timer.builder(COMPENSATE_LATENCY).description("补偿周期执行耗时").register(registry);
         this.batchMarkSucceededCount = Counter.builder(BATCH_MARK)
-                .tags("status", "succeeded")
-                .description("事件批量标记次数")
-                .register(registry);
+                                              .tags("status", "succeeded")
+                                              .description("事件批量标记次数")
+                                              .register(registry);
         this.batchMarkFailedCount = Counter.builder(BATCH_MARK)
-                .tags("status", "failed")
-                .description("事件批量标记次数")
-                .register(registry);
+                                           .tags("status", "failed")
+                                           .description("事件批量标记次数")
+                                           .register(registry);
         this.batchMarkSizeSummary = DistributionSummary.builder(BATCH_MARK_SIZE)
-                .description("每批次标记条目数")
-                .register(registry);
+                                                       .description("每批次标记条目数")
+                                                       .register(registry);
     }
 
     @Override
     public EventStatsCounter statsCounter(String topic) {
-        return counters.computeIfAbsent(topic,
-                k -> new MicroMeterStatsCounter(registry, k));
+        return counters.computeIfAbsent(topic, k -> new MicroMeterStatsCounter(registry, k));
     }
 
     @Override
@@ -113,11 +110,11 @@ public class MicroMeterStatsManager implements EventStatsManager {
     @Override
     public void registerThreadPoolGauges(ThreadPoolExecutor pool) {
         Gauge.builder(THREADPOOL_QUEUE_SIZE, pool, p -> p.getQueue().size())
-                .description("发布线程池队列大小")
-                .register(registry);
+             .description("发布线程池队列大小")
+             .register(registry);
         Gauge.builder(THREADPOOL_ACTIVE, pool, ThreadPoolExecutor::getActiveCount)
-                .description("发布线程池活跃线程数")
-                .register(registry);
+             .description("发布线程池活跃线程数")
+             .register(registry);
     }
 
 }

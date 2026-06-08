@@ -33,38 +33,43 @@ public class MicroMeterStatsCounter implements EventStatsCounter {
         Tags tags = Tags.of("queue", name);
 
         this.publishSuccessCount = Counter.builder(PUBLISH_COUNTER)
-                .tags(tags).tag("status", "success")
-                .description("领域事件发布次数")
-                .register(registry);
+                                          .tags(tags)
+                                          .tag("status", "success")
+                                          .description("领域事件发布次数")
+                                          .register(registry);
         this.publishFailCount = Counter.builder(PUBLISH_COUNTER)
-                .tags(tags).tag("status", "failure")
-                .description("领域事件发布次数")
-                .register(registry);
+                                       .tags(tags)
+                                       .tag("status", "failure")
+                                       .description("领域事件发布次数")
+                                       .register(registry);
         this.publishTimer = Timer.builder(PUBLISH_LATENCY)
-                .tags(tags)
-                .description("领域事件发布耗时")
-                .register(registry);
+                                 .tags(tags)
+                                 .description("领域事件发布耗时")
+                                 .register(registry);
         this.fallbackSyncCount = Counter.builder(PUBLISH_FALLBACK_SYNC)
-                .tags(tags)
-                .description("发布线程池满时降级为同步发送次数")
-                .register(registry);
+                                        .tags(tags)
+                                        .description("发布线程池满时降级为同步发送次数")
+                                        .register(registry);
 
         this.consumeSuccessCount = Counter.builder(CONSUME_COUNTER)
-                .tags(tags).tag("status", "success")
-                .description("领域事件消费次数")
-                .register(registry);
+                                          .tags(tags)
+                                          .tag("status", "success")
+                                          .description("领域事件消费次数")
+                                          .register(registry);
         this.consumeFailCount = Counter.builder(CONSUME_COUNTER)
-                .tags(tags).tag("status", "failure")
-                .description("领域事件消费次数")
-                .register(registry);
+                                       .tags(tags)
+                                       .tag("status", "failure")
+                                       .description("领域事件消费次数")
+                                       .register(registry);
         this.consumeDuplicateCount = Counter.builder(CONSUME_COUNTER)
-                .tags(tags).tag("status", "duplicate")
-                .description("领域事件消费次数")
-                .register(registry);
+                                            .tags(tags)
+                                            .tag("status", "duplicate")
+                                            .description("领域事件消费次数")
+                                            .register(registry);
         this.consumeTimer = Timer.builder(CONSUME_LATENCY)
-                .tags(tags)
-                .description("领域事件消费耗时")
-                .register(registry);
+                                 .tags(tags)
+                                 .description("领域事件消费耗时")
+                                 .register(registry);
     }
 
     @Override
