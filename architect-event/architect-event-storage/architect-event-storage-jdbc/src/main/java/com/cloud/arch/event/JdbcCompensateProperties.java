@@ -58,6 +58,27 @@ public class JdbcCompensateProperties {
      */
     private SchedulerMutex mutex = new SchedulerMutex();
 
+    /**
+     * 补偿处理器线程池
+     */
+    private Compensate compensate = new Compensate();
+
+    @Data
+    public static class Compensate {
+        /**
+         * 核心线程数
+         */
+        private int coreThreads = 2;
+        /**
+         * 最大线程数
+         */
+        private int maxThreads  = 4;
+        /**
+         * 任务队列容量
+         */
+        private int queueSize   = 100;
+    }
+
     @Data
     public static class SchedulerMutex {
         /**

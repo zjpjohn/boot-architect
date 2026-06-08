@@ -20,7 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 @Slf4j
 public class MessageQueuePublisher implements DisposableBean, ApplicationContextAware, SmartInitializingSingleton {
@@ -28,15 +27,16 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
     private static final int KEEP_ALIVE_TIME = 1;
 
     private final ExecutorService        executorService;
+    private final BatchEventMarker       batchMarker;
     private       EventPublisher         eventPublisher;
     private       IDomainEventRepository eventRepository;
-    private       BatchEventMarker       batchMarker;
     private       EventMetadataFactory   eventMetadataFactory;
     private       EventStatsManager      statsManager = EventStatsManager.disabled();
     private       ApplicationContext     applicationContext;
 
-    public MessageQueuePublisher(Integer asyncThreads, Integer asyncMaxThreads, Integer asyncQueueSize) {
+    public MessageQueuePublisher(Integer asyncThreads, Integer asyncMaxThreads, Integer asyncQueueSize, BatchEventMarker batchMarker) {
         this.executorService = new ThreadPoolExecutor(asyncThreads, asyncMaxThreads, KEEP_ALIVE_TIME, TimeUnit.MINUTES, new ArrayBlockingQueue<>(asyncQueueSize), Threads.threadFactory("domain-event-publisher-"));
+        this.batchMarker = batchMarker;
     }
 
     public void setEventStatsManager(EventStatsManager statsManager) {
@@ -52,16 +52,24 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
      * @param event 事件内容
      */
     public void publish(Object event) {
-        eventMetadataFactory.create(event)
-                            .stream()
-                            .map(PublishEvent::toMessage)
-                            .forEach(message -> executorService.submit(() -> {
-                                try {
-                                    eventPublisher.publish(message);
-                                } catch (Exception error) {
-                                    log.error(error.getMessage(), error);
-                                }
-                            }));
+        eventMetadataFactory.create(event).stream().map(PublishEvent::toMessage).forEach(message -> {
+            try {
+                executorService.submit(() -> {
+                    try {
+                        eventPublisher.publish(message);
+                    } catch (Exception error) {
+                        log.error(error.getMessage(), error);
+                    }
+                });
+            } catch (RejectedExecutionException e) {
+                log.warn("thread pool full, fallback to sync publish");
+                try {
+                    eventPublisher.publish(message);
+                } catch (Exception error) {
+                    log.error(error.getMessage(), error);
+                }
+            }
+        });
     }
 
     /**
@@ -91,22 +99,6 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
                     doPublish(entity);
                 }
             });
-        }
-    }
-
-    /**
-     * 异步处理发送事件，线程池满时降级为同步处理。
-     *
-     * @param entity   发送事件
-     * @param consumer 事件处理器
-     */
-    public void asyncProcess(PublishEventEntity entity, Consumer<PublishEventEntity> consumer) {
-        try {
-            executorService.submit(() -> consumer.accept(entity));
-        } catch (RejectedExecutionException e) {
-            log.warn("thread pool full, fallback to sync process for event[{}]", entity.getId());
-            statsManager.statsCounter(entity.getName()).recordPublishFallbackSync();
-            consumer.accept(entity);
         }
     }
 
@@ -162,7 +154,6 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
     public void afterSingletonsInstantiated() {
         eventPublisher = this.getBean(EventPublisher.class);
         eventRepository = this.getBean(IDomainEventRepository.class);
-        batchMarker = this.getBean(BatchEventMarker.class);
         eventMetadataFactory = this.getBean(EventMetadataFactory.class);
         Assert.notNull(eventMetadataFactory, "publish event factory bean not exist,please confirm right config!");
         statsManager.registerThreadPoolGauges((ThreadPoolExecutor) executorService);
