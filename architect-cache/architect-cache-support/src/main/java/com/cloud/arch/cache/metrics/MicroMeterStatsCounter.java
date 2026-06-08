@@ -30,34 +30,32 @@ public class MicroMeterStatsCounter implements StatsCounter {
         this.hitL1Count = Counter.builder(GET_COUNTER_NAME)
                                  .tags(TAG_RESULT_NAME, "hitLocal")
                                  .tags(tags)
-                                 .description(
-                                         "The number of times local cache lookup methods have returned a cached value.")
+                                 .description("The number of cache hits served by the local (L1) cache")
                                  .register(registry);
         this.hitCount = Counter.builder(GET_COUNTER_NAME)
                                .tag(TAG_RESULT_NAME, "hit")
                                .tags(tags)
-                               .description("The number of all times cache lookup methods have returned a cached value.")
+                               .description("The number of cache hits (L1 and L2 combined)")
                                .register(registry);
         this.missCount = Counter.builder(GET_COUNTER_NAME)
                                 .tag(TAG_RESULT_NAME, "miss")
                                 .tags(tags)
-                                .description(
-                                        "The number of times cache lookup methods have returned an uncached (newly load) value.")
+                                .description("The number of cache misses that required loading from the data source")
                                 .register(registry);
         this.loadSuccess = Timer.builder(LOAD_TIMER_NAME)
                                 .tag(TAG_RESULT_NAME, "success")
                                 .tags(tags)
-                                .description("Successful cache loads of cache.")
+                                .description("Time taken for successful cache load operations")
                                 .register(registry);
         this.loadFail = Timer.builder(LOAD_TIMER_NAME)
                              .tag(TAG_RESULT_NAME, "failure")
                              .tags(tags)
-                             .description("Failed cache loads of local cache.")
+                             .description("Time taken for failed cache load operations")
                              .register(registry);
         this.evictCount = DistributionSummary.builder(CACHE_EVICT_NAME)
                                              .tag(TAG_RESULT_NAME, "evict")
                                              .tags(tags)
-                                             .description("Entries evicted from local cache.")
+                                             .description("The number of cache entries evicted")
                                              .register(registry);
 
         Gauge.builder("cache.hit.rate", () -> {
