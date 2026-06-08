@@ -86,20 +86,23 @@ public class CacheOperationCachedSource implements CacheOperationSource, Disposa
                       .flatMap(Collection::stream)
                       .filter(AbsCacheOperation::canBuildCache)
                       .forEach(op -> {
-                          op.getCacheNames().forEach(cacheName -> {
-                              Class<?> existing = seen.putIfAbsent(cacheName, op.getReturnType());
-                              if (existing != null && !existing.equals(op.getReturnType())) {
-                                  String message = String.format(
-                                          "Cache name '%s' 存在类型冲突: %s (%s) vs %s (已注册)。同名缓存方法的返回类型必须一致。",
-                                          cacheName,
-                                          op.getReturnType().getSimpleName(),
-                                          op.getName(),
-                                          existing.getSimpleName());
-                                  throw new IllegalArgumentException(message);
-                              }
-                          });
+                          validateReturnType(op, seen);
                           cacheResolver.resolveCache(op);
                       });
+    }
+
+    private void validateReturnType(AbsCacheOperation<? extends Annotation> op, Map<String, Class<?>> seen) {
+        op.getCacheNames().forEach(cacheName -> {
+            Class<?> existing = seen.putIfAbsent(cacheName, op.getReturnType());
+            if (existing != null && !existing.equals(op.getReturnType())) {
+                String message = String.format("Cache name '%s' 存在类型冲突: %s (%s) vs %s (已注册)。同名缓存方法的返回类型必须一致。",
+                                               cacheName,
+                                               op.getReturnType().getSimpleName(),
+                                               op.getName(),
+                                               existing.getSimpleName());
+                throw new IllegalArgumentException(message);
+            }
+        });
     }
 
     protected Object cacheKey(Method method, Class<?> targetClass) {
