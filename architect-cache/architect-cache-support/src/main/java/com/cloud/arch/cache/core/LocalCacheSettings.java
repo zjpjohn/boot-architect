@@ -21,22 +21,26 @@ public class LocalCacheSettings {
      * L1缓存配置信息
      */
     public static LocalCacheSettings build(Local local) {
-        return LocalCacheSettings.builder().expireMode(local.expireMode()).expireTime(local.expire())
-                                 .initialSize(local.initialSize()).maximumSize(local.maximumSize()).build();
+        return LocalCacheSettings.builder()
+                                 .expireMode(local.expireMode())
+                                 .expireTime(local.expire())
+                                 .initialSize(local.initialSize())
+                                 .maximumSize(local.maximumSize())
+                                 .build();
     }
 
     @Override
     public String toString() {
-        return "LocalCacheProperties{"
-               + "initialSize="
-               + initialSize
-               + ", maximumSize="
-               + maximumSize
-               + ", expireTime="
-               + expireTime
-               + ", expireMode="
-               + expireMode
-               + '}';
+        return "LocalCacheProperties{" +
+               "initialSize=" +
+               initialSize +
+               ", maximumSize=" +
+               maximumSize +
+               ", expireTime=" +
+               expireTime +
+               ", expireMode=" +
+               expireMode +
+               '}';
     }
 
 }

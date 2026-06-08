@@ -178,8 +178,11 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
                 // 重试仍未获取到值，再次尝试获取锁（最长等待 CACHE_LOAD_LOCK_TIME 毫秒）
                 lockedSuccess = lock.tryLock(CACHE_LOAD_LOCK_TIME, TimeUnit.MILLISECONDS);
                 if (!lockedSuccess) {
-                    throw new IllegalStateException(
-                            "Failed to acquire load lock for cache [" + this.getName() + "] key [" + key + "]");
+                    throw new IllegalStateException("Failed to acquire load lock for cache [" +
+                                                    this.getName() +
+                                                    "] key [" +
+                                                    key +
+                                                    "]");
                 }
             }
             try {

@@ -23,7 +23,7 @@ public class CaffeineLocalCache extends AbstractLocalCache {
                               ScheduledExecutorService scheduledExecutor) {
         super(name, allowNullValue, settings, refreshPolicy, remoteCache);
         this.scheduledExecutor = scheduledExecutor;
-        this.cache             = this.build(settings);
+        this.cache = this.build(settings);
     }
 
     private Cache<Object, Object> build(LocalCacheSettings settings) {

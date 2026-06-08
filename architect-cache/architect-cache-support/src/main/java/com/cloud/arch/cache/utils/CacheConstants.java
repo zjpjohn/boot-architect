@@ -2,11 +2,11 @@ package com.cloud.arch.cache.utils;
 
 public class CacheConstants {
     /**
-     * 本地缓存初始容量默认值:500
+     * 本地缓存初始容量默认值:512
      */
     public static final int  INITIAL_SIZE  = 512;
     /**
-     * 本地缓存最大容量默认值:2000
+     * 本地缓存最大容量默认值:2048
      */
     public static final int  MAXIMUM_SIZE  = 2048;
     /**
