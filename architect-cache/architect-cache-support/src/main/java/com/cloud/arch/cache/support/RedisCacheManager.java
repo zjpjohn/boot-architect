@@ -17,24 +17,22 @@ public class RedisCacheManager extends AbstractCacheManager {
     private       RefreshPolicy            refreshPolicy;
     private       ScheduledExecutorService scheduledExecutor;
 
-    public RedisCacheManager(StatsManager statsManager,
-                             RedissonClient redissonClient,
-                             RemoteCacheTtlRefresher ttlRefresher) {
+    public RedisCacheManager(StatsManager statsManager, RedissonClient redissonClient, RemoteCacheTtlRefresher ttlRefresher) {
         this.statsManager = statsManager;
         this.ttlRefresher = ttlRefresher;
         this.redissonClient = redissonClient;
     }
 
-    public RedisCacheManager(StatsManager statsManager,
-                             RedissonClient redissonClient,
-                             RefreshPolicy refreshPolicy,
-                             RemoteCacheTtlRefresher ttlRefresher,
-                             ScheduledExecutorService scheduledExecutor) {
+    public RedisCacheManager(StatsManager statsManager, RedissonClient redissonClient, RefreshPolicy refreshPolicy, RemoteCacheTtlRefresher ttlRefresher, ScheduledExecutorService scheduledExecutor) {
         this.statsManager = statsManager;
         this.ttlRefresher = ttlRefresher;
         this.refreshPolicy = refreshPolicy;
         this.redissonClient = redissonClient;
         this.scheduledExecutor = scheduledExecutor;
+    }
+
+    public RedissonClient getRedissonClient() {
+        return redissonClient;
     }
 
     /**
@@ -61,13 +59,8 @@ public class RedisCacheManager extends AbstractCacheManager {
         if (scheduledExecutor == null || remoteCache == null || remoteCache.isActivatedLocal()) {
             return;
         }
-        CacheSettings cacheSettings = remoteCache.getSettings();
-        CaffeineLocalCache localCache = new CaffeineLocalCache(name,
-                                                               cacheSettings.isAllowNullValue(),
-                                                               cacheSettings.getLocal(),
-                                                               refreshPolicy,
-                                                               remoteCache,
-                                                               scheduledExecutor);
+        CacheSettings      cacheSettings = remoteCache.getSettings();
+        CaffeineLocalCache localCache    = new CaffeineLocalCache(name, cacheSettings.isAllowNullValue(), cacheSettings.getLocal(), refreshPolicy, remoteCache, scheduledExecutor);
         remoteCache.activateLocal(localCache);
     }
 
@@ -101,12 +94,7 @@ public class RedisCacheManager extends AbstractCacheManager {
 
         // 缓存初始化指定启用L1缓存
         if (scheduledExecutor != null && settings.isEnableLocal() && settings.getLocal() != null) {
-            CaffeineLocalCache localCache = new CaffeineLocalCache(name,
-                                                                   settings.isAllowNullValue(),
-                                                                   settings.getLocal(),
-                                                                   refreshPolicy,
-                                                                   redisCache,
-                                                                   scheduledExecutor);
+            CaffeineLocalCache localCache = new CaffeineLocalCache(name, settings.isAllowNullValue(), settings.getLocal(), refreshPolicy, redisCache, scheduledExecutor);
             redisCache.activateLocal(localCache);
         }
         return redisCache;

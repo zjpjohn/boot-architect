@@ -2,7 +2,7 @@ package com.cloud.arch.cache.warmup.core;
 
 import com.cloud.arch.cache.annotations.CacheResult;
 import com.cloud.arch.cache.warmup.config.WarmUpProperties;
-import com.cloud.arch.cache.warmup.support.WarmUpMetrics;
+import com.cloud.arch.cache.warmup.metrics.WarmUpMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -35,11 +35,7 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
     private final WarmUpProperties               properties;
     private final WarmUpMetrics                  metrics;
 
-    public WarmUpScanner(WarmUpRegistry registry,
-                         WarmUpExecutor executor,
-                         WarmUpArgsProvider argsProvider,
-                         WarmUpProperties properties,
-                         WarmUpMetrics metrics) {
+    public WarmUpScanner(WarmUpRegistry registry, WarmUpExecutor executor, WarmUpArgsProvider argsProvider, WarmUpProperties properties, WarmUpMetrics metrics) {
         this.registry = registry;
         this.executor = executor;
         this.argsProvider = argsProvider;
@@ -93,28 +89,21 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
             processBean(beanName, targetType);
         }
         if (log.isInfoEnabled()) {
-            log.info("[WarmUp] scanned {} beans, registered {} cache names",
-                     beanNames.length,
-                     registry.cacheNameCount());
+            log.info("[WarmUp] scanned {} beans, registered {} cache names", beanNames.length, registry.cacheNameCount());
         }
     }
 
     private void processBean(String beanName, Class<?> targetType) {
         Class<?> userClass = ClassUtils.getUserClass(targetType);
-        Map<Method, Set<CacheResult>> annotatedMethods = MethodIntrospector.selectMethods(userClass,
-                                                                                          (MethodIntrospector.MetadataLookup<Set<CacheResult>>) method -> {
-                                                                                              Set<CacheResult> annotations = AnnotatedElementUtils.findAllMergedAnnotations(
-                                                                                                      method,
-                                                                                                      CacheResult.class);
-                                                                                              if (CollectionUtils.isEmpty(
-                                                                                                      annotations)) {
-                                                                                                  return null;
-                                                                                              }
-                                                                                              // 过滤掉 warmup=false 的
-                                                                                              annotations.removeIf(cr -> !cr.warmup());
-                                                                                              return CollectionUtils.isEmpty(
-                                                                                                      annotations) ? null : annotations;
-                                                                                          });
+        Map<Method, Set<CacheResult>> annotatedMethods = MethodIntrospector.selectMethods(userClass, (MethodIntrospector.MetadataLookup<Set<CacheResult>>) method -> {
+            Set<CacheResult> annotations = AnnotatedElementUtils.findAllMergedAnnotations(method, CacheResult.class);
+            if (CollectionUtils.isEmpty(annotations)) {
+                return null;
+            }
+            // 过滤掉 warmup=false 的
+            annotations.removeIf(cr -> !cr.warmup());
+            return CollectionUtils.isEmpty(annotations) ? null : annotations;
+        });
 
         if (annotatedMethods.isEmpty()) {
             return;
@@ -157,8 +146,8 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
         if (log.isInfoEnabled()) {
             log.info("[WarmUp] starting auto warm-up, {} caches", cacheNames.size());
         }
-        long                                         start   = System.currentTimeMillis();
-        List<CompletableFuture<List<WarmUpResult>>>  futures = new ArrayList<>();
+        long                                        start   = System.currentTimeMillis();
+        List<CompletableFuture<List<WarmUpResult>>> futures = new ArrayList<>();
         for (String cacheName : cacheNames) {
             List<Object[]>   args  = argsProvider.provide(cacheName);
             List<WarmUpTask> tasks = registry.getTasksByCache(cacheName);

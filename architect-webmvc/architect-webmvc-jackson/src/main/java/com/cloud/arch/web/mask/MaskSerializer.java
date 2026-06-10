@@ -1,10 +1,7 @@
 package com.cloud.arch.web.mask;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 
 import java.io.IOException;
@@ -36,8 +33,7 @@ public class MaskSerializer extends JsonSerializer<String> implements Contextual
     }
 
     @Override
-    public JsonSerializer<?> createContextual(SerializerProvider prov,
-                                              BeanProperty property) throws JsonMappingException {
+    public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) throws JsonMappingException {
         if (property != null) {
             Mask anno = property.getAnnotation(Mask.class);
             if (anno != null) {

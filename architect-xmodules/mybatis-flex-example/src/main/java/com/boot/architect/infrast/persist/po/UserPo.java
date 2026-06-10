@@ -1,6 +1,8 @@
 package com.boot.architect.infrast.persist.po;
 
 import com.boot.architect.infrast.persist.enums.Gender;
+import com.cloud.arch.web.mask.Mask;
+import com.cloud.arch.web.mask.MaskType;
 import com.mybatisflex.annotation.Column;
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.Table;
@@ -14,6 +16,7 @@ public class UserPo {
 
     @Id
     private Long          id;
+    @Mask(type = MaskType.NAME)
     private String        name;
     private String        nickname;
     private Gender        gender;

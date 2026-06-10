@@ -23,25 +23,21 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 @Slf4j
 public class DefaultCachingConfigurer implements CachingConfigurer, DisposableBean {
 
-    private final RedissonClient          redissonClient;
-    private final CloudCacheProperties    cloudCacheProperties;
-    private final RedisCacheManager       cacheManager;
-    private final RefreshPolicy           refreshPolicy;
-    private final RemoteCacheTtlRefresher ttlRefresher;
-    private final StatsManager            statsManager;
+    private final RedissonClient              redissonClient;
+    private final CloudCacheProperties        cloudCacheProperties;
+    private final RedisCacheManager           cacheManager;
+    private final RefreshPolicy               refreshPolicy;
+    private final RemoteCacheTtlRefresher     ttlRefresher;
+    private final StatsManager                statsManager;
     private       ScheduledThreadPoolExecutor scheduleExecutor;
 
-    public DefaultCachingConfigurer(RedissonClient redissonClient,
-                                    CloudCacheProperties cloudCacheProperties,
-                                    RemoteCacheTtlRefresher ttlRefresher,
-                                    RefreshPolicy refreshPolicy,
-                                    StatsManager statsManager) {
-        this.redissonClient       = redissonClient;
+    public DefaultCachingConfigurer(RedissonClient redissonClient, CloudCacheProperties cloudCacheProperties, RemoteCacheTtlRefresher ttlRefresher, RefreshPolicy refreshPolicy, StatsManager statsManager) {
+        this.redissonClient = redissonClient;
         this.cloudCacheProperties = cloudCacheProperties;
-        this.refreshPolicy        = refreshPolicy;
-        this.ttlRefresher         = ttlRefresher;
-        this.statsManager         = statsManager;
-        this.cacheManager         = this.build();
+        this.refreshPolicy = refreshPolicy;
+        this.ttlRefresher = ttlRefresher;
+        this.statsManager = statsManager;
+        this.cacheManager = this.build();
     }
 
     private RedisCacheManager build() {
@@ -49,8 +45,7 @@ public class DefaultCachingConfigurer implements CachingConfigurer, DisposableBe
         if (cloudCacheProperties.isEnableLocal()) {
             Assert.state(StringUtils.hasText(cloudCacheProperties.getRefreshTopic()), "multi level cache refresh topic must not be null.");
             int poolSize = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
-            this.scheduleExecutor = new ScheduledThreadPoolExecutor(
-                    poolSize, new DefaultThreadFactory("cache-scheduler"));
+            this.scheduleExecutor = new ScheduledThreadPoolExecutor(poolSize, new DefaultThreadFactory("cache-scheduler"));
             this.scheduleExecutor.setRemoveOnCancelPolicy(true);
             return new RedisCacheManager(statsManager, redissonClient, refreshPolicy, ttlRefresher, scheduleExecutor);
         }
@@ -64,6 +59,10 @@ public class DefaultCachingConfigurer implements CachingConfigurer, DisposableBe
 
     public RefreshPolicy getRefreshPolicy() {
         return refreshPolicy;
+    }
+
+    public RedissonClient getRedissonClient() {
+        return redissonClient;
     }
 
     /**

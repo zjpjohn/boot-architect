@@ -16,7 +16,7 @@ public class UserListQuery extends PageWhere {
 
     @Override
     public void accept(QueryWrapper query) {
-        query.eq(UserPo::getName, this.name).eq(UserPo::getGender, this.gender);
+        query.eq(UserPo::getName, this.name).eq(UserPo::getGender, this.gender).orderBy(UserPo::getGmtCreate, false);
     }
 
 }

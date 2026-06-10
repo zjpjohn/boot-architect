@@ -1,4 +1,4 @@
-package com.cloud.arch.cache.warmup.support;
+package com.cloud.arch.cache.warmup.metrics;
 
 import com.cloud.arch.cache.warmup.core.WarmUpResult;
 import io.micrometer.core.instrument.Counter;

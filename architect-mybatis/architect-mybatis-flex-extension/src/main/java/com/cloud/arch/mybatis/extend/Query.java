@@ -4,10 +4,7 @@ import com.cloud.arch.page.Pager;
 import com.mybatisflex.core.BaseMapper;
 import com.mybatisflex.core.mybatis.Mappers;
 import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.CPI;
-import com.mybatisflex.core.query.MapperQueryChain;
-import com.mybatisflex.core.query.QueryWrapper;
-import com.mybatisflex.core.query.QueryWrapperAdapter;
+import com.mybatisflex.core.query.*;
 import com.mybatisflex.core.table.TableInfo;
 import com.mybatisflex.core.table.TableInfoFactory;
 import com.mybatisflex.core.util.LambdaGetter;
@@ -127,7 +124,8 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
     }
 
     public Page<T> page(PageWhere where) {
-        return this.where(where).page(where.of());
+        where.accept(this);
+        return this.page(where.of());
     }
 
     public int update(T value) {
@@ -155,7 +153,8 @@ public class Query<T> extends QueryWrapperAdapter<Query<T>> implements MapperQue
     }
 
     public Pager<T> pager(PageWhere where) {
-        return this.where(where).pager(where.of());
+        where.accept(this);
+        return this.pager(where.of());
     }
 
     public static <E> Query<E> of(Class<E> entityClass) {

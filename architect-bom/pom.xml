@@ -38,7 +38,7 @@
         <httpclient.version>5.4.4</httpclient.version>
         <druid.version>1.2.27</druid.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
-        <redisson.version>4.2.0</redisson.version>
+        <redisson.version>4.5.0</redisson.version>
         <rocksdb.version>9.4.0</rocksdb.version>
         <guice.version>7.0.0</guice.version>
         <aliyun-sdk.version>4.7.1</aliyun-sdk.version>

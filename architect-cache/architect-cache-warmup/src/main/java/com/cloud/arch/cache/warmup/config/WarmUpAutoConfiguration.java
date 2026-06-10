@@ -8,7 +8,7 @@ import com.cloud.arch.cache.warmup.core.WarmUpRegistry;
 import com.cloud.arch.cache.warmup.core.WarmUpScanner;
 import com.cloud.arch.cache.warmup.core.WarmUpTemplate;
 import com.cloud.arch.cache.warmup.endpoint.WarmUpEndpoint;
-import com.cloud.arch.cache.warmup.support.WarmUpMetrics;
+import com.cloud.arch.cache.warmup.metrics.WarmUpMetrics;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.ObjectProvider;

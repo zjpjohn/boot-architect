@@ -1,6 +1,6 @@
 package com.cloud.arch.cache.warmup.core;
 
-import com.cloud.arch.cache.warmup.support.WarmUpMetrics;
+import com.cloud.arch.cache.warmup.metrics.WarmUpMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;

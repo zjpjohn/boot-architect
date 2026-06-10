@@ -42,19 +42,13 @@ public class SecondCacheAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(RefreshPolicy.class)
     @ConditionalOnProperty(prefix = "com.cloud.cache", name = "enable-local", havingValue = "true")
-    public RefreshPolicy refreshPolicy(CloudCacheProperties properties,
-                                       CacheNodePolicy cacheNodePolicy,
-                                       CacheRedisSupplier redisLoader) {
+    public RefreshPolicy refreshPolicy(CloudCacheProperties properties, CacheNodePolicy cacheNodePolicy, CacheRedisSupplier redisLoader) {
         return new RedisTopicRefreshPolicy(properties.getRefreshTopic(), redisLoader.get(), cacheNodePolicy);
     }
 
 
     @Bean
-    public DefaultCachingConfigurer cachingConfigurer(CacheRedisSupplier redisLoader,
-                                                      CloudCacheProperties properties,
-                                                      RemoteCacheTtlRefresher ttlRefresher,
-                                                      ObjectProvider<RefreshPolicy> refreshPolicy,
-                                                      ObjectProvider<StatsManager> statsManagers) {
+    public DefaultCachingConfigurer cachingConfigurer(CacheRedisSupplier redisLoader, CloudCacheProperties properties, RemoteCacheTtlRefresher ttlRefresher, ObjectProvider<RefreshPolicy> refreshPolicy, ObjectProvider<StatsManager> statsManagers) {
         RefreshPolicy policy       = refreshPolicy.stream().findFirst().orElse(null);
         StatsManager  statsManager = statsManagers.stream().findFirst().orElse(null);
         return new DefaultCachingConfigurer(redisLoader.get(), properties, ttlRefresher, policy, statsManager);
@@ -63,12 +57,8 @@ public class SecondCacheAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean({CacheEventListener.class})
     @ConditionalOnProperty(prefix = "com.cloud.cache", name = "enable-local", havingValue = "true")
-    public CacheEventListener eventListener(CloudCacheProperties properties,
-                                            CacheNodePolicy cacheNodePolicy,
-                                            DefaultCachingConfigurer cachingConfigurer) {
-        return new RedisRefreshEventListener(properties.getRefreshTopic(),
-                                             cachingConfigurer.getCacheManager(),
-                                             cacheNodePolicy);
+    public CacheEventListener eventListener(CloudCacheProperties properties, CacheNodePolicy cacheNodePolicy, DefaultCachingConfigurer cachingConfigurer) {
+        return new RedisRefreshEventListener(properties.getRefreshTopic(), cachingConfigurer.getCacheManager(), cacheNodePolicy);
     }
 
 

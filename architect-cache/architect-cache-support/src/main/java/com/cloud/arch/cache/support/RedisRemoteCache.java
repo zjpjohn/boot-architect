@@ -39,21 +39,28 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
      * 获取锁失败后重试获取缓存值的最大次数
      */
     private static final long                      CACHE_LOCK_FAIL_LOAD_RETRY    = 5;
-    // redis缓存
+    /**
+     * redis缓存
+     */
     private final        RMapCache<Object, Object> mapCache;
-    // redis操作模板
+    /**
+     * redisson客户端
+     */
     private final        RedissonClient            redissonClient;
-    // 缓存刷新器
+    /**
+     * 缓存刷新起
+     */
     private final        RemoteCacheTtlRefresher   ttlRefresher;
-    // 缓存统计时间ticker
+    /**
+     * 缓存统计时间ticker
+     */
     private              Ticker                    statsTicker;
-    // 缓存统计计数器
+    /**
+     * 缓存统计计数器
+     */
     private              StatsCounter              statsCounter;
 
-    public RedisRemoteCache(String name,
-                            CacheSettings settings,
-                            RedissonClient redissonClient,
-                            RemoteCacheTtlRefresher ttlRefresher) {
+    public RedisRemoteCache(String name, CacheSettings settings, RedissonClient redissonClient, RemoteCacheTtlRefresher ttlRefresher) {
         super(name, settings);
         this.redissonClient = redissonClient;
         this.mapCache = redissonClient.getMapCache(this.getName());

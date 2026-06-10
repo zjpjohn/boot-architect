@@ -17,7 +17,7 @@ public class RedisTopicRefreshPolicy implements RefreshPolicy {
     public RedisTopicRefreshPolicy(String topic, RedissonClient redissonClient, CacheNodePolicy cacheNodePolicy) {
         Assert.notNull(topic, "event listener topic must not null.");
         this.cacheNodePolicy = cacheNodePolicy;
-        this.publishTopic    = redissonClient.getTopic(topic);
+        this.publishTopic = redissonClient.getTopic(topic);
     }
 
     /**

@@ -7,13 +7,13 @@ import com.cloud.arch.cache.core.CacheNodePolicy;
 import com.cloud.arch.cache.core.RefreshEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RTopic;
+import org.redisson.api.RedissonClient;
 import org.redisson.api.listener.MessageListener;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.Assert;
 
 @Slf4j
-public class RedisRefreshEventListener
-        implements MessageListener<RefreshEvent>, CacheEventListener, SmartInitializingSingleton {
+public class RedisRefreshEventListener implements MessageListener<RefreshEvent>, CacheEventListener, SmartInitializingSingleton {
 
     private final String            topic;
     private final RedisCacheManager cacheManager;
@@ -21,8 +21,8 @@ public class RedisRefreshEventListener
 
     public RedisRefreshEventListener(String topic, RedisCacheManager cacheManager, CacheNodePolicy cacheNodePolicy) {
         Assert.notNull(topic, "event listener topic must not null.");
-        this.topic           = topic;
-        this.cacheManager    = cacheManager;
+        this.topic = topic;
+        this.cacheManager = cacheManager;
         this.cacheNodePolicy = cacheNodePolicy;
     }
 

@@ -64,12 +64,12 @@ public class UserCommandService implements IUserCommandService {
 
     @Override
     public Pager<UserPo> userList(UserListQuery query) {
-        return Query.of(mapper).orderDesc(UserPo::getGmtCreate).pager(query);
+        return Query.of(mapper).pager(query);
     }
 
     @Override
     public Pager<UserPo> userList(PageWhere query) {
-        return Query.of(mapper).orderDesc(UserPo::getGmtCreate).pager(query);
+        return Query.of(mapper).pager(query);
     }
 
 }

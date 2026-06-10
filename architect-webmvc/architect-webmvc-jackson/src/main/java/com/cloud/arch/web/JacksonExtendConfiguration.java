@@ -61,15 +61,10 @@ public class JacksonExtendConfiguration {
             builder.deserializerByType(LocalDate.class, new LocalDateDeserializer(dateFormatter));
             builder.deserializerByType(LocalTime.class, new LocalTimeDeserializer(timeFormatter));
             builder.deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(formatter));
-            builder.deserializerByType(Date.class,
-                                       new DateDeserializers.DateDeserializer(DateDeserializers.DateDeserializer.instance,
-                                                                              new SimpleDateFormat(format),
-                                                                              format));
-            // 自定义枚举序列化or反序列化处理
+            builder.deserializerByType(Date.class, new DateDeserializers.DateDeserializer(DateDeserializers.DateDeserializer.instance, new SimpleDateFormat(format), format));
+            // 自定义枚举序列化or反序列化处理敏感字段脱敏处理
             builder.modules(new SimpleModule().setDeserializerModifier(new EnumDeserializerModifier())
                                               .setSerializerModifier(new EnumSerializerModifier()));
-            // 敏感字段掩码处理
-            builder.modules(new SimpleModule().addSerializer(new MaskSerializer()));
         };
     }
 
