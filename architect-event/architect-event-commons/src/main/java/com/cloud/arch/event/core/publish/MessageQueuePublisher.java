@@ -4,6 +4,7 @@ import com.cloud.arch.event.metrics.EventStatsManager;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import com.cloud.arch.event.utils.Threads;
+import com.cloud.arch.utils.CollectionUtils;
 import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -52,24 +52,36 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
      * @param event 事件内容
      */
     public void publish(Object event) {
-        eventMetadataFactory.create(event).stream().map(PublishEvent::toMessage).forEach(message -> {
-            try {
-                executorService.submit(() -> {
-                    try {
-                        eventPublisher.publish(message);
-                    } catch (Exception error) {
-                        log.error(error.getMessage(), error);
-                    }
-                });
-            } catch (RejectedExecutionException e) {
-                log.warn("thread pool full, fallback to sync publish");
+        List<PublishEvent> events = eventMetadataFactory.create(event);
+        if (CollectionUtils.isEmpty(events)) {
+            return;
+        }
+        events.forEach(message -> {
+            this.publish(message.toMessage());
+        });
+    }
+
+    /**
+     * 内部直接发送消息到消息队列
+     *
+     */
+    private void publish(EventMessage message) {
+        try {
+            executorService.submit(() -> {
                 try {
                     eventPublisher.publish(message);
                 } catch (Exception error) {
                     log.error(error.getMessage(), error);
                 }
+            });
+        } catch (RejectedExecutionException e) {
+            log.warn("thread pool full, fallback to sync publish");
+            try {
+                eventPublisher.publish(message);
+            } catch (Exception error) {
+                log.error(error.getMessage(), error);
             }
-        });
+        }
     }
 
     /**
@@ -78,7 +90,7 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
      * @param entities 消息集合
      */
     public void initStorage(List<PublishEventEntity> entities) {
-        if (!CollectionUtils.isEmpty(entities)) {
+        if (CollectionUtils.isNotEmpty(entities)) {
             eventRepository.initialize(entities);
         }
     }
@@ -89,7 +101,7 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
      * @param entities 消息集合
      */
     public void publish(List<PublishEventEntity> entities) {
-        if (!CollectionUtils.isEmpty(entities)) {
+        if (CollectionUtils.isNotEmpty(entities)) {
             entities.forEach(entity -> {
                 try {
                     executorService.submit(() -> doPublish(entity));
@@ -120,20 +132,15 @@ public class MessageQueuePublisher implements DisposableBean, ApplicationContext
             long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
             log.error("publish event to message queue -> id:[{}] error,taken:[{}]", entity.getId(), elapsed, throwable);
             statsManager.statsCounter(entity.getName()).recordPublishFailure(elapsed);
-            try {
-                batchMarker.markFailed(entity);
-            } catch (Throwable error) {
-                log.error("mark publish event state -> id:[{}] error,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS), error);
+            batchMarker.markFailed(entity);
+            if (log.isDebugEnabled()) {
+                log.debug("mark publish event state -> id:[{}] error,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
             }
             return;
         }
-        try {
-            batchMarker.markSucceeded(entity);
-            if (log.isDebugEnabled()) {
-                log.debug("mark publish event state -> id:[{}] success,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-            }
-        } catch (Throwable error) {
-            log.error("mark publish event state -> id:[{}] error,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS), error);
+        batchMarker.markSucceeded(entity);
+        if (log.isDebugEnabled()) {
+            log.debug("mark publish event state -> id:[{}] success,taken:[{}]", entity.getId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 

@@ -32,10 +32,8 @@ public class JdbcDomainEventRepository implements IDomainEventRepository {
             "values(:id,:name,:filter,:delay,:event,:shard_key,:state,:version,:gmt_create,:dead_time,:dead_reason)";
     private static final String DELETE_EVENT_SQL        = "delete from arch_event where id=:id and shard_key=:shard_key";
     private static final String CLEAN_DEAD_LETTER_SQL   = "delete from arch_event_dead_letter where dead_time<:before limit :limit";
-    private static final String BATCH_MARK_SUCCESS_SQL   =
-            "update arch_event set state=1, version=version+1, publish_time=:publish_time where id=:id and version=:version and shard_key=:shard_key";
-    private static final String BATCH_MARK_FAILED_SQL    =
-            "update arch_event set state=2, version=version+1 where id=:id and version=:version and shard_key=:shard_key";
+    private static final String BATCH_MARK_SUCCESS_SQL  = "update arch_event set state=1, version=version+1, publish_time=:publish_time where id=:id and version=:version and shard_key=:shard_key";
+    private static final String BATCH_MARK_FAILED_SQL   = "update arch_event set state=2, version=version+1 where id=:id and version=:version and shard_key=:shard_key";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final TransactionTemplate        transactionTemplate;
@@ -82,21 +80,19 @@ public class JdbcDomainEventRepository implements IDomainEventRepository {
     public void batchMarkSucceeded(List<PublishEventEntity> entities) {
         long now = System.currentTimeMillis();
         MapSqlParameterSource[] params = entities.stream()
-                .map(e -> new MapSqlParameterSource("id", e.getId())
-                        .addValue("version", e.getVersion())
-                        .addValue("shard_key", e.getShardingKey())
-                        .addValue("publish_time", now))
-                .toArray(MapSqlParameterSource[]::new);
+                                                 .map(e -> new MapSqlParameterSource("id", e.getId()).addValue("version", e.getVersion())
+                                                                                                     .addValue("shard_key", e.getShardingKey())
+                                                                                                     .addValue("publish_time", now))
+                                                 .toArray(MapSqlParameterSource[]::new);
         jdbcTemplate.batchUpdate(BATCH_MARK_SUCCESS_SQL, params);
     }
 
     @Override
     public void batchMarkFailed(List<PublishEventEntity> entities, Throwable throwable) {
         MapSqlParameterSource[] params = entities.stream()
-                .map(e -> new MapSqlParameterSource("id", e.getId())
-                        .addValue("version", e.getVersion())
-                        .addValue("shard_key", e.getShardingKey()))
-                .toArray(MapSqlParameterSource[]::new);
+                                                 .map(e -> new MapSqlParameterSource("id", e.getId()).addValue("version", e.getVersion())
+                                                                                                     .addValue("shard_key", e.getShardingKey()))
+                                                 .toArray(MapSqlParameterSource[]::new);
         jdbcTemplate.batchUpdate(BATCH_MARK_FAILED_SQL, params);
     }
 
