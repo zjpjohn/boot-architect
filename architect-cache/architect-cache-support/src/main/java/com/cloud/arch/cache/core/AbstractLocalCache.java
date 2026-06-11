@@ -15,16 +15,12 @@ import java.util.concurrent.Callable;
 @SuppressWarnings("unchecked")
 public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
 
-    private final Map<Object, Object> KEY_LOCKS = new MapMaker().weakValues().makeMap();
-    private final LocalCacheSettings  settings;
-    private final AbstractRemoteCache remoteCache;
-    private final RefreshPolicy       refreshPolicy;
+    private final   Map<Object, Object> KEY_LOCKS = new MapMaker().weakValues().makeMap();
+    protected final LocalCacheSettings  settings;
+    protected final AbstractRemoteCache remoteCache;
+    protected final RefreshPolicy       refreshPolicy;
 
-    protected AbstractLocalCache(String name,
-                                 boolean allowNullValue,
-                                 LocalCacheSettings settings,
-                                 RefreshPolicy refreshPolicy,
-                                 AbstractRemoteCache remoteCache) {
+    protected AbstractLocalCache(String name, boolean allowNullValue, LocalCacheSettings settings, RefreshPolicy refreshPolicy, AbstractRemoteCache remoteCache) {
         super(name, allowNullValue);
         this.settings = settings;
         this.refreshPolicy = refreshPolicy;
@@ -57,10 +53,6 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
      * clear all local cache
      */
     public abstract void doClear();
-
-    public LocalCacheSettings getSettings() {
-        return settings;
-    }
 
     @Override
     public <T> T get(Object key) {

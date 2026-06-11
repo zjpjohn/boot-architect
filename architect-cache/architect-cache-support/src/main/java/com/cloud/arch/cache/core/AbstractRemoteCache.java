@@ -8,12 +8,18 @@ import java.util.concurrent.Callable;
 @SuppressWarnings("unchecked")
 public abstract class AbstractRemoteCache extends AbstractValueAdaptCache {
 
-    /* 远程缓存配置 */
-    private final CacheSettings settings;
-    /** 是否已激活本地缓存，通过 {@link #activateLocal} / {@link #detachLocal} 控制 */
-    private volatile boolean activatedLocal = false;
-    /* 持有的本地缓存 */
-    private AbstractLocalCache localCache;
+    /**
+     * 远程缓存配置
+     */
+    private final    CacheSettings      settings;
+    /**
+     * 是否已激活本地缓存，通过 {@link #activateLocal} / {@link #detachLocal} 控制
+     */
+    private volatile boolean            activatedLocal = false;
+    /**
+     * 持有的本地缓存
+     */
+    private          AbstractLocalCache localCache;
 
     protected AbstractRemoteCache(String name, CacheSettings settings) {
         super(name, settings.isAllowNullValue());
@@ -30,7 +36,7 @@ public abstract class AbstractRemoteCache extends AbstractValueAdaptCache {
     /**
      * get value from second cache, if cache value null and load value with loader
      *
-     * @param key cache key of value
+     * @param key         cache key of value
      * @param valueLoader value loader
      */
     public abstract Object doGet(Object key, Callable<?> valueLoader);
@@ -38,7 +44,7 @@ public abstract class AbstractRemoteCache extends AbstractValueAdaptCache {
     /**
      * put value to second cache with key
      *
-     * @param key cache key of value
+     * @param key   cache key of value
      * @param value cache value
      */
     public abstract void doPut(Object key, Object value);
@@ -110,13 +116,13 @@ public abstract class AbstractRemoteCache extends AbstractValueAdaptCache {
             return localCache.get(key);
         }
         Object storeValue = doGet(key);
-        return (T)toValue(storeValue);
+        return (T) toValue(storeValue);
     }
 
     /**
      * L2、L1缓存查询
      *
-     * @param key 缓存key
+     * @param key         缓存key
      * @param valueLoader 缓存值加载器
      */
     @Override
@@ -125,13 +131,13 @@ public abstract class AbstractRemoteCache extends AbstractValueAdaptCache {
             return localCache.get(key, valueLoader);
         }
         Object storeValue = doGet(key, valueLoader);
-        return (T)toValue(storeValue);
+        return (T) toValue(storeValue);
     }
 
     /**
      * 更新L2、L1缓存
      *
-     * @param key 缓存key
+     * @param key   缓存key
      * @param value 缓存值
      */
     @Override
