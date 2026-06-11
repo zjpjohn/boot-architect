@@ -11,6 +11,7 @@ import org.redisson.api.map.event.EntryExpiredListener;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
 public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRefreshTask {
@@ -20,25 +21,17 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
      */
     private static final String                    CACHE_LOAD_PATTERN            = "t:cache:%s:%s";
     /**
-     * 缓存刷新分布式锁 key 模板，格式: t:refresh:{cacheName}:{key}
-     */
-    private static final String                    REFRESH_LOCK_PATTERN          = "t:refresh:%s:%s";
-    /**
      * 获取缓存加载锁的超时时间（毫秒）
      */
     private static final long                      CACHE_LOAD_LOCK_TIME          = 200L;
     /**
-     * 刷新锁获取超时时间（毫秒）
-     */
-    private static final long                      CACHE_REFRESH_LOCK_TIME       = 20L;
-    /**
      * 获取锁失败后重试获取缓存值的间隔（毫秒）
      */
-    private static final long                      CACHE_LOCK_FAIL_LOAD_INTERVAL = 50L;
+    private static final long                      CACHE_LOCK_FAIL_LOAD_INTERVAL = 10L;
     /**
      * 获取锁失败后重试获取缓存值的最大次数
      */
-    private static final long                      CACHE_LOCK_FAIL_LOAD_RETRY    = 5;
+    private static final long                      CACHE_LOCK_FAIL_LOAD_RETRY    = 3;
     /**
      * redis缓存
      */
@@ -230,24 +223,27 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
     }
 
     /**
-     * 当竞争获取缓存加载锁失败时，重试获取已缓存的数据 重试5次获取缓存值，每次间隔50毫秒
+     * 当竞争获取缓存加载锁失败时，重试获取已缓存的数据，先 get 再 park。
      *
      * @param key 缓存key
      */
-    private Object retryLoadValue(Object key) throws InterruptedException {
-        Object value;
-        int    retryTime = 0;
-        do {
-            // 先等待指定加载时间，在重试加载数据
-            TimeUnit.MILLISECONDS.sleep(CACHE_LOCK_FAIL_LOAD_INTERVAL);
-            value = this.mapCache.get(key);
-            retryTime = retryTime + 1;
+    private Object retryLoadValue(Object key) {
+        for (int i = 0; i < CACHE_LOCK_FAIL_LOAD_RETRY; i++) {
+            Object value = this.mapCache.get(key);
             if (value != null) {
                 statsCounter().recordHits(1, false);
-                break;
+                return value;
             }
-        } while (retryTime < CACHE_LOCK_FAIL_LOAD_RETRY);
-        return value;
+            LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(CACHE_LOCK_FAIL_LOAD_INTERVAL));
+            if (Thread.interrupted()) {
+                throw new IllegalStateException("Thread interrupted while retry loading cache [" +
+                                                this.getName() +
+                                                "] key [" +
+                                                key +
+                                                "]");
+            }
+        }
+        return null;
     }
 
     /**
@@ -298,56 +294,23 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
     }
 
     /**
-     * 延长redis缓存过期时间
+     * 延长redis缓存过期时间（直接刷新，无需分布式锁和 remainTimeToLive 检查）。
+     * 节流由 RemoteCacheTtlRefresher 的本地 30s 间隔保证。
      *
      * @param key   缓存key
      * @param value 缓存值
      */
     @Override
     public void refreshTtl(Object key, Object value) {
-        // 异步刷新缓存过期时间
-        if (this.canRefreshRemainTime(key)) {
-            String lockKey = String.format(REFRESH_LOCK_PATTERN, this.getName(), key);
-            RLock  lock    = redissonClient.getLock(lockKey);
-            try {
-                if (!lock.tryLock(CACHE_REFRESH_LOCK_TIME, TimeUnit.MILLISECONDS)) {
-                    return;
-                }
-                try {
-                    this.refreshCacheTtl(key, value);
-                } finally {
-                    lock.unlock();
-                }
-            } catch (InterruptedException error) {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    /**
-     * 刷新缓存ttl
-     */
-    private void refreshCacheTtl(Object key, Object value) {
         try {
-            int               randomBound = this.getSettings().getRandomBound();
-            ThreadLocalRandom random      = ThreadLocalRandom.current();
-            long              expire      = this.getSettings().getExpire() + random.nextInt(randomBound);
-            this.mapCache.put(key, value, expire, TimeUnit.SECONDS);
+            int  randomBound = this.getSettings().getRandomBound();
+            long expire      = this.getSettings().getExpire() + ThreadLocalRandom.current().nextInt(randomBound);
+            this.mapCache.fastPut((String) key, value, expire, TimeUnit.SECONDS);
         } catch (Exception error) {
             if (log.isWarnEnabled()) {
                 log.warn("cache[{}] refresh key [{}] error:", this.getName(), key, error);
             }
         }
-    }
-
-    /**
-     * 判断是否为可刷新缓存剩余时间
-     *
-     * @param key 缓存key
-     */
-    private boolean canRefreshRemainTime(Object key) {
-        long ttl = this.mapCache.remainTimeToLive(key);
-        return ttl > 0 && ttl < this.getSettings().getPreloadTime();
     }
 
 }

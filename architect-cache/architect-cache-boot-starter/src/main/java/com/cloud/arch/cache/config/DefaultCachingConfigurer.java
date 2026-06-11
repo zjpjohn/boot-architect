@@ -47,10 +47,10 @@ public class DefaultCachingConfigurer implements CachingConfigurer, DisposableBe
             int poolSize = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
             this.scheduleExecutor = new ScheduledThreadPoolExecutor(poolSize, new DefaultThreadFactory("cache-scheduler"));
             this.scheduleExecutor.setRemoveOnCancelPolicy(true);
-            return new RedisCacheManager(statsManager, redissonClient, refreshPolicy, ttlRefresher, scheduleExecutor);
+            return new RedisCacheManager(statsManager, redissonClient, refreshPolicy, ttlRefresher, scheduleExecutor, cloudCacheProperties.getMaxLocalTtlSeconds());
         }
         //未开启本地缓存
-        return new RedisCacheManager(statsManager, redissonClient, ttlRefresher);
+        return new RedisCacheManager(statsManager, redissonClient, ttlRefresher, cloudCacheProperties.getMaxLocalTtlSeconds());
     }
 
     public RedisCacheManager getCacheManager() {

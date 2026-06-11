@@ -54,10 +54,10 @@ public class CacheThreadPoolExecutor {
         executor().submit(callable);
     }
 
-    private static class TaskRejectedPolicy extends ThreadPoolExecutor.CallerRunsPolicy {
+    private static class TaskRejectedPolicy extends ThreadPoolExecutor.DiscardOldestPolicy {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-            log.warn("缓存任务线程池队列已满(pool:{}/active:{}/queue:{})，降级为调用者执行",
+            log.warn("缓存任务线程池队列已满(pool:{}/active:{}/queue:{})，丢弃最旧任务",
                      e.getPoolSize(),
                      e.getActiveCount(),
                      e.getQueue().size());

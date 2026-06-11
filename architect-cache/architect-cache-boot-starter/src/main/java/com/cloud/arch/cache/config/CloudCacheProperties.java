@@ -45,5 +45,10 @@ public class CloudCacheProperties {
      * 缓存是否只对public方法生效
      */
     private boolean onlyPublic         = true;
+    /**
+     * L1 本地缓存最大 TTL 秒数，超期强制逐出防止 Pub/Sub 丢消息导致脏数据永不过期。
+     * 默认 0 表示不限制（沿用缓存实例自身的 TTL 配置）。
+     */
+    private int     maxLocalTtlSeconds = 0;
 
 }
