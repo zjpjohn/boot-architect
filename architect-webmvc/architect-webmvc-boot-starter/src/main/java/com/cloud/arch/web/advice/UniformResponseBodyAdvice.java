@@ -66,12 +66,7 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
     }
 
     @Override
-    public Object beforeBodyWrite(Object body,
-                                  MethodParameter returnType,
-                                  MediaType selectedContentType,
-                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
-                                  ServerHttpRequest request,
-                                  ServerHttpResponse response) {
+    public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
         ApiBody     annotation  = this.getAnnotation(returnType);
         String      message     = message(annotation);
         BodyData<?> wrappedBody = wrapBody(annotation, body, message, response);
