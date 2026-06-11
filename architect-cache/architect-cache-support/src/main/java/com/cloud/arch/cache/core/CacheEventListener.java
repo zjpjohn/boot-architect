@@ -26,4 +26,11 @@ public interface CacheEventListener {
         return event.getNode() == getLocalNode();
     }
 
+    /**
+     * 销毁监听器，关闭消费者/轮询线程等资源。
+     * 默认空实现，子类按需覆盖。
+     */
+    default void destroy() {
+    }
+
 }
