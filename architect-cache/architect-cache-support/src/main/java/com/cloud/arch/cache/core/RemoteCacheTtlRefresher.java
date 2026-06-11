@@ -31,7 +31,7 @@ public class RemoteCacheTtlRefresher {
      */
     public void refreshTtl(String cacheName, Object key, Object value, CacheTtlRefreshTask refreshTask) {
         long   current     = System.currentTimeMillis();
-        String uniqueKey   = cacheName + key.toString();
+        String uniqueKey   = cacheName + "#" + key.toString();
         Long   lastRefresh = refreshTimeCache.computeIfAbsent(uniqueKey, k -> current);
         if (current - lastRefresh < this.refreshInterval) {
             return;

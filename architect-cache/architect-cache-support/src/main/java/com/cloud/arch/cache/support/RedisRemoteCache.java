@@ -294,7 +294,7 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
         try {
             int  randomBound = this.getSettings().getRandomBound();
             long expire      = this.getSettings().getExpire() + ThreadLocalRandom.current().nextInt(randomBound);
-            this.mapCache.fastPut((String) key, value, expire, TimeUnit.SECONDS);
+            this.mapCache.fastPut(key, value, expire, TimeUnit.SECONDS);
         } catch (Exception error) {
             if (log.isWarnEnabled()) {
                 log.warn("cache[{}] refresh key [{}] error:", this.getName(), key, error);
