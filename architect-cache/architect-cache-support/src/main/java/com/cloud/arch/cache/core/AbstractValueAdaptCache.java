@@ -18,7 +18,7 @@ public abstract class AbstractValueAdaptCache implements Cache {
     private final boolean allowNullValue;
 
     protected AbstractValueAdaptCache(String name, boolean allowNullValue) {
-        this.name           = name;
+        this.name = name;
         this.allowNullValue = allowNullValue;
     }
 

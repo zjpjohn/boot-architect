@@ -27,11 +27,11 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
     /**
      * 获取锁失败后重试获取缓存值的间隔（毫秒）
      */
-    private static final long                      CACHE_LOCK_FAIL_LOAD_INTERVAL = 10L;
+    private static final long                      CACHE_LOCK_FAIL_LOAD_INTERVAL = 30L;
     /**
      * 获取锁失败后重试获取缓存值的最大次数
      */
-    private static final long                      CACHE_LOCK_FAIL_LOAD_RETRY    = 3;
+    private static final long                      CACHE_LOCK_FAIL_LOAD_RETRY    = 5;
     /**
      * redis缓存
      */
@@ -178,27 +178,19 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
                 // 重试仍未获取到值，再次尝试获取锁（最长等待 CACHE_LOAD_LOCK_TIME 毫秒）
                 lockedSuccess = lock.tryLock(CACHE_LOAD_LOCK_TIME, TimeUnit.MILLISECONDS);
                 if (!lockedSuccess) {
-                    throw new IllegalStateException("Failed to acquire load lock for cache [" +
-                                                    this.getName() +
-                                                    "] key [" +
-                                                    key +
-                                                    "]");
+                    String message = String.format("Failed to acquire load lock for cache [%s] key [%s]", getName(), key);
+                    throw new IllegalStateException(message);
                 }
             }
             try {
                 return doLoadAndPut(key, valueLoader);
             } finally {
-                if (lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
+                lock.unlock();
             }
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Thread interrupted while loading cache [" +
-                                            this.getName() +
-                                            "] key [" +
-                                            key +
-                                            "]", error);
+            String message = String.format("Thread interrupted while loading cache [%s] key [%s]", getName(), key);
+            throw new IllegalStateException(message);
         }
     }
 
@@ -236,11 +228,8 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
             }
             LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(CACHE_LOCK_FAIL_LOAD_INTERVAL));
             if (Thread.interrupted()) {
-                throw new IllegalStateException("Thread interrupted while retry loading cache [" +
-                                                this.getName() +
-                                                "] key [" +
-                                                key +
-                                                "]");
+                String message = String.format("Thread interrupted while loading cache [%s] key [%s]", getName(), key);
+                throw new IllegalStateException(message);
             }
         }
         return null;

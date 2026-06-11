@@ -1,6 +1,7 @@
 package com.cloud.arch.cache.warmup.core;
 
 import com.cloud.arch.cache.annotations.CacheResult;
+import com.cloud.arch.cache.utils.CacheThreadPoolExecutor;
 import com.cloud.arch.cache.warmup.config.WarmUpProperties;
 import com.cloud.arch.cache.warmup.metrics.WarmUpMetrics;
 import lombok.extern.slf4j.Slf4j;
@@ -71,8 +72,7 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
             }
             return;
         }
-
-        com.cloud.arch.cache.utils.CacheThreadPoolExecutor.run(() -> doExecute(targetCaches));
+        CacheThreadPoolExecutor.run(() -> doExecute(targetCaches));
     }
 
     private void scan() {
