@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
+@SuppressWarnings("unchecked")
 public class CaffeineLocalCache extends AbstractLocalCache {
 
     private final LoadingCache<Object, Object> cache;
@@ -43,7 +44,7 @@ public class CaffeineLocalCache extends AbstractLocalCache {
                 log.info("caffeine cache event action [{}],cache {name:{}, key:{}}", cause, this.getName(), key);
             }
         });
-        return caffeine.build(key -> remoteCache.doGet(key));
+        return caffeine.build(remoteCache::doGet);
     }
 
     @Override
@@ -65,14 +66,7 @@ public class CaffeineLocalCache extends AbstractLocalCache {
             this.remoteCache.statsCounter().recordHits(1, true);
             return (T) toValue(value);
         }
-        value = this.cache.get(key, k -> {
-            try {
-                Object userValue = valueLoader.call();
-                return toStoreValue(userValue);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        value = this.cache.get(key, k -> remoteCache.doGet(key, valueLoader));
         return (T) toValue(value);
     }
 
