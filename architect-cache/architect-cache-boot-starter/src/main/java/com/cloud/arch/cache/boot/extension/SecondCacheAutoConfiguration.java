@@ -43,6 +43,9 @@ public class SecondCacheAutoConfiguration {
     @ConditionalOnMissingBean(RefreshPolicy.class)
     @ConditionalOnProperty(prefix = "com.cloud.cache", name = "enable-local", havingValue = "true")
     public RefreshPolicy refreshPolicy(CloudCacheProperties properties, CacheNodePolicy cacheNodePolicy, CacheRedisSupplier redisLoader) {
+        if ("stream".equals(properties.getRefreshType())) {
+            return new RedisStreamRefreshPolicy(properties.getRefreshTopic(), redisLoader.get(), cacheNodePolicy, properties.getRefreshStreamMaxLen());
+        }
         return new RedisTopicRefreshPolicy(properties.getRefreshTopic(), redisLoader.get(), cacheNodePolicy);
     }
 
@@ -57,7 +60,14 @@ public class SecondCacheAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean({CacheEventListener.class})
     @ConditionalOnProperty(prefix = "com.cloud.cache", name = "enable-local", havingValue = "true")
-    public CacheEventListener eventListener(CloudCacheProperties properties, CacheNodePolicy cacheNodePolicy, DefaultCachingConfigurer cachingConfigurer) {
+    public CacheEventListener eventListener(CloudCacheProperties properties, CacheNodePolicy cacheNodePolicy,
+                                             DefaultCachingConfigurer cachingConfigurer, CacheRedisSupplier redisLoader) {
+        if ("stream".equals(properties.getRefreshType())) {
+            return new RedisStreamEventListener(properties.getRefreshTopic(), redisLoader.get(),
+                                                cachingConfigurer.getCacheManager(), cacheNodePolicy,
+                                                properties.getRefreshStreamBatchSize(),
+                                                properties.getRefreshStreamBlockTimeoutMs());
+        }
         return new RedisRefreshEventListener(properties.getRefreshTopic(), cachingConfigurer.getCacheManager(), cacheNodePolicy);
     }
 

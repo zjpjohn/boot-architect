@@ -50,5 +50,21 @@ public class CloudCacheProperties {
      * 默认 0 表示不限制（沿用缓存实例自身的 TTL 配置）。
      */
     private int     maxLocalTtlSeconds = 0;
+    /**
+     * 缓存刷新策略：pubsub（默认）| stream
+     */
+    private String  refreshType              = "pubsub";
+    /**
+     * Stream 裁剪最大长度，默认 10000
+     */
+    private int     refreshStreamMaxLen      = 10000;
+    /**
+     * Stream poll 批量大小，默认 100
+     */
+    private int     refreshStreamBatchSize   = 100;
+    /**
+     * Stream XREAD BLOCK 超时(ms)，默认 5000
+     */
+    private long    refreshStreamBlockTimeoutMs = 5000;
 
 }
