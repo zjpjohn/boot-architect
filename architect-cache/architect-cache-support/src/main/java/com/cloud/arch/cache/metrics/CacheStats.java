@@ -25,14 +25,7 @@ public final class CacheStats {
 
     }
 
-    public CacheStats(long hitCount,
-                      long missCount,
-                      long hitL1Count,
-                      long loadSuccessCount,
-                      long loadFailCount,
-                      long totalLoadTime,
-                      long evictCount,
-                      long evictWeight) {
+    public CacheStats(long hitCount, long missCount, long hitL1Count, long loadSuccessCount, long loadFailCount, long totalLoadTime, long evictCount, long evictWeight) {
         this.hitCount = hitCount;
         this.missCount = missCount;
         this.hitL1Count = hitL1Count;

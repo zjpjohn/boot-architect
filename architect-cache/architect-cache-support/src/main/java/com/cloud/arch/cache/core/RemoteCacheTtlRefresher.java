@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class RemoteCacheTtlRefresher {
     // 缓存刷新时间阈值，默认时间-30秒
-    public static final Long                DEFAULT_REFRESH_INTERVAL = 35000L;
+    public static final Long                DEFAULT_REFRESH_INTERVAL = 30000L;
     // refreshTimeCache 最大容量，防止突发流量下内存暴涨
     public static final long                DEFAULT_MAX_SIZE         = 10000L;
     // Caffeine Cache 自动淘汰过期 key，防止内存无限增长
