@@ -60,13 +60,9 @@ public class SecondCacheAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean({CacheEventListener.class})
     @ConditionalOnProperty(prefix = "com.cloud.cache", name = "enable-local", havingValue = "true")
-    public CacheEventListener eventListener(CloudCacheProperties properties, CacheNodePolicy cacheNodePolicy,
-                                             DefaultCachingConfigurer cachingConfigurer, CacheRedisSupplier redisLoader) {
+    public CacheEventListener eventListener(CloudCacheProperties properties, CacheNodePolicy cacheNodePolicy, DefaultCachingConfigurer cachingConfigurer, CacheRedisSupplier redisLoader) {
         if ("stream".equals(properties.getRefreshType())) {
-            return new RedisStreamEventListener(properties.getRefreshTopic(), redisLoader.get(),
-                                                cachingConfigurer.getCacheManager(), cacheNodePolicy,
-                                                properties.getRefreshStreamBatchSize(),
-                                                properties.getRefreshStreamBlockTimeoutMs());
+            return new RedisStreamEventListener(properties.getRefreshTopic(), cachingConfigurer.getCacheManager(), cacheNodePolicy, properties.getRefreshStreamBatchSize(), properties.getRefreshStreamBlockTimeoutMs());
         }
         return new RedisRefreshEventListener(properties.getRefreshTopic(), cachingConfigurer.getCacheManager(), cacheNodePolicy);
     }

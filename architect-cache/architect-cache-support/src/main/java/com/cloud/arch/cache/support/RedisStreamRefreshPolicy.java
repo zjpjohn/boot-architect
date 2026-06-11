@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.cloud.arch.cache.core.CacheNodePolicy;
 import com.cloud.arch.cache.core.RefreshEvent;
 import com.cloud.arch.cache.core.RefreshPolicy;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RStream;
 import org.redisson.api.RedissonClient;

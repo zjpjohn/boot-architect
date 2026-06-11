@@ -28,8 +28,8 @@ public class RedisStreamEventListener implements CacheEventListener, SmartInitia
     private volatile boolean running = true;
     private          Thread  pollThread;
 
-    public RedisStreamEventListener(String streamName, RedissonClient redissonClient, RedisCacheManager cacheManager, CacheNodePolicy cacheNodePolicy, int batchSize, long blockTimeoutMs) {
-        this.stream = redissonClient.getStream(streamName, StringCodec.INSTANCE);
+    public RedisStreamEventListener(String streamName, RedisCacheManager cacheManager, CacheNodePolicy cacheNodePolicy, int batchSize, long blockTimeoutMs) {
+        this.stream = cacheManager.getRedissonClient().getStream(streamName, StringCodec.INSTANCE);
         this.cacheManager = cacheManager;
         this.cacheNodePolicy = cacheNodePolicy;
         this.batchSize = batchSize;
@@ -47,9 +47,10 @@ public class RedisStreamEventListener implements CacheEventListener, SmartInitia
         StreamMessageId lastId = StreamMessageId.NEWEST;
         while (running && !Thread.currentThread().isInterrupted()) {
             try {
-                Map<StreamMessageId, Map<String, String>> messages = stream.read(StreamReadArgs.greaterThan(lastId)
-                                                                                               .count(batchSize)
-                                                                                               .timeout(Duration.ofMillis(blockTimeoutMs)));
+                StreamReadArgs args = StreamReadArgs.greaterThan(lastId)
+                                                    .count(batchSize)
+                                                    .timeout(Duration.ofMillis(blockTimeoutMs));
+                Map<StreamMessageId, Map<String, String>> messages = stream.read(args);
                 if (messages == null || messages.isEmpty()) {
                     continue;
                 }
