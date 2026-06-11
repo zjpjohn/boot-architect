@@ -39,6 +39,9 @@ public class CaffeineLocalCache extends AbstractLocalCache {
         } else {
             caffeine.expireAfterAccess(effectiveTtl, TimeUnit.SECONDS);
         }
+        if (maxLocalTtlSeconds > 0) {
+            caffeine.refreshAfterWrite(maxLocalTtlSeconds / 2, TimeUnit.SECONDS);
+        }
         caffeine.removalListener((key, value, cause) -> {
             if (log.isInfoEnabled()) {
                 log.info("caffeine cache event action [{}],cache {name:{}, key:{}}", cause, this.getName(), key);
