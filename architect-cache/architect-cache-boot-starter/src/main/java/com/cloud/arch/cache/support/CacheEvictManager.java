@@ -34,6 +34,7 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
         this.properties = properties;
         this.delayQueue = new DelayQueue<>();
         this.triggerWorker = new Thread(this::triggerDelayEvict, "cache-evict-trigger-thread");
+        this.triggerWorker.setDaemon(true);
     }
 
     /**
@@ -93,10 +94,7 @@ public class CacheEvictManager implements DisposableBean, InitializingBean {
     private void publishDelayEvict(CacheEvictEvent event) {
         int pendingSize = this.delayQueue.size();
         if (pendingSize >= this.properties.getMaxDelayEvictSize()) {
-            log.warn("延迟删除队列已满(size:{}/max:{})，丢弃key[{}]的延迟双删任务",
-                     pendingSize,
-                     this.properties.getMaxDelayEvictSize(),
-                     event.getKey());
+            log.warn("延迟删除队列已满(size:{}/max:{})，丢弃key[{}]的延迟双删任务", pendingSize, this.properties.getMaxDelayEvictSize(), event.getKey());
             return;
         }
         long           evictAt        = System.currentTimeMillis() + this.properties.getDelayEvictInterval();
