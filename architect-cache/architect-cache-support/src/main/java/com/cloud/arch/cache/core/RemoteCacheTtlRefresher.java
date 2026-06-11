@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class RemoteCacheTtlRefresher {
     // 缓存刷新时间阈值，默认时间-30秒
-    public static final Long                        DEFAULT_REFRESH_INTERVAL = 30000L;
+    public static final Long                        DEFAULT_REFRESH_INTERVAL = 35000L;
     // Caffeine Cache 自动淘汰过期 key，防止内存无限增长
     private final       Cache<Object, Long>         refreshTimeCache;
     // 刷新缓存时间间隔
@@ -42,7 +42,10 @@ public class RemoteCacheTtlRefresher {
         long   current   = System.currentTimeMillis();
         String uniqueKey = cacheName + "#" + key.toString();
         refreshTimeCache.asMap().compute(uniqueKey, (k, v) -> {
-            if (v != null && current - v < this.refreshInterval) {
+            if (v == null) {
+                return current;
+            }
+            if (current - v < this.refreshInterval) {
                 return v;
             }
             CacheThreadPoolExecutor.run(() -> refreshTask.refreshTtl(key, value));
