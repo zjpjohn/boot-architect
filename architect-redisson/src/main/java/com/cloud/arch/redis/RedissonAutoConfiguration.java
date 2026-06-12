@@ -88,11 +88,4 @@ public class RedissonAutoConfiguration {
         return new RedissonTemplate(redissonClient);
     }
 
-    @Bean
-    @ConditionalOnBean(RedissonClient.class)
-    @ConditionalOnMissingBean(AtomicCounter.class)
-    public AtomicCounter atomicCounter(RedissonClient redissonClient) {
-        return new AtomicCounter(redissonClient);
-    }
-
 }
