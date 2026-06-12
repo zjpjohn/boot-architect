@@ -35,11 +35,31 @@ public class JdbcCompensateProperties {
      * 补偿间隔时间
      */
     @DurationUnit(ChronoUnit.MINUTES)
-    private Duration period       = Duration.ofMinutes(5);
+    private Duration period       = Duration.ofMinutes(2);
+
+    /**
+     * 补偿分布式配置
+     */
+    private SchedulerMutex mutex      = new SchedulerMutex();
+    /**
+     * 补偿处理器线程池
+     */
+    private Compensate     compensate = new Compensate();
+
     /**
      * 批量标记配置
      */
-    private Marker   marker       = new Marker();
+    private Marker marker = new Marker();
+
+    /**
+     * 成功事件清理配置
+     */
+    private CleanSucceed cleanSucceed = new CleanSucceed();
+
+    /**
+     * 死信归档配置
+     */
+    private DeadLetter deadLetter = new DeadLetter();
 
     @Data
     public static class Marker {
@@ -53,46 +73,32 @@ public class JdbcCompensateProperties {
         private long stealInterval = 500;
     }
 
-    /**
-     * 成功事件清理配置
-     */
-    private CleanSucceeded cleanSucceeded = new CleanSucceeded();
-
     @Data
-    public static class CleanSucceeded {
+    public static class CleanSucceed {
         /**
          * 成功事件保留天数，默认 7 天
          */
-        private int           retainDays   = 7;
+        private int            retainDays   = 7;
         /**
          * 每次清理批处理大小
          */
-        private int           batchSize    = 1000;
+        private int            batchSize    = 1000;
         /**
          * 启动延迟时间
          */
         @DurationUnit(ChronoUnit.SECONDS)
-        private Duration      initialDelay = Duration.ofSeconds(5);
+        private Duration       initialDelay = Duration.ofSeconds(10);
         /**
          * 清理间隔时间，默认 1 小时
          */
         @DurationUnit(ChronoUnit.HOURS)
-        private Duration      period       = Duration.ofHours(1);
+        private Duration       period       = Duration.ofHours(1);
         /**
          * 清理分布式锁配置
          */
-        private SchedulerMutex mutex       = new SchedulerMutex();
+        private SchedulerMutex mutex        = new SchedulerMutex();
     }
 
-    /**
-     * 补偿分布式配置
-     */
-    private SchedulerMutex mutex = new SchedulerMutex();
-
-    /**
-     * 补偿处理器线程池
-     */
-    private Compensate compensate = new Compensate();
 
     @Data
     public static class Compensate {
@@ -108,6 +114,38 @@ public class JdbcCompensateProperties {
          * 任务队列容量
          */
         private int queueSize   = 100;
+    }
+
+    @Data
+    public static class DeadLetter {
+        /**
+         * 归档批量
+         */
+        private int            batch        = 10;
+        /**
+         * 归档before时间前的事件
+         */
+        @DurationUnit(ChronoUnit.MINUTES)
+        private Duration       before       = Duration.ofMinutes(1);
+        /**
+         * 归档range时间范围内的事件
+         */
+        @DurationUnit(ChronoUnit.DAYS)
+        private Duration       range        = Duration.ofDays(7);
+        /**
+         * 启动延迟时间
+         */
+        @DurationUnit(ChronoUnit.SECONDS)
+        private Duration       initialDelay = Duration.ofSeconds(30);
+        /**
+         * 归档间隔时间
+         */
+        @DurationUnit(ChronoUnit.MINUTES)
+        private Duration       period       = Duration.ofMinutes(30);
+        /**
+         * 分布式锁配置
+         */
+        private SchedulerMutex mutex        = new SchedulerMutex();
     }
 
     @Data

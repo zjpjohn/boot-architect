@@ -6,4 +6,6 @@ public interface CompensateHandler {
      * 补偿发送处理器
      */
     void handle();
+
+
 }

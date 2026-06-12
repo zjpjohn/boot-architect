@@ -17,24 +17,15 @@ public class MutexScheduler extends AbsMutexContender {
     private final    ScheduledExecutorService scheduler;
     private volatile ScheduledFuture<?>       workFuture;
 
-    public MutexScheduler(String mutex,
-                          SchedulerConfig config,
-                          Runnable workTask,
-                          ContendMutexProps props,
-                          ScheduledExecutorService scheduler,
-                          ContendControllerFactory controllerFactory) {
+    public MutexScheduler(String mutex, SchedulerConfig config, Runnable workTask, ContendMutexProps props, ScheduledExecutorService scheduler, ContendControllerFactory controllerFactory) {
         super(mutex);
-        this.config     = config;
-        this.workTask   = workTask;
-        this.scheduler  = scheduler;
+        this.config = config;
+        this.workTask = workTask;
+        this.scheduler = scheduler;
         this.controller = controllerFactory.createContendController(this, props);
     }
 
-    public MutexScheduler(String mutex,
-                          SchedulerConfig config,
-                          Runnable workTask,
-                          ContendMutexProps props,
-                          ContendControllerFactory controllerFactory) {
+    public MutexScheduler(String mutex, SchedulerConfig config, Runnable workTask, ContendMutexProps props, ContendControllerFactory controllerFactory) {
         this(mutex, config, workTask, props, Executors.newSingleThreadScheduledExecutor(), controllerFactory);
     }
 
@@ -49,12 +40,10 @@ public class MutexScheduler extends AbsMutexContender {
         final long initialDelay = config.getInitialDelay().toMillis();
         final long period       = config.getPeriod().toMillis();
         if (config.getType() == ScheduleType.FIXED_RATE) {
-            this.workFuture
-                    = this.scheduler.scheduleAtFixedRate(this::safeWork, initialDelay, period, TimeUnit.MILLISECONDS);
+            this.workFuture = this.scheduler.scheduleAtFixedRate(this::safeWork, initialDelay, period, TimeUnit.MILLISECONDS);
             return;
         }
-        this.workFuture
-                = this.scheduler.scheduleWithFixedDelay(this::safeWork, initialDelay, period, TimeUnit.MILLISECONDS);
+        this.workFuture = this.scheduler.scheduleWithFixedDelay(this::safeWork, initialDelay, period, TimeUnit.MILLISECONDS);
     }
 
     /**

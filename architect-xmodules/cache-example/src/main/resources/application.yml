@@ -40,6 +40,7 @@ com:
     cache:
       refresh-topic: cache-demo-refresh
       enable-metric: true
+      refresh-type: stream
       #自定义redis
       redis:
         address: 127.0.0.1:6379

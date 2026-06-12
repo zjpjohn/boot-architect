@@ -30,10 +30,10 @@ public class JdbcContendController extends AbsContendController {
                                  Duration ttl,
                                  Duration transition) {
         super(contender, executor);
-        this.initialDelay         = initialDelay;
-        this.ttl                  = ttl;
-        this.transition           = transition;
-        this.contendPeriod        = new ContendPeriod(this.getContender().getContenderId());
+        this.initialDelay = initialDelay;
+        this.ttl = ttl;
+        this.transition = transition;
+        this.contendPeriod = new ContendPeriod(this.getContender().getContenderId());
         this.mutexOwnerRepository = mutexOwnerRepository;
     }
 

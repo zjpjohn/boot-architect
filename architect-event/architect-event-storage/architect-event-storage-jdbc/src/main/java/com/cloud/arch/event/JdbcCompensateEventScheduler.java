@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class JdbcCompensateEventScheduler implements CompensateHandler, SmartInitializingSingleton {
 
     public static final String EVENT_COMPENSATE_MUTEX      = "compensate-event-mutex";
+    public static final String DEAD_LETTER_MUTEX           = "dead-letter-mutex";
     public static final String CLEAN_SUCCEEDED_EVENT_MUTEX = "clean-event-mutex";
 
     private final JdbcCompensateProperties properties;
@@ -40,7 +41,7 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
     }
 
     /**
-     * 补偿发送处理器：先补偿失败事件，再将超过最大重试次数的事件移入死信表。
+     * 补偿发送处理器：补偿失败事件（version < maxVersion）。
      */
     @Override
     public void handle() {
@@ -52,14 +53,21 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
             entities.forEach(compensateProcessor::process);
             statsManager.incrementCompensateRetry(entities.size());
         }
+        statsManager.recordCompensateLatency(System.currentTimeMillis() - metricStart);
+    }
 
-        final List<PublishEventEntity> deadCandidates = eventRepository.deadEventCandidates(properties.getBatch(), properties.getMaxVersion(), properties.getBefore(), properties.getRange());
+    /**
+     * 死信归档：将超过最大重试次数的事件从事件表移入死信表。
+     */
+    public void archiveDeadLetters() {
+        JdbcCompensateProperties.DeadLetter dl             = properties.getDeadLetter();
+        Integer                             maxVersion     = properties.getMaxVersion();
+        final List<PublishEventEntity>      deadCandidates = eventRepository.deadEventCandidates(dl.getBatch(), maxVersion, dl.getBefore(), dl.getRange());
         if (!CollectionUtils.isEmpty(deadCandidates)) {
             deadCandidates.forEach(entity -> eventRepository.archiveDeadEvent(entity, "exceeded max retry version " +
-                                                                                      properties.getMaxVersion()));
+                                                                                      maxVersion));
             statsManager.incrementCompensateDeadLetter(deadCandidates.size());
         }
-        statsManager.recordCompensateLatency(System.currentTimeMillis() - metricStart);
     }
 
     /**
@@ -72,11 +80,21 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
     }
 
     /**
+     * 死信归档任务
+     */
+    private void deadLetterSchedule() {
+        JdbcCompensateProperties.DeadLetter     dl        = this.properties.getDeadLetter();
+        JdbcCompensateProperties.SchedulerMutex deadMutex = dl.getMutex();
+        ContendMutexProps                       props     = new ContendMutexProps(deadMutex.getInitialDelay(), deadMutex.getTtl(), deadMutex.getTransition());
+        mutexTemplate.scheduleAtRate(props, DEAD_LETTER_MUTEX, dl.getInitialDelay(), dl.getPeriod(), this::archiveDeadLetters);
+    }
+
+    /**
      * 清理超过保留期的成功事件（state=1），删除 7 天前已成功投递到 MQ 的事件。
      */
     public void cleanSucceededEvents() {
-        int  days    = properties.getCleanSucceeded().getRetainDays();
-        int  limit   = properties.getCleanSucceeded().getBatchSize();
+        int  days    = properties.getCleanSucceed().getRetainDays();
+        int  limit   = properties.getCleanSucceed().getBatchSize();
         long before  = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
         int  deleted = eventRepository.cleanSucceededEvents(before, limit);
         statsManager.incrementSucceededClean(deleted);
@@ -86,7 +104,7 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
      * 清理发送成功的事件任务
      */
     private void cleanEventSchedule() {
-        JdbcCompensateProperties.CleanSucceeded cs         = properties.getCleanSucceeded();
+        JdbcCompensateProperties.CleanSucceed   cs         = properties.getCleanSucceed();
         JdbcCompensateProperties.SchedulerMutex cleanMutex = cs.getMutex();
         ContendMutexProps                       cleanProps = new ContendMutexProps(cleanMutex.getInitialDelay(), cleanMutex.getTtl(), cleanMutex.getTransition());
         mutexTemplate.scheduleAtRate(cleanProps, CLEAN_SUCCEEDED_EVENT_MUTEX, cs.getInitialDelay(), cs.getPeriod(), this::cleanSucceededEvents);
@@ -96,6 +114,8 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
     public void afterSingletonsInstantiated() {
         //事件补偿定时任务
         this.compensateSchedule();
+        //死信归档定时任务
+        this.deadLetterSchedule();
         //成功事件定时清理任务
         this.cleanEventSchedule();
     }
