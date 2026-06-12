@@ -43,7 +43,7 @@ Spring Cache 生态里「开箱即用不够、需要自己搭」的中间地带�
 
 | 方案 | L1 写入 | L2 写入 | 集群一致性 | 总延迟 |
 |------|---------|---------|-----------|--------|
-| architect-cache | Caffeine.put（直接） | Redisson RMapCache.put | Pub/Sub 异步广播 | ~2-6ms |
+| architect-cache | Caffeine.put（直接） | Redisson RMapCache.put | Pub/Sub（默认）或 Redis Streams 异步广播 | ~2-6ms |
 | JetCache | Caffeine.put | Lettuce SETEX | Pub/Sub 异步广播 | ~2-6ms |
 | Spring Cache + Redis | — | RedisTemplate.put | 无（无 L1） | ~1-3ms |
 | Hazelcast | 写入本地分区 | P2P 备份到其他节点 | 内置 Raft | ~1-3ms |
@@ -119,7 +119,7 @@ JetCache 仅有分布式锁，同 JVM 内不同线程也要争 Redis 锁，每�
 
 - 每次 `doGet()` 命中后，检查 Redis TTL 是否 < `preloadTime`（默认 300 秒）
 - 满足条件则通过 Redisson 分布式锁（20ms 超时）续期到完整 TTL
-- 每个 key 在 `refreshTimeCache`（ConcurrentMap）中限速，默认 30 秒内不重复刷新
+- 每个 key 在 `refreshTimeCache`（Caffeine Cache，maximumSize=10000 + expireAfterAccess）中限速，默认 30 秒内不重复刷新，防止内存无限增长
 - 热点 key 不会在过期边界经历击穿回源毛刺，其他方案对此无解
 
 #### 延迟双删（architect-cache 独有）
@@ -159,7 +159,7 @@ JetCache 仅有分布式锁，同 JVM 内不同线程也要争 Redis 锁，每�
 |------|:---:|:---:|:---:|:---:|
 | L1/L2 双层缓存 | 原生 | 无（需手动整合） | 原生 | 原生 |
 | 写入策略 | Write-through | Cache-aside | Write-through | Write-through |
-| 集群 L1 一致性 | Pub/Sub + 本节点直接更新 + 发送方去重 | 无 L1 | 广播失效 | 广播失效 |
+| 集群 L1 一致性 | Pub/Sub（默认）或 Redis Streams + 本节点直接更新 + 发送方去重 | 无 L1 | 广播失效 | 广播失效 |
 | 防缓存击穿 | 两级锁（synchronized + Redisson + 三次检查） | `@Cacheable(sync=true)` 仅本地锁 | 分布式锁 | 仅本地锁 |
 | 防缓存雪崩 | `expire + random(randomBound)` | 需手动配置 | 支持 | 依赖 Caffeine |
 | 防缓存穿透 | `NullValue` 哨兵 + 独立压缩 TTL | 需自行处理 | 支持 | 需自行处理 |
@@ -256,7 +256,7 @@ architect-cache 的派生 Gauge 直接出 `hit.rate` / `miss.rate`，不需要�
 
 **集群 L1 一致性方案务实**
 
-很多 L1/L2 方案直接跳过集群一致性问题。本方案用 Pub/Sub 广播 + 本节点直接更新（非淘汰）+ 发送方去重（`CacheNodePolicy`），避免了「所有节点全部 evict 重新读 L2」的缓存风暴。
+很多 L1/L2 方案直接跳过集群一致性问题。本方案用 Pub/Sub（默认）或 Redis Streams 广播 + 本节点直接更新（非淘汰）+ 发送方去重（`CacheNodePolicy`），避免了「所有节点全部 evict 重新读 L2」的缓存风暴。Streams 模式提供消息持久化，重启后可续读，减少离线期间的 L1 不一致窗口。
 
 **热点探测是差异化杀手锏（可插拔）**
 
