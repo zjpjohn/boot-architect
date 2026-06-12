@@ -39,6 +39,10 @@ public class AtomicCounter {
 
     /**
      * 原子递增指定值，永不过期
+     *
+     * @param key   计数器 key
+     * @param delta 递增值
+     * @return 递增后的值
      */
     public long incr(String key, long delta) {
         return redissonClient.getAtomicLong(resolveKey(key)).incrementAndGet(LongIncrementArgs.by(delta));
@@ -46,6 +50,9 @@ public class AtomicCounter {
 
     /**
      * 原子递增 1，永不过期
+     *
+     * @param key 计数器 key
+     * @return 递增后的值
      */
     public long incr(String key) {
         return redissonClient.getAtomicLong(resolveKey(key)).incrementAndGet();
@@ -53,6 +60,9 @@ public class AtomicCounter {
 
     /**
      * 原子递减 1，永不过期
+     *
+     * @param key 计数器 key
+     * @return 递减后的值
      */
     public long decr(String key) {
         return redissonClient.getAtomicLong(resolveKey(key)).decrementAndGet();
@@ -60,6 +70,11 @@ public class AtomicCounter {
 
     /**
      * 原子递增指定值并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     *
+     * @param key   计数器 key
+     * @param delta 递增值
+     * @param ttl   过期时间，每次调用都会重置
+     * @return 递增后的值
      */
     public long incr(String key, long delta, Duration ttl) {
         return eval(INCR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
@@ -67,6 +82,10 @@ public class AtomicCounter {
 
     /**
      * 原子递增 1 并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     *
+     * @param key 计数器 key
+     * @param ttl 过期时间，每次调用都会重置
+     * @return 递增后的值
      */
     public long incr(String key, Duration ttl) {
         return eval(INCR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
@@ -74,6 +93,11 @@ public class AtomicCounter {
 
     /**
      * 原子递减指定值并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     *
+     * @param key   计数器 key
+     * @param delta 递减值
+     * @param ttl   过期时间，每次调用都会重置
+     * @return 递减后的值
      */
     public long decr(String key, long delta, Duration ttl) {
         return eval(DECR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
@@ -81,6 +105,10 @@ public class AtomicCounter {
 
     /**
      * 原子递减 1 并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     *
+     * @param key 计数器 key
+     * @param ttl 过期时间，每次调用都会重置
+     * @return 递减后的值
      */
     public long decr(String key, Duration ttl) {
         return eval(DECR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
@@ -88,6 +116,11 @@ public class AtomicCounter {
 
     /**
      * 原子递增指定值，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     *
+     * @param key   计数器 key
+     * @param delta 递增值
+     * @param ttl   过期时间，仅在 key 首次创建时设置，后续递增不刷新
+     * @return 递增后的值
      */
     public long incrIfAbsent(String key, long delta, Duration ttl) {
         return eval(INCR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
@@ -95,6 +128,10 @@ public class AtomicCounter {
 
     /**
      * 原子递增 1，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     *
+     * @param key 计数器 key
+     * @param ttl 过期时间，仅在 key 首次创建时设置，后续递增不刷新
+     * @return 递增后的值
      */
     public long incrIfAbsent(String key, Duration ttl) {
         return eval(INCR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
@@ -102,6 +139,11 @@ public class AtomicCounter {
 
     /**
      * 原子递减指定值，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     *
+     * @param key   计数器 key
+     * @param delta 递减值
+     * @param ttl   过期时间，仅在 key 首次创建时设置，后续递减不刷新
+     * @return 递减后的值
      */
     public long decrIfAbsent(String key, long delta, Duration ttl) {
         return eval(DECR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
@@ -109,13 +151,20 @@ public class AtomicCounter {
 
     /**
      * 原子递减 1，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     *
+     * @param key 计数器 key
+     * @param ttl 过期时间，仅在 key 首次创建时设置，后续递减不刷新
+     * @return 递减后的值
      */
     public long decrIfAbsent(String key, Duration ttl) {
         return eval(DECR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
     }
 
     /**
-     * 获取当前计数值，key 不存在返回 null，不修改 TTL
+     * 获取当前计数值，不修改 TTL
+     *
+     * @param key 计数器 key
+     * @return 当前值，key 不存在返回 null
      */
     public Long get(String key) {
         return redissonClient.<Long>getBucket(resolveKey(key)).get();
@@ -123,20 +172,30 @@ public class AtomicCounter {
 
     /**
      * 设置计数值并指定 TTL
+     *
+     * @param key   计数器 key
+     * @param value 计数值
+     * @param ttl   过期时间
      */
     public void set(String key, long value, Duration ttl) {
         redissonClient.getBucket(resolveKey(key)).set(value, ttl);
     }
 
     /**
-     * 原子获取当前值并重置为零（删除 key），key 不存在返回 null
+     * 原子获取当前值并重置为零（删除 key）
+     *
+     * @param key 计数器 key
+     * @return 删除前的值，key 不存在返回 null
      */
     public Long getAndReset(String key) {
         return eval(GET_AND_DEL, RScript.ReturnType.VALUE, resolveKey(key));
     }
 
     /**
-     * 删除计数器，返回 true 表示 key 存在并被删除
+     * 删除计数器
+     *
+     * @param key 计数器 key
+     * @return true 表示 key 存在并被删除，false 表示 key 不存在
      */
     public boolean delete(String key) {
         return redissonClient.getBucket(resolveKey(key)).delete();
