@@ -3,6 +3,7 @@ package com.cloud.arch.redis;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
+import org.redisson.api.atomic.LongIncrementArgs;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -36,34 +37,107 @@ public class AtomicCounter {
         }
     }
 
-    public long incrAndGet(String key, long delta, long ttlMillis) {
-        return eval(INCR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttlMillis);
+    /**
+     * 原子递增指定值，永不过期
+     */
+    public long incr(String key, long delta) {
+        return redissonClient.getAtomicLong(resolveKey(key)).incrementAndGet(LongIncrementArgs.by(delta));
     }
 
-    public long decrAndGet(String key, long delta, long ttlMillis) {
-        return eval(DECR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttlMillis);
+    /**
+     * 原子递增 1，永不过期
+     */
+    public long incr(String key) {
+        return redissonClient.getAtomicLong(resolveKey(key)).incrementAndGet();
     }
 
-    public long incrFixedWindow(String key, long delta, long ttlMillis) {
-        return eval(INCR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttlMillis);
+    /**
+     * 原子递减 1，永不过期
+     */
+    public long decr(String key) {
+        return redissonClient.getAtomicLong(resolveKey(key)).decrementAndGet();
     }
 
-    public long decrFixedWindow(String key, long delta, long ttlMillis) {
-        return eval(DECR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttlMillis);
+    /**
+     * 原子递增指定值并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     */
+    public long incr(String key, long delta, Duration ttl) {
+        return eval(INCR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
     }
 
+    /**
+     * 原子递增 1 并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     */
+    public long incr(String key, Duration ttl) {
+        return eval(INCR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
+    }
+
+    /**
+     * 原子递减指定值并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     */
+    public long decr(String key, long delta, Duration ttl) {
+        return eval(DECR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
+    }
+
+    /**
+     * 原子递减 1 并刷新 TTL（滑动窗口计数），每次调用都重置过期时间
+     */
+    public long decr(String key, Duration ttl) {
+        return eval(DECR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
+    }
+
+    /**
+     * 原子递增指定值，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     */
+    public long incrIfAbsent(String key, long delta, Duration ttl) {
+        return eval(INCR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
+    }
+
+    /**
+     * 原子递增 1，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     */
+    public long incrIfAbsent(String key, Duration ttl) {
+        return eval(INCR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
+    }
+
+    /**
+     * 原子递减指定值，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     */
+    public long decrIfAbsent(String key, long delta, Duration ttl) {
+        return eval(DECR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
+    }
+
+    /**
+     * 原子递减 1，仅在 key 不存在时设置 TTL（固定窗口计数），到期自动清零
+     */
+    public long decrIfAbsent(String key, Duration ttl) {
+        return eval(DECR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), 1, ttl.toMillis());
+    }
+
+    /**
+     * 获取当前计数值，key 不存在返回 null，不修改 TTL
+     */
     public Long get(String key) {
         return redissonClient.<Long>getBucket(resolveKey(key)).get();
     }
 
-    public void set(String key, long value, long ttlMillis) {
-        redissonClient.getBucket(resolveKey(key)).set(value, Duration.ofMillis(ttlMillis));
+    /**
+     * 设置计数值并指定 TTL
+     */
+    public void set(String key, long value, Duration ttl) {
+        redissonClient.getBucket(resolveKey(key)).set(value, ttl);
     }
 
+    /**
+     * 原子获取当前值并重置为零（删除 key），key 不存在返回 null
+     */
     public Long getAndReset(String key) {
         return eval(GET_AND_DEL, RScript.ReturnType.VALUE, resolveKey(key));
     }
 
+    /**
+     * 删除计数器，返回 true 表示 key 存在并被删除
+     */
     public boolean delete(String key) {
         return redissonClient.getBucket(resolveKey(key)).delete();
     }
