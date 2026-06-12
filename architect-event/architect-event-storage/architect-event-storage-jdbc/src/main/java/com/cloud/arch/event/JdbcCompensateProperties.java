@@ -63,15 +63,25 @@ public class JdbcCompensateProperties {
         /**
          * 成功事件保留天数，默认 7 天
          */
-        private int           retainDays = 7;
+        private int           retainDays   = 7;
         /**
          * 每次清理批处理大小
          */
-        private int           batchSize  = 1000;
+        private int           batchSize    = 1000;
+        /**
+         * 启动延迟时间
+         */
+        @DurationUnit(ChronoUnit.SECONDS)
+        private Duration      initialDelay = Duration.ofSeconds(5);
+        /**
+         * 清理间隔时间，默认 1 小时
+         */
+        @DurationUnit(ChronoUnit.HOURS)
+        private Duration      period       = Duration.ofHours(1);
         /**
          * 清理分布式锁配置
          */
-        private SchedulerMutex mutex     = new SchedulerMutex();
+        private SchedulerMutex mutex       = new SchedulerMutex();
     }
 
     /**

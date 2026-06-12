@@ -11,15 +11,14 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class JdbcCompensateEventScheduler implements CompensateHandler, SmartInitializingSingleton {
 
-    public static final String EVENT_COMPENSATE_MUTEX          = "compensate-event-mutex";
-    public static final String CLEAN_SUCCEEDED_EVENT_MUTEX     = "clean-succeeded-event-mutex";
+    public static final String EVENT_COMPENSATE_MUTEX      = "compensate-event-mutex";
+    public static final String CLEAN_SUCCEEDED_EVENT_MUTEX = "clean-event-mutex";
 
     private final JdbcCompensateProperties properties;
     private final MutexTemplate            mutexTemplate;
@@ -27,10 +26,7 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
     private final JdbcCompensateProcessor  compensateProcessor;
     private       EventStatsManager        statsManager = EventStatsManager.disabled();
 
-    public JdbcCompensateEventScheduler(MutexTemplate mutexTemplate,
-                                        JdbcCompensateProperties properties,
-                                        IDomainEventRepository eventRepository,
-                                        JdbcCompensateProcessor compensateProcessor) {
+    public JdbcCompensateEventScheduler(MutexTemplate mutexTemplate, JdbcCompensateProperties properties, IDomainEventRepository eventRepository, JdbcCompensateProcessor compensateProcessor) {
         this.mutexTemplate = mutexTemplate;
         this.properties = properties;
         this.eventRepository = eventRepository;
@@ -51,75 +47,57 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
         long metricStart = System.currentTimeMillis();
         statsManager.incrementCompensateCycle();
 
-        final List<PublishEventEntity> entities = eventRepository.queryFailed(properties.getBatch(),
-                                                                              properties.getMaxVersion(),
-                                                                              properties.getBefore(),
-                                                                              properties.getRange());
+        final List<PublishEventEntity> entities = eventRepository.queryFailed(properties.getBatch(), properties.getMaxVersion(), properties.getBefore(), properties.getRange());
         if (!CollectionUtils.isEmpty(entities)) {
             entities.forEach(compensateProcessor::process);
             statsManager.incrementCompensateRetry(entities.size());
         }
 
-        final List<PublishEventEntity> deadCandidates = eventRepository.deadEventCandidates(properties.getBatch(),
-                                                                                            properties.getMaxVersion(),
-                                                                                            properties.getBefore(),
-                                                                                            properties.getRange());
+        final List<PublishEventEntity> deadCandidates = eventRepository.deadEventCandidates(properties.getBatch(), properties.getMaxVersion(), properties.getBefore(), properties.getRange());
         if (!CollectionUtils.isEmpty(deadCandidates)) {
-            deadCandidates.forEach(entity -> eventRepository.archiveDeadEvent(entity,
-                                                                              "exceeded max retry version " +
-                                                                              properties.getMaxVersion()));
+            deadCandidates.forEach(entity -> eventRepository.archiveDeadEvent(entity, "exceeded max retry version " +
+                                                                                      properties.getMaxVersion()));
             statsManager.incrementCompensateDeadLetter(deadCandidates.size());
         }
-
         statsManager.recordCompensateLatency(System.currentTimeMillis() - metricStart);
+    }
+
+    /**
+     * 补偿发送任务
+     */
+    private void compensateSchedule() {
+        final JdbcCompensateProperties.SchedulerMutex mutex      = this.properties.getMutex();
+        final ContendMutexProps                       mutexProps = new ContendMutexProps(mutex.getInitialDelay(), mutex.getTtl(), mutex.getTransition());
+        mutexTemplate.scheduleAtRate(mutexProps, EVENT_COMPENSATE_MUTEX, properties.getInitialDelay(), properties.getPeriod(), this::handle);
     }
 
     /**
      * 清理超过保留期的成功事件（state=1），删除 7 天前已成功投递到 MQ 的事件。
      */
     public void cleanSucceededEvents() {
-        int days    = properties.getCleanSucceeded().getRetainDays();
-        int limit   = properties.getCleanSucceeded().getBatchSize();
-        long before = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
-        int deleted = eventRepository.cleanSucceededEvents(before, limit);
-        if (log.isInfoEnabled()) {
-            log.info("Cleaned {} succeeded events older than {} days", deleted, days);
-        }
+        int  days    = properties.getCleanSucceeded().getRetainDays();
+        int  limit   = properties.getCleanSucceeded().getBatchSize();
+        long before  = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
+        int  deleted = eventRepository.cleanSucceededEvents(before, limit);
         statsManager.incrementSucceededClean(deleted);
+    }
+
+    /**
+     * 清理发送成功的事件任务
+     */
+    private void cleanEventSchedule() {
+        JdbcCompensateProperties.CleanSucceeded cs         = properties.getCleanSucceeded();
+        JdbcCompensateProperties.SchedulerMutex cleanMutex = cs.getMutex();
+        ContendMutexProps                       cleanProps = new ContendMutexProps(cleanMutex.getInitialDelay(), cleanMutex.getTtl(), cleanMutex.getTransition());
+        mutexTemplate.scheduleAtRate(cleanProps, CLEAN_SUCCEEDED_EVENT_MUTEX, cs.getInitialDelay(), cs.getPeriod(), this::cleanSucceededEvents);
     }
 
     @Override
     public void afterSingletonsInstantiated() {
-        final JdbcCompensateProperties.SchedulerMutex mutex = this.properties.getMutex();
-        final ContendMutexProps mutexProps = new ContendMutexProps(mutex.getInitialDelay(),
-                                                                   mutex.getTtl(),
-                                                                   mutex.getTransition());
-        mutexTemplate.scheduleAtRate(mutexProps,
-                                     EVENT_COMPENSATE_MUTEX,
-                                     properties.getInitialDelay(),
-                                     properties.getPeriod(),
-                                     this::handle);
-
-        // 成功事件清理：首次执行在下一个凌晨 3:00，之后每 24 小时
-        JdbcCompensateProperties.CleanSucceeded cs         = properties.getCleanSucceeded();
-        JdbcCompensateProperties.SchedulerMutex cleanMutex = cs.getMutex();
-        ContendMutexProps                       cleanProps = new ContendMutexProps(cleanMutex.getInitialDelay(),
-                                                                                    cleanMutex.getTtl(),
-                                                                                    cleanMutex.getTransition());
-        mutexTemplate.scheduleAtRate(cleanProps,
-                                     CLEAN_SUCCEEDED_EVENT_MUTEX,
-                                     initialDelayForNextTime(3, 0),
-                                     Duration.ofDays(1),
-                                     this::cleanSucceededEvents);
-    }
-
-    private Duration initialDelayForNextTime(int hour, int minute) {
-        LocalDateTime now    = LocalDateTime.now();
-        LocalDateTime target = now.toLocalDate().atTime(hour, minute);
-        if (!now.isBefore(target)) {
-            target = target.plusDays(1);
-        }
-        return Duration.ofMillis(Duration.between(now, target).toMillis());
+        //事件补偿定时任务
+        this.compensateSchedule();
+        //成功事件定时清理任务
+        this.cleanEventSchedule();
     }
 
 }
