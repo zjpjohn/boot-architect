@@ -85,6 +85,11 @@
             <artifactId>architect-cache-boot-starter</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.cloud.arch</groupId>
+            <artifactId>architect-cache-warmup</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -17,7 +17,7 @@ public class StudentQueryService implements IStudentQueryService {
     private final StudentMapper mapper;
 
     @Override
-    @CacheResult(names = "student", key = "#id", remote = @Remote(expire = 1200))
+    @CacheResult(names = "student", key = "#id", warmup = true, remote = @Remote(expire = 1200))
     public StudentPo getStudent(Long id) {
         return mapper.selectById(id);
     }

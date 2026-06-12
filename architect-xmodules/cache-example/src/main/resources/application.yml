@@ -39,13 +39,18 @@ com:
     #        user-name: default
     cache:
       refresh-topic: cache-demo-refresh
+      enable-metric: true
       #自定义redis
       redis:
-        address: 120.27.121.45:6973
-        password: Zap+{&5ad3avd?$#
+        address: 127.0.0.1:6379
+        password: 123456789
         user-name: default
-
 mybatis-plus:
   mapper-locations: classpath:mappers/*.xml
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
