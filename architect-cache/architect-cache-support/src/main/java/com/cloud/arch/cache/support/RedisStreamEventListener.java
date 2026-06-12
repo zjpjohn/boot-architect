@@ -7,7 +7,6 @@ import com.cloud.arch.cache.core.CacheNodePolicy;
 import com.cloud.arch.cache.core.RefreshEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RStream;
-import org.redisson.api.RedissonClient;
 import org.redisson.api.stream.StreamMessageId;
 import org.redisson.api.stream.StreamReadArgs;
 import org.redisson.client.codec.StringCodec;
@@ -15,6 +14,8 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Slf4j
 public class RedisStreamEventListener implements CacheEventListener, SmartInitializingSingleton {
@@ -66,12 +67,7 @@ public class RedisStreamEventListener implements CacheEventListener, SmartInitia
             } catch (Exception e) {
                 if (!running) break;
                 log.error("stream poll error", e);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+                LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
             }
         }
     }
