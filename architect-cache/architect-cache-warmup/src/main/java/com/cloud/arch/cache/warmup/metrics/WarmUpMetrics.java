@@ -88,12 +88,12 @@ public class WarmUpMetrics {
                 int  totalCount    = list.stream().mapToInt(WarmUpResult::getTotalCount).sum();
                 int  successCount  = list.stream().mapToInt(WarmUpResult::getSuccessCount).sum();
                 long totalDuration = list.stream().mapToLong(WarmUpResult::getDurationMs).sum();
-                log.info("WarmUp cache={} success={}/{} taken={}ms", cacheName, successCount, totalCount, totalDuration);
+                log.info("Warmup cache={} success={}/{} taken={}ms", cacheName, successCount, totalCount, totalDuration);
             });
             int  totalCount    = results.stream().mapToInt(WarmUpResult::getTotalCount).sum();
             int  successCount  = results.stream().mapToInt(WarmUpResult::getSuccessCount).sum();
             long totalDuration = results.stream().mapToLong(WarmUpResult::getDurationMs).sum();
-            log.info("WarmUp cache: {}, tasks: {}, success: {}, taken: {}ms.", results.size(), totalCount, successCount, totalDuration);
+            log.info("Auto warmup cache: {}, tasks: {}, success: {}, taken: {}ms.", results.size(), totalCount, successCount, totalDuration);
         }
     }
 }

@@ -40,6 +40,30 @@ public class RedisConfig {
         private String password;
         private String userName;
 
+        protected Config config(Codec codec) {
+            Config config = new Config();
+            if (codec != null) {
+                config.setCodec(codec);
+            }
+            if (StringUtils.hasText(getUserName())) {
+                config.setUsername(getUserName());
+            }
+            if (StringUtils.hasText(getPassword())) {
+                config.setPassword(getPassword());
+            }
+            return config;
+        }
+
+        protected String[] polishAddress(String address) {
+            String[] addresses = address.split(DELIMITER);
+            for (int i = 0; i < addresses.length; i++) {
+                if (!addresses[i].startsWith(REDIS_PREFIX)) {
+                    addresses[i] = REDIS_PREFIX + addresses[i];
+                }
+            }
+            return addresses;
+        }
+
         public abstract RedissonClient createClient(Codec codec);
 
     }
@@ -58,32 +82,17 @@ public class RedisConfig {
 
         @Override
         public RedissonClient createClient(Codec codec) {
-            Config config = new Config();
-            //redisson默认使用kyro5序列化与反序列化
-            if (codec != null) {
-                config.setCodec(codec);
-            }
-            String[] addresses = nodeAddresses.split(DELIMITER);
-            for (int i = 0; i < addresses.length; i++) {
-                if (!addresses[i].startsWith(REDIS_PREFIX)) {
-                    addresses[i] = REDIS_PREFIX + addresses[i];
-                }
-            }
-            ClusterServersConfig serverConfig = config.useClusterServers()
-                                                      .addNodeAddress(addresses)
-                                                      .setTimeout(getTimeout())
-                                                      .setMasterConnectionPoolSize(masterConnectionPoolSize)
-                                                      .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
-                                                      .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
-                                                      .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize)
-                                                      .setPingConnectionInterval(getPingConnectionInterval())
-                                                      .setConnectTimeout(getConnectTimeout());
-            if (StringUtils.hasText(getUserName())) {
-                serverConfig.setUsername(getUserName());
-            }
-            if (StringUtils.hasText(getPassword())) {
-                serverConfig.setPassword(getPassword());
-            }
+            Config   config    = config(codec);
+            String[] addresses = polishAddress(nodeAddresses);
+            config.useClusterServers()
+                  .addNodeAddress(addresses)
+                  .setTimeout(getTimeout())
+                  .setMasterConnectionPoolSize(masterConnectionPoolSize)
+                  .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
+                  .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
+                  .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize)
+                  .setPingConnectionInterval(getPingConnectionInterval())
+                  .setConnectTimeout(getConnectTimeout());
             return Redisson.create(config);
         }
 
@@ -104,36 +113,21 @@ public class RedisConfig {
 
         @Override
         public RedissonClient createClient(Codec codec) {
-            Config config = new Config();
-            //redisson默认使用kyro5序列化与反序列化
-            if (codec != null) {
-                config.setCodec(codec);
-            }
+            Config config = config(codec);
             String master = masterAddress;
             if (!master.startsWith(REDIS_PREFIX)) {
                 master = REDIS_PREFIX + master;
             }
-            String[] slaves = slaveAddresses.split(DELIMITER);
-            for (int i = 0; i < slaves.length; i++) {
-                if (!slaves[i].startsWith(REDIS_PREFIX)) {
-                    slaves[i] = REDIS_PREFIX + slaves[i];
-                }
-            }
-            MasterSlaveServersConfig serverConfig = config.useMasterSlaveServers()
-                                                          .setMasterAddress(master)
-                                                          .addSlaveAddress(slaves)
-                                                          .setTimeout(getTimeout())
-                                                          .setMasterConnectionPoolSize(masterConnectionPoolSize)
-                                                          .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
-                                                          .setPingConnectionInterval(getPingConnectionInterval())
-                                                          .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
-                                                          .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize);
-            if (StringUtils.hasText(getUserName())) {
-                serverConfig.setUsername(getUserName());
-            }
-            if (StringUtils.hasText(getPassword())) {
-                serverConfig.setPassword(getPassword());
-            }
+            String[] slaves = polishAddress(slaveAddresses);
+            config.useMasterSlaveServers()
+                  .setMasterAddress(master)
+                  .addSlaveAddress(slaves)
+                  .setTimeout(getTimeout())
+                  .setMasterConnectionPoolSize(masterConnectionPoolSize)
+                  .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
+                  .setPingConnectionInterval(getPingConnectionInterval())
+                  .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
+                  .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize);
             return Redisson.create(config);
         }
 
@@ -154,33 +148,18 @@ public class RedisConfig {
 
         @Override
         public RedissonClient createClient(Codec codec) {
-            Config config = new Config();
-            //redisson默认使用kyro5序列化与反序列化
-            if (codec != null) {
-                config.setCodec(codec);
-            }
-            String[] addresses = address.split(DELIMITER);
-            for (int i = 0; i < addresses.length; i++) {
-                if (!addresses[i].startsWith(REDIS_PREFIX)) {
-                    addresses[i] = REDIS_PREFIX + addresses[i];
-                }
-            }
-            ReplicatedServersConfig serverConfig = config.useReplicatedServers()
-                                                         .addNodeAddress(addresses)
-                                                         .setDatabase(database)
-                                                         .setScanInterval(scanInterval)
-                                                         .setTimeout(getTimeout())
-                                                         .setMasterConnectionPoolSize(masterConnectionPoolSize)
-                                                         .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
-                                                         .setPingConnectionInterval(getPingConnectionInterval())
-                                                         .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
-                                                         .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize);
-            if (StringUtils.hasText(getUserName())) {
-                serverConfig.setUsername(getUserName());
-            }
-            if (StringUtils.hasText(getPassword())) {
-                serverConfig.setPassword(getPassword());
-            }
+            Config   config    = config(codec);
+            String[] addresses = polishAddress(address);
+            config.useReplicatedServers()
+                  .addNodeAddress(addresses)
+                  .setDatabase(database)
+                  .setScanInterval(scanInterval)
+                  .setTimeout(getTimeout())
+                  .setMasterConnectionPoolSize(masterConnectionPoolSize)
+                  .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
+                  .setPingConnectionInterval(getPingConnectionInterval())
+                  .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
+                  .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize);
             return Redisson.create(config);
         }
 
@@ -201,33 +180,18 @@ public class RedisConfig {
 
         @Override
         public RedissonClient createClient(Codec codec) {
-            Config config = new Config();
-            //redisson默认使用kyro5序列化与反序列化
-            if (codec != null) {
-                config.setCodec(codec);
-            }
-            String[] addresses = sentinelAddresses.split(DELIMITER);
-            for (int i = 0; i < addresses.length; i++) {
-                if (!addresses[i].startsWith(REDIS_PREFIX)) {
-                    addresses[i] = REDIS_PREFIX + addresses[i];
-                }
-            }
-            SentinelServersConfig serverConfig = config.useSentinelServers()
-                                                       .addSentinelAddress(addresses)
-                                                       .setMasterName(masterName)
-                                                       .setTimeout(getTimeout())
-                                                       .setMasterConnectionPoolSize(masterConnectionPoolSize)
-                                                       .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
-                                                       .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
-                                                       .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize)
-                                                       .setPingConnectionInterval(getPingConnectionInterval())
-                                                       .setDatabase(database);
-            if (StringUtils.hasText(getUserName())) {
-                serverConfig.setUsername(getUserName());
-            }
-            if (StringUtils.hasText(getPassword())) {
-                serverConfig.setPassword(getPassword());
-            }
+            Config   config    = config(codec);
+            String[] addresses = polishAddress(sentinelAddresses);
+            config.useSentinelServers()
+                  .addSentinelAddress(addresses)
+                  .setMasterName(masterName)
+                  .setTimeout(getTimeout())
+                  .setMasterConnectionPoolSize(masterConnectionPoolSize)
+                  .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
+                  .setMasterConnectionMinimumIdleSize(masterConnectionMinimumIdleSize)
+                  .setSlaveConnectionMinimumIdleSize(slaveConnectionMinimumIdleSize)
+                  .setPingConnectionInterval(getPingConnectionInterval())
+                  .setDatabase(database);
             return Redisson.create(config);
         }
 
@@ -245,28 +209,18 @@ public class RedisConfig {
 
         @Override
         public RedissonClient createClient(Codec codec) {
-            Config config = new Config();
-            //redisson默认使用kyro5序列化与反序列化
-            if (codec != null) {
-                config.setCodec(codec);
-            }
+            Config config = config(codec);
             String server = address;
             if (!server.startsWith(REDIS_PREFIX)) {
                 server = REDIS_PREFIX + server;
             }
-            SingleServerConfig serverConfig = config.useSingleServer()
-                                                    .setAddress(server)
-                                                    .setTimeout(getTimeout())
-                                                    .setConnectionPoolSize(connectionPoolSize)
-                                                    .setConnectionMinimumIdleSize(connectionMinimumIdleSize)
-                                                    .setPingConnectionInterval(getPingConnectionInterval())
-                                                    .setDatabase(database);
-            if (StringUtils.hasText(getUserName())) {
-                serverConfig.setUsername(getUserName());
-            }
-            if (StringUtils.hasText(getPassword())) {
-                serverConfig.setPassword(getPassword());
-            }
+            config.useSingleServer()
+                  .setAddress(server)
+                  .setTimeout(getTimeout())
+                  .setConnectionPoolSize(connectionPoolSize)
+                  .setConnectionMinimumIdleSize(connectionMinimumIdleSize)
+                  .setPingConnectionInterval(getPingConnectionInterval())
+                  .setDatabase(database);
             return Redisson.create(config);
         }
 
