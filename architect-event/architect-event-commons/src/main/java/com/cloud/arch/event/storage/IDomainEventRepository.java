@@ -62,11 +62,8 @@ public interface IDomainEventRepository {
 
     default void checkAffected(PublishEventEntity entity, int affected) {
         if (affected == 0) {
-            String errMsg = String.format("Publish [%s] mark [%d]@[%d] to status [%s] error.",
-                    entity.getName(),
-                    entity.getId(),
-                    entity.getVersion(),
-                    entity.getState().getState());
+            String errMsg = String.format("Publish [%s] mark [%d]@[%d] to status [%s] error.", entity.getName(), entity.getId(), entity.getVersion(), entity.getState()
+                                                                                                                                                            .getState());
             throw new ConcurrentVersionConflictException(errMsg, entity);
         }
     }

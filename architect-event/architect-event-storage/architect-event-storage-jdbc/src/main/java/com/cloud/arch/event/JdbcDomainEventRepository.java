@@ -28,8 +28,8 @@ public class JdbcDomainEventRepository implements IDomainEventRepository {
             "select id,name,filter,delay,event,shard_key,state,version,gmt_create from arch_event " +
             "where state<>1 and gmt_create between :lower and :upper and version>=:maxVersion order by version desc limit :limit ";
     private static final String MOVE_TO_DEAD_LETTER_SQL   =
-            "insert into arch_event_dead(id,name,filter,delay,event,shard_key,version,gmt_create,dead_time,dead_reason) " +
-            "values(:id,:name,:filter,:delay,:event,:shard_key,:version,:gmt_create,:dead_time,:dead_reason)";
+            "insert into arch_event_dead(id,name,filter,delay,event,shard_key,gmt_create,dead_time,dead_reason) " +
+            "values(:id,:name,:filter,:delay,:event,:shard_key,:gmt_create,:dead_time,:dead_reason)";
     private static final String DELETE_EVENT_SQL          = "delete from arch_event where id=:id and shard_key=:shard_key";
     private static final String CLEAN_DEAD_LETTER_SQL     = "delete from arch_event_dead where dead_time<:before limit :limit";
     private static final String CLEAN_SUCCEEDED_EVENT_SQL = "delete from arch_event where state=1 and gmt_create<:before limit :limit";
@@ -162,7 +162,6 @@ public class JdbcDomainEventRepository implements IDomainEventRepository {
                  .addValue("delay", entity.getDelay())
                  .addValue("event", entity.getEvent())
                  .addValue("shard_key", entity.getShardingKey())
-                 .addValue("version", entity.getVersion())
                  .addValue("gmt_create", entity.getGmtCreate())
                  .addValue("dead_time", System.currentTimeMillis())
                  .addValue("dead_reason", reason);
