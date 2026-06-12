@@ -14,6 +14,10 @@ public class AtomicCounter {
 
     private static final String DECR_AND_EXPIRE = "local v = redis.call('DECRBY', KEYS[1], ARGV[1]); if tonumber(ARGV[2]) > 0 then redis.call('PEXPIRE', KEYS[1], ARGV[2]) end; return v";
 
+    private static final String INCR_FIXED_WINDOW = "local exists = redis.call('EXISTS', KEYS[1]); local v = redis.call('INCRBY', KEYS[1], ARGV[1]); if exists == 0 and tonumber(ARGV[2]) > 0 then redis.call('PEXPIRE', KEYS[1], ARGV[2]) end; return v";
+
+    private static final String DECR_FIXED_WINDOW = "local exists = redis.call('EXISTS', KEYS[1]); local v = redis.call('DECRBY', KEYS[1], ARGV[1]); if exists == 0 and tonumber(ARGV[2]) > 0 then redis.call('PEXPIRE', KEYS[1], ARGV[2]) end; return v";
+
     private static final String GET_AND_DEL = "local v = redis.call('GET', KEYS[1]); if v then redis.call('DEL', KEYS[1]) end; return v";
 
     private final RedissonClient redissonClient;
@@ -38,6 +42,14 @@ public class AtomicCounter {
 
     public long decrAndGet(String key, long delta, long ttlMillis) {
         return eval(DECR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttlMillis);
+    }
+
+    public long incrFixedWindow(String key, long delta, long ttlMillis) {
+        return eval(INCR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttlMillis);
+    }
+
+    public long decrFixedWindow(String key, long delta, long ttlMillis) {
+        return eval(DECR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttlMillis);
     }
 
     public Long get(String key) {
