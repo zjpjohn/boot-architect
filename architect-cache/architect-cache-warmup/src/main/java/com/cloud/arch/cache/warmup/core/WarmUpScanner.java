@@ -52,30 +52,24 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
     @Override
     public void afterSingletonsInstantiated() {
         if (!properties.isEnabled()) {
-            if (log.isInfoEnabled()) {
-                log.info("[WarmUp] auto warm-up is disabled");
-            }
             return;
         }
-        scan();
+        scanCache();
         if (registry.cacheNameCount() == 0) {
             if (log.isInfoEnabled()) {
-                log.info("[WarmUp] no @CacheResult(warmup=true) methods found");
+                log.info("WarmUp no @CacheResult(warmup=true) methods found");
             }
             return;
         }
 
         Set<String> targetCaches = filterCaches(registry.getCacheNames());
         if (targetCaches.isEmpty()) {
-            if (log.isInfoEnabled()) {
-                log.info("[WarmUp] no caches to warm up (all filtered out)");
-            }
             return;
         }
         CacheThreadPoolExecutor.run(() -> doExecute(targetCaches));
     }
 
-    private void scan() {
+    private void scanCache() {
         ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
         String[]                        beanNames   = beanFactory.getBeanNamesForType(Object.class);
         for (String beanName : beanNames) {
@@ -88,9 +82,6 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
             }
             processBean(beanName, targetType);
         }
-        if (log.isInfoEnabled()) {
-            log.info("[WarmUp] scanned {} beans, registered {} cache names", beanNames.length, registry.cacheNameCount());
-        }
     }
 
     private void processBean(String beanName, Class<?> targetType) {
@@ -100,7 +91,6 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
             if (CollectionUtils.isEmpty(annotations)) {
                 return null;
             }
-            // 过滤掉 warmup=false 的
             annotations.removeIf(cr -> !cr.warmup());
             return CollectionUtils.isEmpty(annotations) ? null : annotations;
         });
@@ -144,7 +134,7 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
 
     private void doExecute(Set<String> cacheNames) {
         if (log.isInfoEnabled()) {
-            log.info("[WarmUp] starting auto warm-up, {} caches", cacheNames.size());
+            log.info("WarmUp cache starting auto warm-up, {} caches", cacheNames.size());
         }
         long                                        start   = System.currentTimeMillis();
         List<CompletableFuture<List<WarmUpResult>>> futures = new ArrayList<>();
@@ -161,12 +151,12 @@ public class WarmUpScanner implements SmartInitializingSingleton, ApplicationCon
                     results.addAll(r);
                 }
             } catch (Exception e) {
-                log.warn("[WarmUp] cache warm-up failed", e);
+                log.warn("WarmUp cache warm-up failed", e);
             }
         }
         long duration = System.currentTimeMillis() - start;
         if (log.isInfoEnabled()) {
-            log.info("[WarmUp] auto warm-up completed in {}ms", duration);
+            log.info("WarmUp auto warm-up completed taken {}ms", duration);
         }
         metrics.report(results);
     }

@@ -207,11 +207,8 @@ public class RedisRemoteCache extends AbstractRemoteCache implements CacheTtlRef
             this.doPut(key, value);
             return value;
         } catch (Exception error) {
-            if (log.isWarnEnabled()) {
-                log.warn(error.getMessage(), error);
-            }
+            throw new RuntimeException(error.getMessage(), error);
         }
-        return null;
     }
 
     /**

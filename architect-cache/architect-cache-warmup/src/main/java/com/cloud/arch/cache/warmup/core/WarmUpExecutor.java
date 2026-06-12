@@ -20,8 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class WarmUpExecutor {
 
-    private static final ExecutorService VIRTUAL_THREAD_EXECUTOR =
-            Executors.newVirtualThreadPerTaskExecutor();
+    private static final ExecutorService VIRTUAL_THREAD_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     private final WarmUpCoordinator coordinator;
     private final WarmUpMetrics     metrics;
@@ -29,10 +28,7 @@ public class WarmUpExecutor {
     private final long              timeoutSeconds;
     private final ConversionService conversionService;
 
-    public WarmUpExecutor(WarmUpCoordinator coordinator,
-                          WarmUpMetrics metrics,
-                          long lockWaitSeconds,
-                          long timeoutSeconds) {
+    public WarmUpExecutor(WarmUpCoordinator coordinator, WarmUpMetrics metrics, long lockWaitSeconds, long timeoutSeconds) {
         this.coordinator = coordinator;
         this.metrics = metrics;
         this.lockWaitSeconds = lockWaitSeconds;
@@ -43,9 +39,7 @@ public class WarmUpExecutor {
     /**
      * 执行单个缓存名下所有匹配方法的预热，锁在 Future 完成后释放
      */
-    public CompletableFuture<WarmUpResult> execute(String cacheName,
-                                                    List<Object[]> args,
-                                                    List<WarmUpTask> tasks) {
+    public CompletableFuture<WarmUpResult> execute(String cacheName, List<Object[]> args, List<WarmUpTask> tasks) {
         if (!coordinator.tryAcquireWarmUpLock(cacheName, lockWaitSeconds)) {
             if (log.isInfoEnabled()) {
                 log.info("[WarmUp] skip cache={}, another node is handling it", cacheName);
@@ -54,32 +48,22 @@ public class WarmUpExecutor {
             return CompletableFuture.completedFuture(null);
         }
         metrics.recordLockAcquired(cacheName);
-        return doExecute(cacheName, args, tasks)
-                .whenComplete((r, ex) -> coordinator.releaseWarmUpLock(cacheName));
+        return doExecute(cacheName, args, tasks).whenComplete((r, ex) -> coordinator.releaseWarmUpLock(cacheName));
     }
 
-    public CompletableFuture<List<WarmUpResult>> executeAll(String cacheName,
-                                                             List<Object[]> args,
-                                                             List<WarmUpTask> tasks) {
-        return execute(cacheName, args, tasks)
-                .thenApply(result -> result == null ? Collections.emptyList() : List.of(result));
+    public CompletableFuture<List<WarmUpResult>> executeAll(String cacheName, List<Object[]> args, List<WarmUpTask> tasks) {
+        return execute(cacheName, args, tasks).thenApply(result -> result ==
+                                                                   null ? Collections.emptyList() : List.of(result));
     }
 
-    private CompletableFuture<WarmUpResult> doExecute(String cacheName,
-                                                       List<Object[]> argsList,
-                                                       List<WarmUpTask> tasks) {
+    private CompletableFuture<WarmUpResult> doExecute(String cacheName, List<Object[]> argsList, List<WarmUpTask> tasks) {
         if (argsList.isEmpty()) {
-            if (log.isInfoEnabled()) {
-                log.info("[WarmUp] no args configured for cache={}, skipping", cacheName);
-            }
             return CompletableFuture.completedFuture(null);
         }
         return invokeWithArgs(cacheName, argsList, tasks);
     }
 
-    private CompletableFuture<WarmUpResult> invokeWithArgs(String cacheName,
-                                                            List<Object[]> argsList,
-                                                            List<WarmUpTask> tasks) {
+    private CompletableFuture<WarmUpResult> invokeWithArgs(String cacheName, List<Object[]> argsList, List<WarmUpTask> tasks) {
         WarmUpResult result = new WarmUpResult();
         result.setCacheName(cacheName);
         result.setTotalCount(argsList.size());
@@ -87,31 +71,23 @@ public class WarmUpExecutor {
         long          taskStart    = System.currentTimeMillis();
         AtomicInteger successCount = new AtomicInteger(0);
 
-        CompletableFuture<?>[] futures = argsList.stream()
-                .map(args -> CompletableFuture.runAsync(() -> {
-                    for (WarmUpTask task : tasks) {
-                        Method method = task.getMethod();
-                        if (method.getParameterCount() != args.length) {
-                            continue;
-                        }
-                        try {
-                            Object[] convertedArgs = convertArgs(method, args);
-                            method.invoke(task.getTargetBean(), convertedArgs);
-                            successCount.incrementAndGet();
-                        } catch (Exception e) {
-                            String errorMsg = e.getCause() != null
-                                    ? e.getCause().getMessage()
-                                    : e.getMessage();
-                            log.warn("[WarmUp] FAILED cache={} bean={} method={} error: {}",
-                                     cacheName,
-                                     task.getBeanName(),
-                                     method.getName(),
-                                     errorMsg);
-                        }
-                        break;
-                    }
-                }, VIRTUAL_THREAD_EXECUTOR))
-                .toArray(CompletableFuture[]::new);
+        CompletableFuture<?>[] futures = argsList.stream().map(args -> CompletableFuture.runAsync(() -> {
+            for (WarmUpTask task : tasks) {
+                Method method = task.getMethod();
+                if (method.getParameterCount() != args.length) {
+                    continue;
+                }
+                try {
+                    Object[] convertedArgs = convertArgs(method, args);
+                    method.invoke(task.getTargetBean(), convertedArgs);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    String errorMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                    log.warn("[WarmUp] FAILED cache={} bean={} method={} error: {}", cacheName, task.getBeanName(), method.getName(), errorMsg);
+                }
+                break;
+            }
+        }, VIRTUAL_THREAD_EXECUTOR)).toArray(CompletableFuture[]::new);
 
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures);
         if (timeoutSeconds > 0) {

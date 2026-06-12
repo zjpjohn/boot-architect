@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -49,12 +50,8 @@ public class WarmUpAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public WarmUpExecutor warmUpExecutor(WarmUpCoordinator coordinator,
-                                         WarmUpMetrics metrics,
-                                         WarmUpProperties properties) {
-        return new WarmUpExecutor(coordinator, metrics,
-                                  properties.getLockWaitSeconds(),
-                                  properties.getTimeoutSeconds());
+    public WarmUpExecutor warmUpExecutor(WarmUpCoordinator coordinator, WarmUpMetrics metrics, WarmUpProperties properties) {
+        return new WarmUpExecutor(coordinator, metrics, properties.getLockWaitSeconds(), properties.getTimeoutSeconds());
     }
 
     @Bean
@@ -63,19 +60,13 @@ public class WarmUpAutoConfiguration {
     }
 
     @Bean
-    public WarmUpScanner warmUpScanner(WarmUpRegistry registry,
-                                       WarmUpExecutor executor,
-                                       WarmUpArgsProvider argsProvider,
-                                       WarmUpProperties properties,
-                                       WarmUpMetrics metrics) {
+    public WarmUpScanner warmUpScanner(WarmUpRegistry registry, WarmUpExecutor executor, WarmUpArgsProvider argsProvider, WarmUpProperties properties, WarmUpMetrics metrics) {
         return new WarmUpScanner(registry, executor, argsProvider, properties, metrics);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public WarmUpTemplate warmUpTemplate(WarmUpRegistry registry,
-                                         WarmUpExecutor executor,
-                                         WarmUpArgsProvider argsProvider) {
+    public WarmUpTemplate warmUpTemplate(WarmUpRegistry registry, WarmUpExecutor executor, WarmUpArgsProvider argsProvider) {
         return new WarmUpTemplate(registry, executor, argsProvider);
     }
 
@@ -88,4 +79,5 @@ public class WarmUpAutoConfiguration {
     public WarmUpEndpoint warmUpEndpoint(WarmUpTemplate template) {
         return new WarmUpEndpoint(template);
     }
+
 }

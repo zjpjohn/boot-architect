@@ -39,22 +39,20 @@ public class WarmUpMetrics {
         if (registry == null) {
             return;
         }
-        lockAcquired.computeIfAbsent(cacheName,
-                                     c -> Counter.builder(LOCK_ACQUIRED_NAME)
-                                                 .tags(Tags.of("cache", c))
-                                                 .description("预热分布式锁获取成功次数")
-                                                 .register(registry)).increment();
+        lockAcquired.computeIfAbsent(cacheName, c -> Counter.builder(LOCK_ACQUIRED_NAME)
+                                                            .tags(Tags.of("cache", c))
+                                                            .description("预热分布式锁获取成功次数")
+                                                            .register(registry)).increment();
     }
 
     public void recordLockSkipped(String cacheName) {
         if (registry == null) {
             return;
         }
-        lockSkipped.computeIfAbsent(cacheName,
-                                    c -> Counter.builder(LOCK_SKIPPED_NAME)
-                                                .tags(Tags.of("cache", c))
-                                                .description("预热分布式锁跳过次数（其他节点正在执行）")
-                                                .register(registry)).increment();
+        lockSkipped.computeIfAbsent(cacheName, c -> Counter.builder(LOCK_SKIPPED_NAME)
+                                                           .tags(Tags.of("cache", c))
+                                                           .description("预热分布式锁跳过次数（其他节点正在执行）")
+                                                           .register(registry)).increment();
     }
 
     public void recordResult(WarmUpResult result) {
@@ -63,33 +61,24 @@ public class WarmUpMetrics {
             return;
         }
 
-        Counter successCounter = successCounters.computeIfAbsent(cacheName,
-                                                                 c -> Counter.builder(TOTAL_COUNTER_NAME)
-                                                                             .tags(Tags.of("cache",
-                                                                                           c,
-                                                                                           "status",
-                                                                                           "success"))
-                                                                             .description("预热成功条目数")
-                                                                             .register(registry));
+        Counter successCounter = successCounters.computeIfAbsent(cacheName, c -> Counter.builder(TOTAL_COUNTER_NAME)
+                                                                                        .tags(Tags.of("cache", c, "status", "success"))
+                                                                                        .description("预热成功条目数")
+                                                                                        .register(registry));
         successCounter.increment(result.getSuccessCount());
         int failureCount = result.getTotalCount() - result.getSuccessCount();
         if (failureCount > 0) {
-            Counter failureCounter = failureCounters.computeIfAbsent(cacheName,
-                                                                     c -> Counter.builder(TOTAL_COUNTER_NAME)
-                                                                                 .tags(Tags.of("cache",
-                                                                                               c,
-                                                                                               "status",
-                                                                                               "failure"))
-                                                                                 .description("预热失败条目数")
-                                                                                 .register(registry));
+            Counter failureCounter = failureCounters.computeIfAbsent(cacheName, c -> Counter.builder(TOTAL_COUNTER_NAME)
+                                                                                            .tags(Tags.of("cache", c, "status", "failure"))
+                                                                                            .description("预热失败条目数")
+                                                                                            .register(registry));
             failureCounter.increment(failureCount);
         }
 
-        Timer timer = durationTimers.computeIfAbsent(cacheName,
-                                                     c -> Timer.builder(DURATION_TIMER_NAME)
-                                                               .tags(Tags.of("cache", c))
-                                                               .description("预热耗时")
-                                                               .register(registry));
+        Timer timer = durationTimers.computeIfAbsent(cacheName, c -> Timer.builder(DURATION_TIMER_NAME)
+                                                                          .tags(Tags.of("cache", c))
+                                                                          .description("预热耗时")
+                                                                          .register(registry));
         timer.record(result.getDurationMs(), TimeUnit.MILLISECONDS);
     }
 
@@ -99,20 +88,12 @@ public class WarmUpMetrics {
                 int  totalCount    = list.stream().mapToInt(WarmUpResult::getTotalCount).sum();
                 int  successCount  = list.stream().mapToInt(WarmUpResult::getSuccessCount).sum();
                 long totalDuration = list.stream().mapToLong(WarmUpResult::getDurationMs).sum();
-                log.info("[WarmUp] cache={} success={}/{} duration={}ms",
-                         cacheName,
-                         successCount,
-                         totalCount,
-                         totalDuration);
+                log.info("WarmUp cache={} success={}/{} taken={}ms", cacheName, successCount, totalCount, totalDuration);
             });
             int  totalCount    = results.stream().mapToInt(WarmUpResult::getTotalCount).sum();
             int  successCount  = results.stream().mapToInt(WarmUpResult::getSuccessCount).sum();
             long totalDuration = results.stream().mapToLong(WarmUpResult::getDurationMs).sum();
-            log.info("[WarmUp] ==== Total: {} tasks, {} total, {} success, {}ms ====",
-                     results.size(),
-                     totalCount,
-                     successCount,
-                     totalDuration);
+            log.info("WarmUp cache: {}, tasks: {}, success: {}, taken: {}ms.", results.size(), totalCount, successCount, totalDuration);
         }
     }
 }
