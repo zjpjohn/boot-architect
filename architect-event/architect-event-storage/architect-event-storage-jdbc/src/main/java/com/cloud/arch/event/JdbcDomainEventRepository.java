@@ -31,7 +31,8 @@ public class JdbcDomainEventRepository implements IDomainEventRepository {
             "insert into arch_event_dead_letter(id,name,filter,delay,event,shard_key,state,version,gmt_create,dead_time,dead_reason) " +
             "values(:id,:name,:filter,:delay,:event,:shard_key,:state,:version,:gmt_create,:dead_time,:dead_reason)";
     private static final String DELETE_EVENT_SQL        = "delete from arch_event where id=:id and shard_key=:shard_key";
-    private static final String CLEAN_DEAD_LETTER_SQL   = "delete from arch_event_dead_letter where dead_time<:before limit :limit";
+    private static final String CLEAN_DEAD_LETTER_SQL      = "delete from arch_event_dead_letter where dead_time<:before limit :limit";
+    private static final String CLEAN_SUCCEEDED_EVENT_SQL = "delete from arch_event where state=1 and gmt_create<:before limit :limit";
     private static final String BATCH_MARK_SUCCESS_SQL  = "update arch_event set state=1, version=version+1, publish_time=:publish_time where id=:id and version=:version and shard_key=:shard_key";
     private static final String BATCH_MARK_FAILED_SQL   = "update arch_event set state=2, version=version+1 where id=:id and version=:version and shard_key=:shard_key";
 
@@ -169,6 +170,12 @@ public class JdbcDomainEventRepository implements IDomainEventRepository {
             jdbcTemplate.update(MOVE_TO_DEAD_LETTER_SQL, param);
             jdbcTemplate.update(DELETE_EVENT_SQL, new MapSqlParameterSource("id", entity.getId()).addValue("shard_key", entity.getShardingKey()));
         });
+    }
+
+    @Override
+    public int cleanSucceededEvents(long beforeMillis, int limit) {
+        MapSqlParameterSource param = new MapSqlParameterSource("before", beforeMillis).addValue("limit", limit);
+        return jdbcTemplate.update(CLEAN_SUCCEEDED_EVENT_SQL, param);
     }
 
     @Override

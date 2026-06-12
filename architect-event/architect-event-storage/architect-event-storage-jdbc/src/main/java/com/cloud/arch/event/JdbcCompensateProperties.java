@@ -54,6 +54,27 @@ public class JdbcCompensateProperties {
     }
 
     /**
+     * 成功事件清理配置
+     */
+    private CleanSucceeded cleanSucceeded = new CleanSucceeded();
+
+    @Data
+    public static class CleanSucceeded {
+        /**
+         * 成功事件保留天数，默认 7 天
+         */
+        private int           retainDays = 7;
+        /**
+         * 每次清理批处理大小
+         */
+        private int           batchSize  = 1000;
+        /**
+         * 清理分布式锁配置
+         */
+        private SchedulerMutex mutex     = new SchedulerMutex();
+    }
+
+    /**
      * 补偿分布式配置
      */
     private SchedulerMutex mutex = new SchedulerMutex();

@@ -41,6 +41,9 @@ public interface EventStatsManager {
     default void recordBatchMarkSize(int size) {
     }
 
+    default void incrementSucceededClean(int count) {
+    }
+
     default void registerThreadPoolGauges(ThreadPoolExecutor pool) {
     }
 

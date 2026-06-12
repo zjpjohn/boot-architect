@@ -38,6 +38,16 @@ public interface IDomainEventRepository {
         return 0;
     }
 
+    /**
+     * 清理超过保留期的成功事件（state=1），返回清理条数。
+     *
+     * @param beforeMillis 删除在此时间戳之前创建的事件
+     * @param limit        单次清理最大条数
+     */
+    default int cleanSucceededEvents(long beforeMillis, int limit) {
+        return 0;
+    }
+
     default void batchMarkSucceeded(List<PublishEventEntity> entities) {
         if (!entities.isEmpty()) {
             entities.forEach(this::markSucceeded);
