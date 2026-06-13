@@ -62,6 +62,20 @@ public class AtomicCounter {
     }
 
     /**
+     * 原子递减指定值，永不过期
+     *
+     * @param key   计数器key
+     * @param delta 递减值
+     * @return 递减后的值
+     */
+    public long decr(String key, long delta) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException("decr delta value must greater than 0.");
+        }
+        return redissonClient.getAtomicLong(resolveKey(key)).incrementAndGet(LongIncrementArgs.by(-1 * delta));
+    }
+
+    /**
      * 原子递减 1，永不过期
      *
      * @param key 计数器 key
