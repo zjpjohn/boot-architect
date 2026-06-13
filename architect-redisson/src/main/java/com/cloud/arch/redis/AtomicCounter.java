@@ -45,6 +45,9 @@ public class AtomicCounter {
      * @return 递增后的值
      */
     public long incr(String key, long delta) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException("incr delta value must greater than 0.");
+        }
         return redissonClient.getAtomicLong(resolveKey(key)).incrementAndGet(LongIncrementArgs.by(delta));
     }
 
@@ -77,6 +80,9 @@ public class AtomicCounter {
      * @return 递增后的值
      */
     public long incr(String key, long delta, Duration ttl) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException("incr delta value must greater than 0.");
+        }
         return eval(INCR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
     }
 
@@ -100,6 +106,9 @@ public class AtomicCounter {
      * @return 递减后的值
      */
     public long decr(String key, long delta, Duration ttl) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException("decr delta value must greater than 0.");
+        }
         return eval(DECR_AND_EXPIRE, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
     }
 
@@ -123,6 +132,9 @@ public class AtomicCounter {
      * @return 递增后的值
      */
     public long incrIfAbsent(String key, long delta, Duration ttl) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException("incr delta value must greater than 0.");
+        }
         return eval(INCR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
     }
 
@@ -146,6 +158,9 @@ public class AtomicCounter {
      * @return 递减后的值
      */
     public long decrIfAbsent(String key, long delta, Duration ttl) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException("decr delta value must greater than 0.");
+        }
         return eval(DECR_FIXED_WINDOW, RScript.ReturnType.LONG, resolveKey(key), delta, ttl.toMillis());
     }
 
