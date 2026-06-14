@@ -137,4 +137,10 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+# Crash dumps
+*.stackdump
+
+# Plan documents
+*-plan.md
+
 # End of https://www.toptal.com/developers/gitignore/api/intellij,maven
