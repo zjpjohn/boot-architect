@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.boot.architect</groupId>
         <artifactId>architect-xmodules</artifactId>
-        <version>1.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>web-example</artifactId>
@@ -55,27 +55,27 @@
         <dependency>
             <groupId>com.cloud.arch</groupId>
             <artifactId>architect-spring</artifactId>
-            <version>1.0</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>com.cloud.arch</groupId>
             <artifactId>architect-webmvc-boot-starter</artifactId>
-            <version>1.0</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>com.cloud.arch</groupId>
             <artifactId>architect-webmvc-webtoken-servlet</artifactId>
-            <version>1.0</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>com.cloud.arch</groupId>
             <artifactId>architect-webmvc-security</artifactId>
-            <version>1.0</version>
+            <version>${revision}</version>
         </dependency>
         <!--        <dependency>-->
         <!--            <groupId>com.cloud.arch.mybatis</groupId>-->
         <!--            <artifactId>architect-mybatis-plus</artifactId>-->
-        <!--            <version>1.0</version>-->
+        <!--            <version>${revision}</version>-->
         <!--        </dependency>-->
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -89,7 +89,7 @@
         <dependency>
             <groupId>com.cloud.arch</groupId>
             <artifactId>architect-webmvc-swagger</artifactId>
-            <version>1.0</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>

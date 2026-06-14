@@ -34,12 +34,12 @@
         <dependency>
             <groupId>com.cloud.arch</groupId>
             <artifactId>architect-aggregate</artifactId>
-            <version>1.0</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>com.cloud.arch</groupId>
             <artifactId>architect-commons</artifactId>
-            <version>1.0</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>

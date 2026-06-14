@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.cloud.arch</groupId>
         <artifactId>architect-mybatis</artifactId>
-        <version>1.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>architect-mybatis-flex-extension</artifactId>
@@ -30,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>com.mybatis-flex</groupId>
-            <artifactId>mybatis-flex-spring-boot3-starter</artifactId>
+            <artifactId>mybatis-flex-spring-boot4-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

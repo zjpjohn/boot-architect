@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.cloud.arch</groupId>
         <artifactId>architect-pulsar</artifactId>
-        <version>1.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>architect-pulsar-boot-starter</artifactId>

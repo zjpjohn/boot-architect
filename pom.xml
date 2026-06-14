@@ -140,7 +140,7 @@
                         <path>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-configuration-processor</artifactId>
-                            <version>3.5.5</version>
+                            <version>4.0.2</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -179,7 +179,7 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>3.5.5</version>
+                    <version>4.0.2</version>
                     <executions>
                         <execution>
                             <goals>

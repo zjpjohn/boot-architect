@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.cloud.arch</groupId>
         <artifactId>boot-architect</artifactId>
-        <version>1.0</version>
+        <version>${revision}</version>
     </parent>
 
     <groupId>com.boot.architect</groupId>
