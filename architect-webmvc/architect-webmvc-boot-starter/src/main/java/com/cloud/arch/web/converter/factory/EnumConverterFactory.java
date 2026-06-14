@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 枚举参数转换工厂，将请求中的字符串转换为 {@link Value} 枚举实例。
  */
 @Slf4j
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class EnumConverterFactory implements ConverterFactory<String, Value> {
 
     @SuppressWarnings("rawtypes")
@@ -21,13 +22,10 @@ public class EnumConverterFactory implements ConverterFactory<String, Value> {
 
     @Override
     public <T extends Value> Converter<String, T> getConverter(Class<T> targetType) {
-        @SuppressWarnings("unchecked")
-        Converter<String, T> converter = converterMap.computeIfAbsent(targetType, key -> new EnumValueConverter(targetType));
-        return converter;
+        return converterMap.computeIfAbsent(targetType, key -> new EnumValueConverter(targetType));
     }
 
-    private static class EnumValueConverter<K extends Comparable<K>, V extends Value<K>>
-            implements Converter<String, V> {
+    private static class EnumValueConverter<K extends Comparable<K>, V extends Value<K>> implements Converter<String, V> {
 
         private final EnumValue<K, V> enumValue;
 
@@ -37,12 +35,15 @@ public class EnumConverterFactory implements ConverterFactory<String, Value> {
 
         @Override
         public V convert(String value) {
-            return Optional.ofNullable(this.enumValue.of(value)).orElseThrow(() -> buildException(value));
-
+            V result = this.enumValue.of(value);
+            if (result == null) {
+                throw buildException(value);
+            }
+            return result;
         }
 
         private ConvertParseException buildException(String value) {
-            String message = "enum value '" + value + "' error,";
+            String message = "Enum value '" + value + "' error,";
             String ranges  = this.enumValue.values().toString();
             return new ConvertParseException(message + "params ranges " + ranges);
         }

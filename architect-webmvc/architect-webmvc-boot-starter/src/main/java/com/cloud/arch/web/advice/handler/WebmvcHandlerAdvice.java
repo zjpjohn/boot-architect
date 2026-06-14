@@ -5,32 +5,28 @@ import com.cloud.arch.web.error.ApiBizException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.ConversionNotSupportedException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.InvalidPropertyException;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.ServletRequestBindingException;
-import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.method.annotation.MethodArgumentConversionNotSupportedException;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -70,8 +66,8 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = ConstraintViolationException.class)
     public ApiReturn<String> exception(ConstraintViolationException exception) {
-        if (log.isWarnEnabled()) {
-            log.warn(exception.getMessage(), exception);
+        if (log.isErrorEnabled()) {
+            log.error(exception.getMessage(), exception);
         }
         String message = exception.getConstraintViolations()
                                   .stream()
@@ -85,24 +81,17 @@ public class WebmvcHandlerAdvice implements Ordered {
      * 请求参数错误处理
      */
     @ResponseBody
-    @ExceptionHandler(value = {MethodArgumentTypeMismatchException.class,
-            MethodArgumentConversionNotSupportedException.class,
-            HttpMessageNotReadableException.class,
-            HttpMessageNotWritableException.class,
-            ConversionException.class,
-            ConversionNotSupportedException.class,
+    @ExceptionHandler(value = {HttpMessageConversionException.class,
             InvalidPropertyException.class,
-            NumberFormatException.class,
             ServletRequestBindingException.class,
-            UnsatisfiedServletRequestParameterException.class,
-            IllegalArgumentException.class,})
+            IllegalArgumentException.class,
+            ConversionException.class,
+            TypeMismatchException.class})
     public ApiReturn<String> error(Exception error) {
-        if (log.isWarnEnabled()) {
-            log.warn(error.getMessage(), error);
+        if (log.isErrorEnabled()) {
+            log.error(error.getMessage(), error);
         }
-        String message = Optional.ofNullable(NestedExceptionUtils.getRootCause(error))
-                                 .map(Throwable::getMessage)
-                                 .orElse(error.getMessage());
+        String message = ExceptionUtils.getRootCauseMessage(error);
         return ApiReturn.badRequest(message);
     }
 
@@ -122,11 +111,7 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = ApiBizException.class)
     public ApiReturn<?> bizError(ApiBizException exception) {
-        return new ApiReturn<>(exception.getStatus(),
-                               exception.getCode(),
-                               null,
-                               exception.getError(),
-                               exception.getData());
+        return new ApiReturn<>(exception.getStatus(), exception.getCode(), null, exception.getError(), exception.getData());
     }
 
     /**
@@ -135,9 +120,7 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = HttpRequestMethodNotSupportedException.class)
     public ApiReturn<String> methodError(Exception exception) {
-        return new ApiReturn<>(HttpStatus.METHOD_NOT_ALLOWED,
-                               HttpStatus.METHOD_NOT_ALLOWED.value(),
-                               exception.getMessage());
+        return new ApiReturn<>(HttpStatus.METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED.value(), exception.getMessage());
     }
 
     /**
@@ -146,8 +129,8 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ResponseBody
     @ExceptionHandler(value = DuplicateKeyException.class)
     public ApiReturn<String> duplicateError(DuplicateKeyException error) {
-        if (log.isWarnEnabled()) {
-            log.warn(error.getMessage(), error);
+        if (log.isErrorEnabled()) {
+            log.error(error.getMessage(), error);
         }
         return ApiReturn.badRequest("has duplicated data.", 400);
     }
