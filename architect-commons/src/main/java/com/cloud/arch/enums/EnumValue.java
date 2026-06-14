@@ -21,13 +21,6 @@ public class EnumValue<K extends Comparable<K>, V extends Value<K>> {
         }
         String typeName = values[0].value().getClass().getName();
         this.valueType = ValueType.of(typeName);
-        if (this.valueType == null) {
-            throw new IllegalArgumentException(
-                    "enum value type only support [ 'String' , 'Integer' , 'Long' , 'Double' , 'Float' , 'Short' ] ,"
-                            + " but this value type is '"
-                            + typeName
-                            + "'");
-        }
         this.enumMap = Arrays.stream(values).collect(Collectors.toMap(Value::value, Function.identity()));
     }
 

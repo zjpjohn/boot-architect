@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
 
-@Configuration(proxyBeanMethods = false)
+@Configuration
 public class ValidationConfigurer {
 
     @Bean
-    public Validator validator() {
+    public static Validator validator() {
         return Validation.byProvider(HibernateValidator.class)
                          .configure()
                          .failFast(true)
@@ -22,7 +22,7 @@ public class ValidationConfigurer {
     }
 
     @Bean
-    public MethodValidationPostProcessor methodValidationPostProcessor(@Autowired Validator validator) {
+    public static MethodValidationPostProcessor methodValidationPostProcessor(@Autowired Validator validator) {
         MethodValidationPostProcessor processor = new MethodValidationPostProcessor();
         processor.setValidator(validator);
         return processor;

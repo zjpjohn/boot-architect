@@ -11,6 +11,7 @@
 
     <artifactId>architect-bizlog</artifactId>
     <packaging>pom</packaging>
+
     <modules>
         <module>architect-bizlog-boot-starter</module>
         <module>architect-bizlog-commons</module>

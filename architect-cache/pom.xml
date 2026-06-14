@@ -13,8 +13,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>architect-cache-boot-starter</module>
         <module>architect-hotkey</module>
+        <module>architect-cache-boot-starter</module>
         <module>architect-cache-support</module>
         <module>architect-cache-hotkey</module>
         <module>architect-cache-warmup</module>
