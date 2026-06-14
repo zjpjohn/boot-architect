@@ -45,7 +45,7 @@
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
-        <revision>1.0</revision>
+        <revision>2.0</revision>
     </properties>
 
     <build>

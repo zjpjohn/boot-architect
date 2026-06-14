@@ -15,9 +15,9 @@
     <properties>
         <lombok.version>1.18.42</lombok.version>
         <log4j2.version>2.25.2</log4j2.version>
-        <spring-boot.version>3.5.5</spring-boot.version>
-        <spring-cloud.version>2025.0.0</spring-cloud.version>
-        <spring-cloud-alibaba.version>2025.0.0.0</spring-cloud-alibaba.version>
+        <spring-boot.version>4.0.2</spring-boot.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
         <dubbo.version>3.2.19</dubbo.version>
         <guava.version>33.5.0-jre</guava.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
@@ -26,17 +26,16 @@
         <commons-io.version>2.21.0</commons-io.version>
         <fory.version>1.1.0</fory.version>
         <fastjson2.version>2.0.61</fastjson2.version>
-        <netty.version>4.1.77.Final</netty.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <mybatis.version>3.0.5</mybatis.version>
-        <mybatis-plus.version>3.5.12</mybatis-plus.version>
-        <mybatis-flex.version>1.11.5</mybatis-flex.version>
+        <mybatis.version>4.0.1</mybatis.version>
+        <mybatis-plus.version>3.5.16</mybatis-plus.version>
+        <mybatis-flex.version>1.11.7</mybatis-flex.version>
         <mysql8.version>8.4.0</mysql8.version>
         <classindex.version>3.13</classindex.version>
         <disruptor.version>4.0.0</disruptor.version>
         <jwt.version>4.5.0</jwt.version>
         <httpclient.version>5.4.4</httpclient.version>
-        <druid.version>1.2.27</druid.version>
+        <druid.version>1.2.28</druid.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <redisson.version>4.5.0</redisson.version>
         <rocksdb.version>9.4.0</rocksdb.version>
@@ -50,11 +49,9 @@
         <auto-service.version>1.1.1</auto-service.version>
         <elastic.version>8.3.2</elastic.version>
         <async-http.version>2.12.3</async-http.version>
-        <netty.version>4.1.77.Final</netty.version>
         <etcd-java.version>0.0.21</etcd-java.version>
         <snappy.version>1.1.8.4</snappy.version>
         <hutool.version>5.8.40</hutool.version>
-        <guice.version>5.1.0</guice.version>
         <protostuff.version>1.8.0</protostuff.version>
         <collections.version>3.2.2</collections.version>
         <openapi3.version>2.6.0</openapi3.version>
@@ -159,23 +156,18 @@
                 <version>${guice.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-all</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>
                 <artifactId>mybatis-spring-boot-starter</artifactId>
                 <version>${mybatis.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.mybatis-flex</groupId>
-                <artifactId>mybatis-flex-spring-boot3-starter</artifactId>
+                <artifactId>mybatis-flex-spring-boot4-starter</artifactId>
                 <version>${mybatis-flex.version}</version>
             </dependency>
             <dependency>
@@ -216,7 +208,7 @@
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-3-starter</artifactId>
+                <artifactId>druid-spring-boot-4-starter</artifactId>
                 <version>${druid.version}</version>
             </dependency>
             <dependency>
