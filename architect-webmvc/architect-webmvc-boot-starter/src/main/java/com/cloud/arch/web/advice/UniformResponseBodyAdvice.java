@@ -71,7 +71,7 @@ public class UniformResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         String      message     = message(annotation);
         BodyData<?> wrappedBody = wrapBody(annotation, body, message, response);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        if (body == null || body instanceof String) {
+        if (body instanceof String) {
             return JSON.toJSONString(wrappedBody, JSONWriter.Feature.WriteLongAsString);
         }
         return wrappedBody;
