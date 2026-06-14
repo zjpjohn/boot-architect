@@ -6,7 +6,7 @@ spring:
   main:
     allow-bean-definition-overriding: true
   mvc:
-    pathmatch:
+    path match:
       matching-strategy: ant_path_matcher
   jackson:
     date-format: yyyy/MM/dd HH:mm:ss
