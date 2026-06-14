@@ -30,7 +30,6 @@ public class JdbcMutexConfiguration {
     @Bean
     @Primary
     public ContendControllerFactory controllerFactory(IMutexOwnerRepository mutexOwnerRepository) {
-        log.info("using mysql as contend controller...");
         return new JdbcContendControllerFactory(mutexOwnerRepository);
     }
 
