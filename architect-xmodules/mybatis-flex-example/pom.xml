@@ -53,7 +53,7 @@
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-3-starter</artifactId>
+            <artifactId>druid-spring-boot-4-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -113,7 +113,7 @@
                         <path>
                             <groupId>com.mybatis-flex</groupId>
                             <artifactId>mybatis-flex-processor</artifactId>
-                            <version>1.11.4</version>
+                            <version>1.11.7</version>
                         </path>
                         <path>
                             <groupId>org.projectlombok</groupId>
