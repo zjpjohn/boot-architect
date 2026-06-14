@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.boot.architect</groupId>
         <artifactId>architect-xmodules</artifactId>
-        <version>2.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>architect-test</artifactId>

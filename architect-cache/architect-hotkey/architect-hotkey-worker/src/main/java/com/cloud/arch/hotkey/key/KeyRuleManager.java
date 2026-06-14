@@ -14,7 +14,7 @@ import com.ibm.etcd.api.KeyValue;
 import com.ibm.etcd.client.kv.KvClient;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Map;
 

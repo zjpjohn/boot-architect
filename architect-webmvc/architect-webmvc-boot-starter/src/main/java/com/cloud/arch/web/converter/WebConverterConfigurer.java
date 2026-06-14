@@ -2,7 +2,7 @@ package com.cloud.arch.web.converter;
 
 import com.cloud.arch.web.converter.factory.EnumConverterFactory;
 import com.cloud.arch.web.converter.factory.TimeConverterFactory;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 

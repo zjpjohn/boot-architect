@@ -9,7 +9,7 @@ import com.cloud.arch.hotkey.utils.HotkeyConstants;
 import com.cloud.arch.hotkey.utils.IpUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

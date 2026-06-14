@@ -54,8 +54,7 @@
         <hutool.version>5.8.40</hutool.version>
         <protostuff.version>1.8.0</protostuff.version>
         <collections.version>3.2.2</collections.version>
-        <openapi3.version>2.6.0</openapi3.version>
-        <knife4j.version>4.5.0</knife4j.version>
+        <openapi3.version>2.8.17</openapi3.version>
         <ip2region.version>2.7.0</ip2region.version>
         <libphonenumber.version>9.0.6</libphonenumber.version>
         <geocoder.version>3.6</geocoder.version>
@@ -335,16 +334,6 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-common</artifactId>
                 <version>${openapi3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.xiaoymin</groupId>
-                <artifactId>knife4j-openapi3-ui</artifactId>
-                <version>${knife4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.xiaoymin</groupId>
-                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-                <version>${knife4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.googlecode.libphonenumber</groupId>

@@ -1,18 +1,17 @@
 package com.cloud.arch.web.enums;
 
 import com.cloud.arch.enums.Value;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.deser.ValueDeserializerModifier;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class EnumDeserializerModifier extends BeanDeserializerModifier {
+public class EnumDeserializerModifier extends ValueDeserializerModifier {
 
     @Override
-    public JsonDeserializer<?> modifyEnumDeserializer(DeserializationConfig config, JavaType type,
-        BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
+    public ValueDeserializer<?> modifyEnumDeserializer(DeserializationConfig config, JavaType type, BeanDescription.Supplier beanDesc, ValueDeserializer<?> deserializer) {
         Class<?> typeClazz = type.getRawClass();
         if (typeClazz.isEnum() && Value.class.isAssignableFrom(typeClazz)) {
             return new EnumValueDeserializer(typeClazz);

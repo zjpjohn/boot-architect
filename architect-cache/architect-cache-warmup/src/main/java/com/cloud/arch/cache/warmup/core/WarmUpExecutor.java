@@ -41,9 +41,6 @@ public class WarmUpExecutor {
      */
     public CompletableFuture<WarmUpResult> execute(String cacheName, List<Object[]> args, List<WarmUpTask> tasks) {
         if (!coordinator.tryAcquireWarmUpLock(cacheName, lockWaitSeconds)) {
-            if (log.isInfoEnabled()) {
-                log.info("[WarmUp] skip cache={}, another node is handling it", cacheName);
-            }
             metrics.recordLockSkipped(cacheName);
             return CompletableFuture.completedFuture(null);
         }

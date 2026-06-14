@@ -4,9 +4,9 @@ import com.cloud.arch.web.error.ApiBizException;
 import com.cloud.arch.web.utils.WebMvcConstants;
 import com.google.common.collect.Maps;
 import jakarta.servlet.RequestDispatcher;
-import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
+import org.springframework.boot.webmvc.autoconfigure.error.BasicErrorController;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.boot.webmvc.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.WebRequest;
@@ -31,9 +31,8 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
         Map<String, Object> attrs  = Maps.newLinkedHashMap();
         attrs.put(WebMvcConstants.ERROR_ATTR_CODE_KEY, status);
         attrs.put(WebMvcConstants.ERROR_ATTR_TIMESTAMP_KEY, System.currentTimeMillis());
-        attrs.put(WebMvcConstants.ERROR_ATTR_ERROR_KEY,
-            status == HttpStatus.NOT_FOUND.value() ? WebMvcConstants.PAGE_NOT_FOUND_MESSAGE
-                                                   : WebMvcConstants.SERVER_ERROR_MESSAGE);
+        attrs.put(WebMvcConstants.ERROR_ATTR_ERROR_KEY, status ==
+                                                        HttpStatus.NOT_FOUND.value() ? WebMvcConstants.PAGE_NOT_FOUND_MESSAGE : WebMvcConstants.SERVER_ERROR_MESSAGE);
         return attrs;
     }
 

@@ -2,7 +2,7 @@ package com.cloud.arch.web.converter.factory;
 
 import com.cloud.arch.web.converter.ConvertParseException;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.StringUtils;
 

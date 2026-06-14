@@ -6,7 +6,7 @@ import com.cloud.arch.hotkey.net.server.HotkeyClientHolder;
 import com.cloud.arch.hotkey.utils.NettyIpUtil;
 import io.netty.channel.ChannelHandlerContext;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class AppCommandFilter implements ICommandFilter {
 

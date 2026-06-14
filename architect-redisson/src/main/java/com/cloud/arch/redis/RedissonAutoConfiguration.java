@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.Codec;
+import org.redisson.codec.Jackson3Codec;
+import org.redisson.codec.JsonJackson3Codec;
 import org.redisson.codec.JsonJacksonCodec;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -24,20 +26,15 @@ public class RedissonAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(Codec.class)
     public Codec codec() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.findAndRegisterModules();
-        return new JsonJacksonCodec(objectMapper);
+        return new JsonJackson3Codec();
     }
 
     /**
      * 哨兵模式自动装配
      */
     @Bean
-    @ConditionalOnProperty(
-            name = {
-                    "com.cloud.redis.sentinel.master-name", "com.cloud.redis.sentinel.sentinel-addresses"
-            })
+    @ConditionalOnProperty(name = {"com.cloud.redis.sentinel.master-name",
+            "com.cloud.redis.sentinel.sentinel-addresses"})
     public RedissonClient redissonSentinel(Codec codec, RedisConfig config) {
         return config.getSentinel().createClient(codec);
     }
@@ -64,8 +61,8 @@ public class RedissonAutoConfiguration {
      * 主从模式自动装配
      */
     @Bean
-    @ConditionalOnProperty(
-            name = {"com.cloud.redis.master-slave.master-address", "com.cloud.redis.master-slave.slave-address"})
+    @ConditionalOnProperty(name = {"com.cloud.redis.master-slave.master-address",
+            "com.cloud.redis.master-slave.slave-address"})
     public RedissonClient redissonMasterSlave(Codec codec, RedisConfig config) {
         return config.getMasterSlave().createClient(codec);
     }

@@ -1,17 +1,16 @@
 package com.cloud.arch.web.enums;
 
 import com.cloud.arch.enums.Value;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.SerializationConfig;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.ser.ValueSerializerModifier;
 
-public class EnumSerializerModifier extends BeanSerializerModifier {
+public class EnumSerializerModifier extends ValueSerializerModifier {
 
     @Override
-    public JsonSerializer<?> modifyEnumSerializer(SerializationConfig config, JavaType valueType,
-        BeanDescription beanDesc, JsonSerializer<?> serializer) {
+    public ValueSerializer<?> modifyEnumSerializer(SerializationConfig config, JavaType valueType, BeanDescription.Supplier beanDesc, ValueSerializer<?> serializer) {
         Class<?> type = valueType.getRawClass();
         if (Value.class.isAssignableFrom(type)) {
             return new EnumValueSerializer();

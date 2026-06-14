@@ -14,7 +14,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Slf4j
 public class HotkeyProcessor {

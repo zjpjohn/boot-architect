@@ -3,7 +3,7 @@ package com.cloud.arch.web.custom;
 import com.cloud.arch.web.advice.UniformResponseBodyAdvice;
 import com.cloud.arch.web.props.WebmvcProperties;
 import com.google.common.collect.Lists;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;

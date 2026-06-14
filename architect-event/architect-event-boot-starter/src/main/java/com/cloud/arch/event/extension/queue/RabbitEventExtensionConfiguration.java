@@ -11,8 +11,8 @@ import org.springframework.amqp.rabbit.config.DirectRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.amqp.autoconfigure.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -46,11 +46,7 @@ public class RabbitEventExtensionConfiguration {
 
     @Bean
     @ConditionalOnProperty(prefix = "com.cloud.event.subscriber", name = "enable")
-    public RabbitSubscriberProcessor rabbitSubscriberProcessor(AmqpAdmin amqpAdmin,
-                                                               RabbitListenerEndpointRegistry endpointRegistry,
-                                                               DirectRabbitListenerContainerFactory containerFactory,
-                                                               RabbitmqProperties properties,
-                                                               EventCodec eventCodec) {
+    public RabbitSubscriberProcessor rabbitSubscriberProcessor(AmqpAdmin amqpAdmin, RabbitListenerEndpointRegistry endpointRegistry, DirectRabbitListenerContainerFactory containerFactory, RabbitmqProperties properties, EventCodec eventCodec) {
         return new RabbitSubscriberProcessor(eventCodec, properties, amqpAdmin, containerFactory, endpointRegistry);
     }
 

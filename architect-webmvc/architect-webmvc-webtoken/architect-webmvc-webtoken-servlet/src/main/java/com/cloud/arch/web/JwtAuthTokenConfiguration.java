@@ -68,22 +68,17 @@ public class JwtAuthTokenConfiguration {
         }
 
         @Bean
-        public ITokenVerifier tokenVerifier(WebTokenProperties properties,
-                                            ITokenBlackListValidator tokenValidator,
-                                            IHttpAuthSourceManager authSourceManager) {
+        public ITokenVerifier tokenVerifier(WebTokenProperties properties, ITokenBlackListValidator tokenValidator, IHttpAuthSourceManager authSourceManager) {
             return new JwtTokenVerifier(properties, tokenValidator, authSourceManager);
         }
 
         @Bean
-        public JwtAuthTokenFilter jwtAuthTokenFilter(TokenAuthProperties properties,
-                                                     ITokenVerifier tokenVerifier,
-                                                     ObjectProvider<WebShareProperties> shareProperties) {
+        public JwtAuthTokenFilter jwtAuthTokenFilter(TokenAuthProperties properties, ITokenVerifier tokenVerifier, ObjectProvider<WebShareProperties> shareProperties) {
             return new JwtAuthTokenFilter(tokenVerifier, properties, shareProperties);
         }
 
         @Bean
-        public FilterRegistrationBean<JwtAuthTokenFilter> jwtAuthFilterRegistration(JwtAuthTokenFilter jwtAuthTokenFilter,
-                                                                                    TokenAuthProperties properties) {
+        public FilterRegistrationBean<JwtAuthTokenFilter> jwtAuthFilterRegistration(JwtAuthTokenFilter jwtAuthTokenFilter, TokenAuthProperties properties) {
             FilterRegistrationBean<JwtAuthTokenFilter> registration = new FilterRegistrationBean<>();
             registration.setOrder(Ordered.LOWEST_PRECEDENCE);
             registration.setFilter(jwtAuthTokenFilter);
