@@ -38,7 +38,7 @@ public class DictionaryRemark implements Comparable<DictionaryRemark> {
             if (type instanceof ParameterizedType parameterizedType) {
                 Type   rawType = parameterizedType.getRawType();
                 Type[] types   = parameterizedType.getActualTypeArguments();
-                if (rawType.equals(Value.class) && (types[0] instanceof Class<?> clazz)) {
+                if (rawType.equals(Value.class) && types.length > 0 && (types[0] instanceof Class<?> clazz)) {
                     return clazz.getSimpleName().toLowerCase();
                 }
             }
