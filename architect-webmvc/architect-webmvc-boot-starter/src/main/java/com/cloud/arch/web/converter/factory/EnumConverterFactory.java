@@ -43,9 +43,10 @@ public class EnumConverterFactory implements ConverterFactory<String, Value> {
         }
 
         private ConvertParseException buildException(String value) {
-            String message = "Enum value '" + value + "' error,";
+            String name    = this.enumValue.getType().getSimpleName();
+            String message = "Input value '" + value + "' error , ";
             String ranges  = this.enumValue.values().toString();
-            return new ConvertParseException(message + "params ranges " + ranges);
+            return new ConvertParseException(message + name + " value ranges " + ranges);
         }
     }
 

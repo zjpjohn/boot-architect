@@ -18,7 +18,9 @@ import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @Slf4j
@@ -54,24 +56,6 @@ public class WebmvcConfiguration {
     }
 
     /**
-     * 通用全局异常处理
-     */
-    @Bean
-    @ConditionalOnMissingBean(GenericHandlerAdvice.class)
-    public GenericHandlerAdvice genericHandlerAdvice() {
-        return new GenericHandlerAdvice();
-    }
-
-    /**
-     * 统一业务错误处理
-     */
-    @Bean
-    @ConditionalOnMissingBean(WebmvcHandlerAdvice.class)
-    public WebmvcHandlerAdvice webmvcHandlerAdvice() {
-        return new WebmvcHandlerAdvice();
-    }
-
-    /**
      * Json响应体结构统一Advice
      */
     @Bean
@@ -83,9 +67,13 @@ public class WebmvcConfiguration {
      * 自定义MVC处理粘合器
      */
     @Bean
-    public CustomWebMvcRegistrations customWebMvcRegistrations(UniformResponseBodyAdvice responseAdvice,
-                                                               WebmvcProperties properties) {
+    public CustomWebMvcRegistrations customWebMvcRegistrations(UniformResponseBodyAdvice responseAdvice, WebmvcProperties properties) {
         return new CustomWebMvcRegistrations(responseAdvice, properties);
+    }
+
+    @Configuration
+    @Import({GenericHandlerAdvice.class, WebmvcHandlerAdvice.class})
+    public static class ErrorAdviceImportConfiguration {
     }
 
     @Configuration
@@ -103,8 +91,7 @@ public class WebmvcConfiguration {
          * 字典端点配置
          */
         @Bean
-        public DictionaryEndpoint dictionaryEndpoint(DictionaryFactory dictionaryFactory,
-                                                     WebmvcProperties properties,
+        public DictionaryEndpoint dictionaryEndpoint(DictionaryFactory dictionaryFactory, WebmvcProperties properties,
                                                      @Qualifier("requestMappingHandlerMapping")
                                                      RequestMappingHandlerMapping requestMappingHandlerMapping) {
             return new DictionaryEndpoint(dictionaryFactory, properties, requestMappingHandlerMapping);

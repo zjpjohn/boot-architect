@@ -11,10 +11,12 @@ import java.util.stream.Collectors;
 @Getter
 public class EnumValue<K extends Comparable<K>, V extends Value<K>> {
 
+    private final Class<V>  type;
     private final ValueType valueType;
     private final Map<K, V> enumMap;
 
     public EnumValue(Class<V> type) {
+        this.type = type;
         V[] values = type.getEnumConstants();
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException("enum values collection must not be null.");
