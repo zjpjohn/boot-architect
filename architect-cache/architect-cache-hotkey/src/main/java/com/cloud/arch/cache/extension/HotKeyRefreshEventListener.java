@@ -8,8 +8,7 @@ import org.redisson.api.RTopic;
 import org.redisson.api.listener.MessageListener;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 
-public class HotKeyRefreshEventListener
-        implements MessageListener<RefreshEvent>, CacheEventListener, SmartInitializingSingleton {
+public class HotKeyRefreshEventListener implements MessageListener<RefreshEvent>, CacheEventListener, SmartInitializingSingleton {
 
 
     private final String             topic;
@@ -17,8 +16,8 @@ public class HotKeyRefreshEventListener
     private final CacheNodePolicy    cacheNodePolicy;
 
     public HotKeyRefreshEventListener(String topic, HotKeyCacheManager cacheManager, CacheNodePolicy cacheNodePolicy) {
-        this.topic           = topic;
-        this.cacheManager    = cacheManager;
+        this.topic = topic;
+        this.cacheManager = cacheManager;
         this.cacheNodePolicy = cacheNodePolicy;
     }
 

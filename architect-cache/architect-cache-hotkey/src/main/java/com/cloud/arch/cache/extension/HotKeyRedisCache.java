@@ -4,7 +4,7 @@ import com.cloud.arch.cache.core.*;
 import com.cloud.arch.cache.metrics.StatsCounter;
 import com.cloud.arch.hotkey.core.key.DetectedValue;
 import com.cloud.arch.hotkey.core.key.HotKeyCache;
-import com.google.common.collect.MapMaker;
+import com.cloud.arch.utils.SingleFlight;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RMapCache;
@@ -12,7 +12,6 @@ import org.redisson.api.RedissonClient;
 import org.redisson.api.map.event.EntryExpiredListener;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -33,38 +32,32 @@ public class HotKeyRedisCache extends AbstractValueAdaptCache implements CacheTt
     // 缓存竞争锁失败重试获取次数
     private static final long   CACHE_LOCK_FAIL_LOAD_RETRY    = 5;
 
-    // 本地缓存加载锁
-    private final ConcurrentMap<Object, Object> keyLocks = new MapMaker().weakValues().makeMap();
+    private final SingleFlight<Object, Object> sf = new SingleFlight<>();
     // 缓存配置信息
-    private final CacheSettings                 settings;
+    private final CacheSettings                settings;
     // redis缓存
-    private final RMapCache<Object, Object>     mapCache;
+    private final RMapCache<Object, Object>    mapCache;
     // 缓存刷新
-    private final RefreshPolicy                 refreshPolicy;
+    private final RefreshPolicy                refreshPolicy;
     // redisson客户端
-    private final RedissonClient                redissonClient;
+    private final RedissonClient               redissonClient;
     // 热点数据缓存
-    private final HotKeyCache                   hotKeyCache;
+    private final HotKeyCache                  hotKeyCache;
     // 二级缓存ttl刷新器
-    private final RemoteCacheTtlRefresher       ttlRefresher;
+    private final RemoteCacheTtlRefresher      ttlRefresher;
     // 缓存统计时间ticker
-    private       Ticker                        statsTicker;
+    private       Ticker                       statsTicker;
     // 缓存统计计数器
-    private       StatsCounter                  statsCounter;
+    private       StatsCounter                 statsCounter;
 
-    public HotKeyRedisCache(String name,
-                            CacheSettings settings,
-                            RefreshPolicy refreshPolicy,
-                            RedissonClient redissonClient,
-                            RemoteCacheTtlRefresher ttlRefresher,
-                            HotKeyCache hotKeyCache) {
+    public HotKeyRedisCache(String name, CacheSettings settings, RefreshPolicy refreshPolicy, RedissonClient redissonClient, RemoteCacheTtlRefresher ttlRefresher, HotKeyCache hotKeyCache) {
         super(name, settings.isAllowNullValue());
-        this.settings       = settings;
-        this.refreshPolicy  = refreshPolicy;
+        this.settings = settings;
+        this.refreshPolicy = refreshPolicy;
         this.redissonClient = redissonClient;
-        this.mapCache       = redissonClient.getMapCache(this.getName());
-        this.hotKeyCache    = hotKeyCache;
-        this.ttlRefresher   = ttlRefresher;
+        this.mapCache = redissonClient.getMapCache(this.getName());
+        this.hotKeyCache = hotKeyCache;
+        this.ttlRefresher = ttlRefresher;
         this.cacheExpireListener();
     }
 
@@ -178,23 +171,24 @@ public class HotKeyRedisCache extends AbstractValueAdaptCache implements CacheTt
         return detected.toValue();
     }
 
-    /**
-     * 加锁并加载热点数据到本地缓存
-     *
-     * @param key 缓存key
-     */
     private <T> T lockAndLoadHotValue(Object key) {
-        synchronized (keyLocks.computeIfAbsent(key, k -> new Object())) {
-            DetectedValue detected = hotKeyCache.get(this.getName(), key.toString());
-            if (detected.isCached()) {
-                statsCounter().recordHits(1, true);
-                return detected.toValue();
-            }
-            Object value = this.getAndRefresh(key);
-            if (value != null) {
-                this.hotKeyCache.put(this.getName(), key.toString(), value);
-            }
-            return (T) toValue(value);
+        try {
+            return (T) sf.execute(key, () -> {
+                DetectedValue detected = hotKeyCache.get(this.getName(), key.toString());
+                if (detected.isCached()) {
+                    statsCounter().recordHits(1, true);
+                    return detected.toValue();
+                }
+                Object value = this.getAndRefresh(key);
+                if (value != null) {
+                    this.hotKeyCache.put(this.getName(), key.toString(), value);
+                }
+                return toValue(value);
+            });
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -253,14 +247,13 @@ public class HotKeyRedisCache extends AbstractValueAdaptCache implements CacheTt
         int    retryTime = 0;
         do {
             TimeUnit.MILLISECONDS.sleep(CACHE_LOCK_FAIL_LOAD_INTERVAL);
-            value     = this.mapCache.get(key);
+            value = this.mapCache.get(key);
             retryTime = retryTime + 1;
             if (value != null) {
                 statsCounter().recordHits(1, false);
                 break;
             }
-        }
-        while (retryTime < CACHE_LOCK_FAIL_LOAD_RETRY);
+        } while (retryTime < CACHE_LOCK_FAIL_LOAD_RETRY);
         return value;
     }
 

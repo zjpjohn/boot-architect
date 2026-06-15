@@ -2,7 +2,6 @@ package com.cloud.arch.web.advice.handler;
 
 import com.cloud.arch.web.domain.ApiReturn;
 import com.cloud.arch.web.error.ApiBizException;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +11,6 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.validation.BindException;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -24,8 +22,6 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * WebMVC 异常统一处理，覆盖参数校验、业务异常、HTTP 标准错误码等场景。
@@ -46,17 +42,16 @@ public class WebmvcHandlerAdvice implements Ordered {
      */
     @ExceptionHandler(value = BindException.class)
     public ApiReturn<String> exception(BindException exception) {
-        String        message       = "param validate error";
-        BindingResult bindingResult = exception.getBindingResult();
-        FieldError    fieldError    = bindingResult.getFieldError();
-        if (fieldError != null) {
-            if (fieldError.contains(Throwable.class)) {
-                Throwable unwrapped = fieldError.unwrap(Throwable.class);
-                Throwable cause     = ExceptionUtils.getRootCause(unwrapped);
-                message = StringUtils.defaultString(cause.getMessage());
-            } else {
-                message = fieldError.getDefaultMessage();
-            }
+        String     message;
+        FieldError fieldError = exception.getBindingResult().getFieldError();
+        if (fieldError == null) {
+            message = "param validate error";
+        } else if (fieldError.contains(Throwable.class)) {
+            Throwable unwrapped = fieldError.unwrap(Throwable.class);
+            Throwable cause     = ExceptionUtils.getRootCause(unwrapped);
+            message = StringUtils.defaultString(cause.getMessage());
+        } else {
+            message = fieldError.getDefaultMessage();
         }
         return ApiReturn.badRequest(message, HttpStatus.BAD_REQUEST.value());
     }
@@ -71,12 +66,7 @@ public class WebmvcHandlerAdvice implements Ordered {
         if (log.isErrorEnabled()) {
             log.error(exception.getMessage(), exception);
         }
-        String message = exception.getConstraintViolations()
-                                  .stream()
-                                  .map(ConstraintViolation::getMessage)
-                                  .filter(Objects::nonNull)
-                                  .collect(Collectors.joining(";"));
-        return ApiReturn.badRequest(message, HttpStatus.BAD_REQUEST.value());
+        return ApiReturn.badRequest(exception.getMessage(), HttpStatus.BAD_REQUEST.value());
     }
 
     /**
@@ -101,7 +91,7 @@ public class WebmvcHandlerAdvice implements Ordered {
     @ExceptionHandler(value = NullPointerException.class)
     public ApiReturn<String> nullPointer(NullPointerException error) {
         log.error(error.getMessage(), error);
-        return ApiReturn.serverError("internal server error.");
+        return ApiReturn.serverError("Internal server error.");
     }
 
     /**

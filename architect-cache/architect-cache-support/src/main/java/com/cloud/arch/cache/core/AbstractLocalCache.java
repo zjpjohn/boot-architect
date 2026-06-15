@@ -1,9 +1,8 @@
 package com.cloud.arch.cache.core;
 
-import com.google.common.collect.MapMaker;
+import com.cloud.arch.utils.SingleFlight;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -15,10 +14,10 @@ import java.util.concurrent.Callable;
 @SuppressWarnings("unchecked")
 public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
 
-    private final   Map<Object, Object> KEY_LOCKS = new MapMaker().weakValues().makeMap();
-    protected final LocalCacheSettings  settings;
-    protected final AbstractRemoteCache remoteCache;
-    protected final RefreshPolicy       refreshPolicy;
+    private final   SingleFlight<Object, Object> sf = new SingleFlight<>();
+    protected final LocalCacheSettings           settings;
+    protected final AbstractRemoteCache          remoteCache;
+    protected final RefreshPolicy                refreshPolicy;
 
     protected AbstractLocalCache(String name, boolean allowNullValue, LocalCacheSettings settings, RefreshPolicy refreshPolicy, AbstractRemoteCache remoteCache) {
         super(name, allowNullValue);
@@ -58,22 +57,26 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
     public <T> T get(Object key) {
         Object value = this.doGet(key);
         if (value != null) {
-            // 命中本地缓存
             this.remoteCache.statsCounter().recordHits(1, true);
             return (T) toValue(value);
         }
-        synchronized (KEY_LOCKS.computeIfAbsent(key, v -> new Object())) {
-            value = this.doGet(key);
-            if (value != null) {
-                // 命中本地缓存
-                this.remoteCache.statsCounter().recordHits(1, true);
-                return (T) toValue(value);
-            }
-            value = remoteCache.doGet(key);
-            if (value != null) {
-                this.doPut(key, value);
-            }
-            return (T) toValue(value);
+        try {
+            return (T) sf.execute(new LockKey(key, 0), () -> {
+                Object v = this.doGet(key);
+                if (v != null) {
+                    this.remoteCache.statsCounter().recordHits(1, true);
+                    return toValue(v);
+                }
+                v = remoteCache.doGet(key);
+                if (v != null) {
+                    this.doPut(key, v);
+                }
+                return toValue(v);
+            });
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -81,22 +84,26 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
     public <T> T get(Object key, Callable<T> valueLoader) {
         Object value = this.doGet(key);
         if (value != null) {
-            // 命中本地缓存
             this.remoteCache.statsCounter().recordHits(1, true);
             return (T) toValue(value);
         }
-        synchronized (KEY_LOCKS.computeIfAbsent(key, v -> new Object())) {
-            value = this.doGet(key);
-            if (value != null) {
-                // 命中本地缓存
-                this.remoteCache.statsCounter().recordHits(1, true);
-                return (T) toValue(value);
-            }
-            value = this.remoteCache.doGet(key, valueLoader);
-            if (value != null) {
-                this.doPut(key, value);
-            }
-            return (T) toValue(value);
+        try {
+            return (T) sf.execute(new LockKey(key, 1), () -> {
+                Object v = this.doGet(key);
+                if (v != null) {
+                    this.remoteCache.statsCounter().recordHits(1, true);
+                    return toValue(v);
+                }
+                v = this.remoteCache.doGet(key, valueLoader);
+                if (v != null) {
+                    this.doPut(key, v);
+                }
+                return toValue(v);
+            });
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -153,6 +160,9 @@ public abstract class AbstractLocalCache extends AbstractValueAdaptCache {
         }
         this.doClear();
         this.refreshPolicy.sendClear(this.getName());
+    }
+
+    private record LockKey(Object key, int method) {
     }
 
 }

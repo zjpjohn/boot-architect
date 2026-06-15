@@ -7,9 +7,8 @@ import java.security.SecureRandom;
 @Data
 public class RefreshEvent {
 
-    public static final byte LOAD_CACHE = 0x01; // 加载数据到本地缓存
-    public static final byte EVICT_KEY  = 0x02; // 删除缓存数据
-    public static final byte CLEAR_KEY  = 0x03; // 清除缓存全部数据
+    public static final byte EVICT_KEY = 0x02; // 淘汰缓存数据
+    public static final byte CLEAR_KEY = 0x03; // 清除缓存数据
 
     private byte   action; // 事件动作
     private long   node; // 发送事件节点标识
@@ -21,9 +20,9 @@ public class RefreshEvent {
 
     public RefreshEvent(byte action, long node, String name, Object key) {
         this.action = action;
-        this.key    = key;
-        this.node   = node;
-        this.name   = name;
+        this.key = key;
+        this.node = node;
+        this.name = name;
     }
 
     public static RefreshEvent evict(long node, String name, Object key) {
@@ -42,16 +41,16 @@ public class RefreshEvent {
 
     @Override
     public String toString() {
-        return "RefreshEvent{"
-                + "action="
-                + action
-                + ", node="
-                + node
-                + ", name='"
-                + name
-                + '\''
-                + ", key="
-                + key
-                + '}';
+        return "RefreshEvent{" +
+               "action=" +
+               action +
+               ", node=" +
+               node +
+               ", name='" +
+               name +
+               '\'' +
+               ", key=" +
+               key +
+               '}';
     }
 }
