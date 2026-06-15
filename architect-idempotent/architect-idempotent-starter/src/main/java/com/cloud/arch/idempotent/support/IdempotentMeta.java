@@ -21,18 +21,16 @@ public class IdempotentMeta {
     private final boolean  removeNow;
 
     public IdempotentMeta(Idempotent idempotent) {
-        this.prefix     = idempotent.prefix();
-        this.key        = idempotent.key();
-        this.sharding   = idempotent.sharding();
+        this.prefix = idempotent.prefix();
+        this.key = idempotent.key();
+        this.sharding = idempotent.sharding();
         this.expireTime = idempotent.expireTime();
-        this.timeUnit   = idempotent.timeUnit();
-        this.message    = idempotent.message();
-        this.removeNow  = idempotent.removeNow();
+        this.timeUnit = idempotent.timeUnit();
+        this.message = idempotent.message();
+        this.removeNow = idempotent.removeNow();
     }
 
-    public IdempotentInfo getIdempotent(AnnotatedElementKey elementKey,
-                                        EvaluationContext context,
-                                        IdempotentParseEvaluator evaluator) {
+    public IdempotentInfo getIdempotent(AnnotatedElementKey elementKey, EvaluationContext context, IdempotentParseEvaluator evaluator) {
         String idemKey = evaluator.key(key, elementKey, context);
         //自定义添加前缀
         if (StringUtils.hasText(prefix)) {

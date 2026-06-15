@@ -31,6 +31,16 @@
             <artifactId>architect-idempotent-support</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.cloud.arch</groupId>
+            <artifactId>architect-mutex-lock-mysql</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.cloud.arch</groupId>
+            <artifactId>architect-mutex-lock-starter</artifactId>
+            <version>${revision}</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -16,8 +16,10 @@ import javax.sql.DataSource;
 @Getter
 public class JdbcIdempotentManager implements IdempotentManager {
 
-    private static final String INSERT_SQL = "insert ignore into arch_idempotent(lock_key,sharding,gmt_create)"
-            + " values(:lock_key,:sharding,current_time);";
+    private static final String INSERT_SQL = "insert ignore into arch_idempotent(lock_key,sharding,gmt_create)" +
+                                             " values(:lock_key,:sharding,current_time);";
+
+    private static final String DELETE_SQL = "delete from arch_idempotent where lock_key=:lock_key and sharding=:sharding;";
 
     private static final ThreadLocal<TransactionStatus> localStatus = new ThreadLocal<>();
 
@@ -25,7 +27,7 @@ public class JdbcIdempotentManager implements IdempotentManager {
     private final DataSourceTransactionManager transactionManager;
 
     public JdbcIdempotentManager(DataSource dataSource, DataSourceTransactionManager transactionManager) {
-        this.jdbcTemplate       = new NamedParameterJdbcTemplate(dataSource);
+        this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         this.transactionManager = transactionManager;
     }
 
@@ -45,9 +47,21 @@ public class JdbcIdempotentManager implements IdempotentManager {
                 transactionManager.rollback(status);
                 return;
             }
+            releaseWithRemove(idempotent);
             transactionManager.commit(status);
         } finally {
             localStatus.remove();
+        }
+    }
+
+    /**
+     * 删除释放幂等key
+     */
+    private void releaseWithRemove(IdempotentInfo idempotent) {
+        if (idempotent.removeNow()) {
+            MapSqlParameterSource paramSource = new MapSqlParameterSource().addValue("lock_key", idempotent.key())
+                                                                           .addValue("sharding", idempotent.sharding());
+            jdbcTemplate.update(DELETE_SQL, paramSource);
         }
     }
 
