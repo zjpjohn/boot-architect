@@ -2,6 +2,7 @@ package com.cloud.arch.web.advice.handler;
 
 import com.cloud.arch.web.domain.ApiReturn;
 import com.cloud.arch.web.error.ApiBizException;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +22,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -66,7 +70,9 @@ public class WebmvcHandlerAdvice implements Ordered {
         if (log.isErrorEnabled()) {
             log.error(exception.getMessage(), exception);
         }
-        return ApiReturn.badRequest(exception.getMessage(), HttpStatus.BAD_REQUEST.value());
+        Set<ConstraintViolation<?>> violations = exception.getConstraintViolations();
+        String message = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(";"));
+        return ApiReturn.badRequest(message, HttpStatus.BAD_REQUEST.value());
     }
 
     /**
