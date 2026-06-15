@@ -33,9 +33,9 @@ public class DictionaryEndpoint implements InitializingBean {
      */
     public ApiReturn<Object> dictionary(@RequestParam(value = "name", required = false) String name) {
         if (StringUtils.isBlank(name)) {
-            return ApiReturn.success("all dictionary list.", dictionaryFactory.list());
+            return ApiReturn.success("All dictionary list.", dictionaryFactory.list());
         }
-        return ApiReturn.success(name + "dictionary detail.", dictionaryFactory.of(name));
+        return ApiReturn.success(name + " dictionary detail.", dictionaryFactory.of(name));
     }
 
     /**

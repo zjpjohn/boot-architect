@@ -10,6 +10,7 @@ public class MaskUtils {
         }
         return switch (type) {
             case PASSWORD -> "********";
+            case IP -> maskIp(original);
             case NAME -> maskName(original);
             case EMAIL -> maskEmail(original);
             case MOBILE -> maskMobile(original);
@@ -20,21 +21,21 @@ public class MaskUtils {
 
     }
 
-    private static String maskMobile(String original) {
+    public static String maskMobile(String original) {
         if (original.length() < 11) {
             return original;
         }
         return original.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2");
     }
 
-    private static String maskBankCard(String original) {
+    public static String maskBankCard(String original) {
         if (original.length() <= 8) {
             return original;
         }
         return original.replaceAll("(\\d{4})\\d+(\\d{4})", "$1****$2");
     }
 
-    private static String maskIdCard(String original) {
+    public static String maskIdCard(String original) {
         int length = original.length();
         if (length == 15) {
             return original.replaceAll("(\\d{4})\\d{7}(\\d{4})", "$1*******$2");
@@ -45,9 +46,39 @@ public class MaskUtils {
         return original;
     }
 
-    private static String maskName(String original) {
-        if (original.length() == 1) return "*";
-        return original.charAt(0) + "**";
+    public static String maskName(String original) {
+        if (original.length() <= 1) {
+            return "**";
+        }
+        String repeat = "*".repeat(Math.min(original.length() - 1, 3));
+        return original.charAt(0) + repeat;
+    }
+
+    public static String maskIp(String ip) {
+        if (ip.contains(".")) {
+            String[] parts = ip.split("\\.");
+            if (parts.length == 4) {
+                return parts[0] + ".***.***.***";
+            }
+        }
+        if (ip.contains(":")) {
+            String[] parts = ip.split(":", -1);
+            if (parts.length >= 3) {
+                StringBuilder masked = new StringBuilder();
+                for (int i = 0; i < parts.length; i++) {
+                    if (i < 3) {
+                        masked.append(parts[i]);
+                    } else {
+                        masked.append("***");
+                    }
+                    if (i != parts.length - 1) {
+                        masked.append(":");
+                    }
+                }
+                return masked.toString();
+            }
+        }
+        return ip;
     }
 
     public static String maskEmail(String original) {
@@ -63,7 +94,7 @@ public class MaskUtils {
         return prefix.substring(0, 2) + "***" + suffix;
     }
 
-    private static String maskByRatio(String original, double ratio, char maskChar, int minMaskLen) {
+    public static String maskByRatio(String original, double ratio, char maskChar, int minMaskLen) {
         int len = original.length();
         if (len == 0) return original;
 

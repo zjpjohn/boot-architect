@@ -5,6 +5,8 @@ import com.cloud.arch.operate.core.OperationLog;
 import com.cloud.arch.operate.infrast.props.OperateProperties;
 import com.cloud.arch.page.Pager;
 import com.cloud.arch.page.PageCondition;
+import com.cloud.arch.web.mask.MaskType;
+import com.cloud.arch.web.mask.MaskUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -121,8 +123,7 @@ public class LogRepository {
         return Pair.of(whereSql, source);
     }
 
-    private Pair<String, MapSqlParameterSource> whereWithPageOrder(PageCondition query,
-                                                                   Pair<String, MapSqlParameterSource> pair) {
+    private Pair<String, MapSqlParameterSource> whereWithPageOrder(PageCondition query, Pair<String, MapSqlParameterSource> pair) {
         String                whereSql = pair.getKey();
         MapSqlParameterSource source   = pair.getValue();
         source.addValue("limit", query.getLimit()).addValue("offset", query.getOffset());
@@ -148,13 +149,14 @@ public class LogRepository {
         log.setError(rs.getString("error"));
         log.setTakenTime(rs.getLong("taken_time"));
         log.setGmtCreate(rs.getObject("gmt_create", LocalDateTime.class));
+        String opIp       = rs.getString("op_ip");
+        String opLocation = rs.getString("op_location");
         if (properties.getIpMask()) {
-            log.setOpIp("****************");
-            log.setOpLocation("****************");
-        } else {
-            log.setOpIp(rs.getString("op_ip"));
-            log.setOpLocation(rs.getString("op_location"));
+            opIp = MaskUtils.maskIp(opIp);
+            opLocation = MaskUtils.mask(opLocation, MaskType.CUSTOM, 0.75, '*', 3);
         }
+        log.setOpIp(opIp);
+        log.setOpLocation(opLocation);
         return log;
     }
 
