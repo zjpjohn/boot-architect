@@ -54,13 +54,13 @@ Spring Cache 生态里「开箱即用不够、需要自己搭」的中间地带�
 
 | 方案 | DB 查询次数 | 机制 |
 |------|-----------|------|
-| architect-cache | **1 次** | 本地 synchronized + Redisson 分布式锁 + 三次检查 |
+| architect-cache | **1 次** | 本地 SingleFlight + 双检 + Redisson 分布式锁（二次锁争抢） |
 | Spring Cache sync=true | 3 次（每实例 1 次） | 仅本地锁 |
 | JetCache | 1 次 | 分布式锁（纯 Redis 锁，无本地锁层） |
 | Layering Cache | 3 次 | 仅本地锁 |
 | 无防护 | 100 次 | — |
 
-architect-cache 的两级锁设计：JVM 内各线程被 synchronized 拦住，只留 1 个与分布式锁交互，减少了 Redis 锁争抢的网络开销。
+architect-cache 的两级锁设计：JVM 内同 key 通过 SingleFlight（leader/follower）单飞，只留 1 个线程与分布式锁交互，减少了 Redis 锁争抢的网络开销。L1 双检保证 SingleFlight 之后先查 Caffeine 再穿透到 Redis。
 
 JetCache 仅有分布式锁，同 JVM 内不同线程也要争 Redis 锁，每个线程多出一次网络往返。
 
@@ -117,9 +117,11 @@ JetCache 仅有分布式锁，同 JVM 内不同线程也要争 Redis 锁，每�
 
 #### TTL 异步续期（architect-cache 独有）
 
-- 每次 `doGet()` 命中后，检查 Redis TTL 是否 < `preloadTime`（默认 300 秒）
-- 满足条件则通过 Redisson 分布式锁（20ms 超时）续期到完整 TTL
-- 每个 key 在 `refreshTimeCache`（Caffeine Cache，maximumSize=10000 + expireAfterAccess）中限速，默认 30 秒内不重复刷新，防止内存无限增长
+- 每次 `doGet()` 命中后，通过 `RemoteCacheTtlRefresher` 异步续期
+- `RemoteCacheTtlRefresher` 使用 Caffeine Cache（maximumSize=10000 + expireAfterAccess=30s）做 key 级限流，同一 key 30 秒内只触发一次刷新，防止突发流量下高频续期
+- 限流通过后提交到虚拟线程执行，阻塞 I/O 时自动 unmount 释放平台线程
+- `RedisRemoteCache.refreshTtl`：直接 `fastPut` 更新 TTL，零锁开销
+- `HotKeyRedisCache.refreshTtl`：`remainTimeToLive` 检查 + Redisson 分布式锁（20ms 超时）防止多节点同时续期
 - 热点 key 不会在过期边界经历击穿回源毛刺，其他方案对此无解
 
 #### 延迟双删（architect-cache 独有）
@@ -160,12 +162,12 @@ JetCache 仅有分布式锁，同 JVM 内不同线程也要争 Redis 锁，每�
 | L1/L2 双层缓存 | 原生 | 无（需手动整合） | 原生 | 原生 |
 | 写入策略 | Write-through | Cache-aside | Write-through | Write-through |
 | 集群 L1 一致性 | Pub/Sub（默认）或 Redis Streams + 本节点直接更新 + 发送方去重 | 无 L1 | 广播失效 | 广播失效 |
-| 防缓存击穿 | 两级锁（synchronized + Redisson + 三次检查） | `@Cacheable(sync=true)` 仅本地锁 | 分布式锁 | 仅本地锁 |
+| 防缓存击穿 | 两级锁（SingleFlight + Redisson 分布式锁 + L1 双检 + 二次锁争抢） | `@Cacheable(sync=true)` 仅本地锁 | 分布式锁 | 仅本地锁 |
 | 防缓存雪崩 | `expire + random(randomBound)` | 需手动配置 | 支持 | 依赖 Caffeine |
 | 防缓存穿透 | `NullValue` 哨兵 + 独立压缩 TTL | 需自行处理 | 支持 | 需自行处理 |
 | TTL 异步续期 | `preloadTime` + 分布式锁 + key 级限流 | 无 | 无 | 无 |
 | 延迟双删 | `@TransactionalEventListener` + `DelayQueue` | 无 | 无 | 无 |
-| Micrometer 监控 | 4 个 Counter/Timer + 5 个派生 Gauge | 依赖外部 | 有 | 无 |
+| Micrometer 监控 | 3 Counter + 2 Timer + 1 Summary + 5 Gauge | 依赖外部 | 有 | 无 |
 
 ### 3.4 核心架构差异
 
@@ -175,11 +177,19 @@ JetCache 仅有分布式锁，同 JVM 内不同线程也要争 Redis 锁，每�
     → RedisRemoteCache.get(key)
         → if L1 activated: AbstractLocalCache.get(key)
             → Caffeine 命中 → 返回
-            → Caffeine 未命中 → synchronized(KEY_LOCKS) → 双检 → RedisRemoteCache.doGet(key)
-                → RMapCache 命中 → write L1 → 返回
-                → 未命中 → loadAndPut（Redisson 分布式锁 + 重试）→ write L1 + L2 → 返回
+            → Caffeine 未命中 → SingleFlight.execute(LockKey(key,method))
+                → L1 双检（leader 再查 Caffeine）→ RedisRemoteCache.doGet(key)
+                    → RMapCache 命中 → write L1 → 返回
+                    → 未命中 → loadAndPut（Redisson 分布式锁 +
+                      lockFail → retryLoadValue → 二次 tryLock）→ write L1 + L2 → 返回
         → if L1 not activated: RedisRemoteCache.doGet(key)
+            → RMapCache 命中 → 返回（触发 TTL 异步续期）
+            → 未命中 → loadAndPut → 返回
 ```
+
+> **CaffeineLocalCache 特例**：使用 Caffeine `LoadingCache` 内置锁机制（`Cache.get(key)` 内部 `computeIfAbsent`），不走 `AbstractLocalCache.get()` 的 SingleFlight 路径，零额外开销。
+
+
 
 **Spring Cache**：
 ```
@@ -215,7 +225,7 @@ JetCache 仅有分布式锁，同 JVM 内不同线程也要争 Redis 锁，每�
 
 | 方案 | 指标数量 | 指标详情 | Grafana 集成 | 管理端点 |
 |------|---------|---------|-------------|---------|
-| architect-cache | 9 个 | gets(hit/hitLocal/miss) / loads(success/failure) / evictions + 5 个 Gauge(hitRate/hitL1Rate/missRate/loadAvgTime/loadFailRate/size) | Micrometer → Prometheus 直出 | `/actuator/warmup/**` |
+| architect-cache | 12 个 | 3 Counter(`cache.gets` hit/hitLocal/miss) + 2 Timer(`cache.loads` success/failure) + 1 DistributionSummary(`cache.evictions`) + 5 Gauge(hitRate/hitL1Rate/missRate/loadAvgTime/loadFailRate) + 可选 `cache.size` Gauge | Micrometer → Prometheus 直出 | `/actuator/warmup/**` |
 | Spring Cache | 0 | 需外挂 | 需自建 | 无 |
 | JetCache | ~6 个 | hit/miss/load/loadTime 等 | Micrometer → Prometheus | 无 |
 | Hazelcast | ~20 个 | 丰富的内存/分区/操作指标 | JMX → JMX Exporter | 内置 Management Center |
@@ -272,7 +282,7 @@ architect-cache 的派生 Gauge 直接出 `hit.rate` / `miss.rate`，不需要�
 
 **内置 Micrometer 指标**
 
-开箱提供 4 个基础指标（命中/加载/淘汰/大小）+ 5 个派生 Gauge（命中率/L1 命中率/未命中率/平均加载耗时/加载失败率），Prometheus/Grafana 可直接消费，无需手动计算比率。
+开箱提供 6 个基础指标（3 Counter + 2 Timer + 1 DistributionSummary）+ 5 个派生 Gauge（命中率/L1 命中率/未命中率/平均加载耗时/加载失败率）+ 可选 size Gauge，Prometheus/Grafana 可直接消费，无需手动计算比率。
 
 ### 5.2 劣势
 
