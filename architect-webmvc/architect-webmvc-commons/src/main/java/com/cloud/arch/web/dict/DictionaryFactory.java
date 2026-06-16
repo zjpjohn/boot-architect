@@ -38,6 +38,10 @@ public class DictionaryFactory implements InitializingBean {
         Class<? extends Value> type       = (Class<? extends Value>) clazz;
         Dictionary             annotation = clazz.getAnnotation(Dictionary.class);
         String                 name       = annotation.name();
+        if (type.getEnumConstants().length == 0) {
+            String message = String.format("dictionary %s no enum constants value.", type.getName());
+            throw new IllegalArgumentException(message);
+        }
         if (StringUtils.isBlank(name)) {
             String message = String.format("dictionary %s must not be null name.", type.getName());
             throw new IllegalArgumentException(message);

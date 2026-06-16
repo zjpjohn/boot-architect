@@ -5,7 +5,7 @@ import com.cloud.arch.web.dict.Dictionary;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-@Dictionary(name = "state", type = "int", remark = "公共状态")
+@Dictionary(name = "state", remark = "公共状态")
 public enum State implements Value<Integer> {
     CREATED(1, "已创建"),
     USING(2, "使用中"),

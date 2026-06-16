@@ -5,7 +5,7 @@ import com.cloud.arch.web.dict.Dictionary;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-@Dictionary(name = "gender",type = "int",remark = "性别")
+@Dictionary(name = "gender", remark = "性别")
 public enum Gender implements Value<Integer> {
     FEMALE(1, "女"),
     MALE(2, "男");

@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 @Getter
 @AllArgsConstructor
-@Dictionary(name = "operate_type", type = "string", remark = "系统操作类型")
+@Dictionary(name = "operate_type", remark = "系统操作类型")
 public enum OperateType implements Value<String> {
     ADD("add", "新增"),
     EDIT("edit", "修改"),

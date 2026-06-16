@@ -5,8 +5,6 @@ import com.google.common.collect.Maps;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,23 +25,13 @@ public class DictionaryRemark implements Comparable<DictionaryRemark> {
 
     public DictionaryRemark(Dictionary dictionary, Class<? extends Value> type) {
         this.name = dictionary.name();
-        this.type = dictType(dictionary, type);
+        this.type = dictType(type);
         this.remark = dictionary.remark();
         this.values = this.typeToValue(type);
     }
 
-    private String dictType(Dictionary dictionary, Class<? extends Value> target) {
-        Type[] interfaces = target.getGenericInterfaces();
-        for (Type type : interfaces) {
-            if (type instanceof ParameterizedType parameterizedType) {
-                Type   rawType = parameterizedType.getRawType();
-                Type[] types   = parameterizedType.getActualTypeArguments();
-                if (rawType.equals(Value.class) && types.length > 0 && (types[0] instanceof Class<?> clazz)) {
-                    return clazz.getSimpleName().toLowerCase();
-                }
-            }
-        }
-        return dictionary.type();
+    private String dictType(Class<? extends Value> target) {
+        return target.getEnumConstants()[0].value().getClass().getSimpleName().toLowerCase();
     }
 
     private Map<String, Object> typeToValue(Class<? extends Value> type) {
