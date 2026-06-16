@@ -11,7 +11,6 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-@SuppressWarnings({"rawtypes"})
 public class DictionaryRemark implements Comparable<DictionaryRemark> {
 
     //字典数据名称

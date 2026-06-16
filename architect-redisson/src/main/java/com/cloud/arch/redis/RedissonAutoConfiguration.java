@@ -1,13 +1,9 @@
 package com.cloud.arch.redis;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.Codec;
-import org.redisson.codec.Jackson3Codec;
 import org.redisson.codec.JsonJackson3Codec;
-import org.redisson.codec.JsonJacksonCodec;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

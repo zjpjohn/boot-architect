@@ -3,7 +3,9 @@ package com.cloud.arch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lionsoul.ip2region.xdb.LongByteArray;
 import org.lionsoul.ip2region.xdb.Searcher;
+import org.lionsoul.ip2region.xdb.Version;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 
@@ -90,7 +92,9 @@ public class Ip2RegionSearcher implements DisposableBean, SmartInitializingSingl
         ClassLoader classLoader = Ip2RegionSearcher.class.getClassLoader();
         try (InputStream stream = classLoader.getResourceAsStream(this.dbPath)) {
             if (stream != null) {
-                this.searcher = Searcher.newWithBuffer(IOUtils.toByteArray(stream));
+                LongByteArray byteArray = new LongByteArray();
+                byteArray.append(IOUtils.toByteArray(stream));
+                this.searcher = Searcher.newWithBuffer(Version.IPv4, byteArray);
             }
         } catch (Exception error) {
             log.error("加载Ip2Region数据库xdb文件异常:", error);

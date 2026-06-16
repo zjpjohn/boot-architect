@@ -19,8 +19,7 @@ public class CacheContextContainer {
 
     private final MultiValueMap<Class<? extends AbsCacheOperation>, OperationContext> contexts;
 
-    public CacheContextContainer(Collection<? extends AbsCacheOperation<? extends Annotation>> operations,
-                                 Function<AbsCacheOperation<? extends Annotation>, OperationContext> generator) {
+    public CacheContextContainer(Collection<? extends AbsCacheOperation<? extends Annotation>> operations, Function<AbsCacheOperation<? extends Annotation>, OperationContext> generator) {
         this.contexts = new LinkedMultiValueMap<>();
         operations.forEach(v -> {
             this.contexts.add(v.getClass(), generator.apply(v));

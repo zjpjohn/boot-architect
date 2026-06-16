@@ -29,7 +29,7 @@ public class ExecutorFactory implements SmartInitializingSingleton, ApplicationC
         if (container == null) {
             throw new IllegalArgumentException(String.format("%s executor not configured.", typeClass.getSimpleName()));
         }
-        return Preconditions.checkNotNull(container.of(key), String.format("%s executor not exist", key));
+        return Preconditions.checkNotNull(container.of(key), key + " executor not exist.");
     }
 
     /**

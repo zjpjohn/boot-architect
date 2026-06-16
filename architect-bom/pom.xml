@@ -55,7 +55,7 @@
         <protostuff.version>1.8.0</protostuff.version>
         <collections.version>3.2.2</collections.version>
         <openapi3.version>3.0.3</openapi3.version>
-        <ip2region.version>2.7.0</ip2region.version>
+        <ip2region.version>3.3.7</ip2region.version>
         <libphonenumber.version>9.0.6</libphonenumber.version>
         <geocoder.version>3.6</geocoder.version>
         <junit-jupiter.version>5.11.4</junit-jupiter.version>
