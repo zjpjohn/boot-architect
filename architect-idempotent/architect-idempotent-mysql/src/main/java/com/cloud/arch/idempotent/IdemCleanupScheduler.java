@@ -13,7 +13,7 @@ import javax.sql.DataSource;
 public class IdemCleanupScheduler implements SmartInitializingSingleton {
 
     private static final String CLEANUP_SQL      = "DELETE FROM arch_idempotent WHERE gmt_create < DATE_SUB(now(), INTERVAL :ttl SECOND)";
-    private static final  String CLEAN_IDEM_MUTEX = "clean-idem-mutex";
+    private static final String CLEAN_IDEM_MUTEX = "clean-idem-mutex";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final MutexTemplate              mutexTemplate;

@@ -63,12 +63,6 @@
             <version>${revision}</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>com.cloud.arch</groupId>
-            <artifactId>architect-mutex-lock-starter</artifactId>
-            <version>${revision}</version>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 
 </project>

@@ -13,8 +13,6 @@ public class StudentCreateCmd {
     private String  name;
     @NotNull(message = "年龄为空")
     private Integer age;
-    @NotBlank(message = "班级为空")
-    private String  clazz;
     @NotNull(message = "性别为空")
     private Gender  gender;
 

@@ -122,6 +122,7 @@ public enum ValueType {
             return Double.valueOf(source);
         }
     };
+
     private final String name;
 
     public abstract <V extends Comparable<V>> int compareTo(String value, Value<V> source);
@@ -135,6 +136,16 @@ public enum ValueType {
                      .filter(v -> v.name.equals(type))
                      .findFirst()
                      .orElseThrow(() -> new IllegalArgumentException(String.format("不支持参数类型[%s].", type)));
+    }
+
+    /**
+     * 校验类型是否符合
+     */
+    public static void check(String type) {
+        ValueType valueType = Arrays.stream(values()).filter(v -> v.name.equals(type)).findFirst().orElse(null);
+        if (valueType == null) {
+            throw new IllegalArgumentException(String.format("不支持参数类型[%s].", type));
+        }
     }
 
 }

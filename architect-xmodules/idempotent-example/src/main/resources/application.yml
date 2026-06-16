@@ -34,13 +34,13 @@ management:
     web:
       exposure:
         include: "*"
-#com:
-#  cloud:
-#    redis:
-#      standalone:
-#        address: 120.27.121.45:6973
-#        password: Zap+{&5ad3avd?$#
-#        user-name: default
+com:
+  cloud:
+    redis:
+      standalone:
+        address: 127.0.0.1:6379
+        password: 123456789
+        user-name: default
 
 mybatis-plus:
   mapper-locations: classpath:mappers/*.xml

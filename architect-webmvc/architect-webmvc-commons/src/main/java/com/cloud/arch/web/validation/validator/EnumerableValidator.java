@@ -38,13 +38,7 @@ public class EnumerableValidator implements ConstraintValidator<Enumerable, Comp
             throw new IllegalArgumentException("enumerable class must be enum class.");
         }
         this.enums = enumsClass[0].getEnumConstants();
-        String typeName = this.enums[0].value().getClass().getName();
-        if (ValueType.of(typeName) == null) {
-            throw new IllegalArgumentException(
-                    "enum value type only support [ 'String' , 'Integer' , 'Long' , 'Double' , 'Float' , 'Short' ] , but this value type is '"
-                            + typeName
-                            + "'");
-        }
+        ValueType.check(this.enums[0].value().getClass().getName());
     }
 
     @Override

@@ -14,7 +14,6 @@ public class StudentPo {
     private Long          id;
     private String        name;
     private Integer       age;
-    private String        clazz;
     private Gender        gender;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime gmtCreate;
