@@ -38,7 +38,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
 
     @SuppressWarnings("unchecked")
     public Aggregate(R root, DeepCopier copier) {
-        Preconditions.checkNotNull(root, "聚合根对象不允许为空.");
+        Preconditions.checkNotNull(root, "aggregate root must not be null.");
         this.root = root;
         this.targetClass = (Class<R>) root.getClass();
         this.snapshot = copier.copy(root);
@@ -131,7 +131,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
             return null;
         }
         R result = newInstance(targetClass);
-        if (scanChangedFields(this.targetClass, root, snapshot, group, (field, value) -> field.set(result, value))) {
+        if (changedFields(this.targetClass, root, snapshot, group, (field, value) -> field.set(result, value))) {
             result.setVersion(root.getVersion());
             result.setId(root.getId());
             return result;
@@ -154,18 +154,18 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     public Set<String> changedFields(String group) {
         Set<String> results = Sets.newHashSet();
         if (!root.isNew()) {
-            scanChangedFields(this.targetClass, root, snapshot, group, (field, value) -> results.add(field.getName()));
+            changedFields(this.targetClass, root, snapshot, group, (field, value) -> results.add(field.getName()));
         }
         return results;
     }
 
     @SuppressWarnings("unchecked")
-    public <I extends Serializable, T extends Entity<I>> Optional<T> changedEntity(Function<R, T> loader) {
-        T        newEntity   = loader.apply(root);
-        T        oldEntity   = loader.apply(snapshot);
+    public <I extends Serializable, T extends Entity<I>> Optional<T> changedEntity(Function<R, T> collect) {
+        T        newEntity   = collect.apply(root);
+        T        oldEntity   = collect.apply(snapshot);
         Class<T> entityClass = (Class<T>) newEntity.getClass();
         T        result      = newInstance(entityClass);
-        if (scanChangedFields(entityClass, newEntity, oldEntity, null, (field, value) -> field.set(result, value))) {
+        if (changedFields(entityClass, newEntity, oldEntity, null, (field, value) -> field.set(result, value))) {
             result.setId(newEntity.getId());
             result.setVersion(newEntity.getVersion());
             return Optional.of(result);
@@ -175,8 +175,10 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
 
 
     @FunctionalInterface
-    private interface FieldCollector {
+    private interface FieldConsumer {
+
         void accept(Field field, Object value) throws Exception;
+
     }
 
     /**
@@ -186,10 +188,10 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
      * @param newSource   新值来源（root 或新实体）
      * @param oldSource   旧值来源（snapshot 或旧实体）
      * @param group       分组过滤，{@code null} 表示不按分组过滤
-     * @param collector   变更收集器 ({@link Field}, 新值) → void
+     * @param consumer    字段变更消费器 ({@link Field}, 新值) → void
      * @return true 至少一个字段发生变更
      */
-    private boolean scanChangedFields(Class<?> targetClass, Object newSource, Object oldSource, String group, FieldCollector collector) {
+    private boolean changedFields(Class<?> targetClass, Object newSource, Object oldSource, String group, FieldConsumer consumer) {
         try {
             Collection<Field> fields  = ReflectionUtils.getDeepDeclaredFields(targetClass);
             boolean           changed = false;
@@ -200,7 +202,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
                 Object newValue = field.get(newSource);
                 if (!DeepEquals.deepEquals(newValue, field.get(oldSource))) {
                     changed = true;
-                    collector.accept(field, newValue);
+                    consumer.accept(field, newValue);
                 }
             }
             return changed;
@@ -289,10 +291,10 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
      */
     public <I extends Serializable, T extends Entity<I>> T entity(Collection<T> entities, I id) {
         Preconditions.checkNotNull(id, "id must not be null.");
-        return entities.stream().filter(e -> id.equals(e.getId())).findFirst().orElseThrow(() -> {
-            String error = String.format("can not find entity by id: %s", id);
-            return new AggregateException(error);
-        });
+        return entities.stream()
+                       .filter(e -> id.equals(e.getId()))
+                       .findFirst()
+                       .orElseThrow(() -> new AggregateException("can not find entity by id:" + id));
     }
 
     private <T> T newInstance(Class<T> targetClass) {
