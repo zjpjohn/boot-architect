@@ -269,12 +269,12 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
      * 比较两个集合的差异
      */
     public <V> CompareResult<V> compare(Function<R, Collection<V>> collector) {
-        Set<V> newSet       = Sets.newHashSet(Objects.requireNonNullElse(collector.apply(this.root), Collections.emptyList()));
-        Set<V> oldSet       = Sets.newHashSet(Objects.requireNonNullElse(collector.apply(this.snapshot), Collections.emptyList()));
-        Set<V> intersection = Sets.intersection(newSet, oldSet);
-        Set<V> deleted      = Sets.difference(oldSet, intersection);
-        Set<V> added        = Sets.difference(newSet, intersection);
-        return new CompareResult<>(added, deleted);
+        Set<V> newSet = Sets.newHashSet(Objects.requireNonNullElse(collector.apply(this.root), Collections.emptyList()));
+        Set<V> oldSet = Sets.newHashSet(Objects.requireNonNullElse(collector.apply(this.snapshot), Collections.emptyList()));
+        if (newSet.isEmpty() && oldSet.isEmpty()) {
+            return new CompareResult<>(Collections.emptySet(), Collections.emptySet());
+        }
+        return new CompareResult<>(Sets.difference(newSet, oldSet), Sets.difference(oldSet, newSet));
     }
 
     /**
