@@ -336,16 +336,14 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
                 this.changeComputed = true;
                 return this;
             }
-            Map<I, T> oldEntityMap = oldEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
-            Map<I, T> newEntityMap = newEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
+            Map<I, T> oldMap = oldEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
+            Map<I, T> newMap = newEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
 
-            Set<I>  commonIds = Sets.intersection(oldEntityMap.keySet(), newEntityMap.keySet());
-            List<T> results   = Lists.newArrayList();
-            for (I id : commonIds) {
-                T oldEntity = oldEntityMap.get(id);
-                T newEntity = newEntityMap.get(id);
-                if (!DeepEquals.deepEquals(oldEntity, newEntity)) {
-                    results.add(newEntity);
+            List<T> results = Lists.newArrayList();
+            for (Map.Entry<I, T> entry : newMap.entrySet()) {
+                T oldEntity = oldMap.get(entry.getKey());
+                if (oldEntity != null && !DeepEquals.deepEquals(oldEntity, entry.getValue())) {
+                    results.add(entry.getValue());
                 }
             }
             this.changed = results;
@@ -361,8 +359,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
                 return this;
             }
             lazyLoadEntityIds();
-            Set<I> addIds = Sets.newHashSet(this.newIds);
-            addIds.removeAll(oldIds);
+            Set<I> addIds = Sets.difference(this.newIds, this.oldIds);
             if (!addIds.isEmpty()) {
                 this.added = newEntities.stream().filter(e -> addIds.contains(e.getId())).toList();
             }
@@ -378,10 +375,9 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
                 return this;
             }
             lazyLoadEntityIds();
-            Set<I> oldTemp = Sets.newHashSet(this.oldIds);
-            oldTemp.removeAll(newIds);
-            if (!oldTemp.isEmpty()) {
-                this.removed = oldEntities.stream().filter(e -> oldTemp.contains(e.getId())).toList();
+            Set<I> removedIds = Sets.difference(this.oldIds, this.newIds);
+            if (!removedIds.isEmpty()) {
+                this.removed = oldEntities.stream().filter(e -> removedIds.contains(e.getId())).toList();
             }
             this.removeComputed = true;
             return this;
