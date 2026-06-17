@@ -107,36 +107,16 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     /**
      * 获取更新数据后的聚合根实例
      */
-    public Optional<R> ifChanged() {
-        return Optional.ofNullable(this.changed());
-    }
-
-    /**
-     * 获取更新数据后的聚合实例，仅包含变更字段。
-     *
-     * @return 包含变更字段的新聚合实例；若为新聚合或未发生变更则返回 {@code null}
-     * @apiNote 推荐使用 {@link #ifChanged()} 获取 Optional 返回值，避免空指针风险
-     */
     public R changed() {
-        if (isNew()) {
-            return null;
-        }
-        R result = newInstance(this.targetClass);
-        if (scanChangedFields(this.targetClass, root, snapshot, null, (field, value) -> field.set(result, value))) {
-            result.setVersion(root.getVersion());
-            result.setId(root.getId());
-            return result;
-        }
-        return null;
+        return changed(null);
     }
 
-    /**
-     * 获取分组情况下更新数据后的聚合根实例
-     *
-     * @param group 分组信息
-     */
+    public Optional<R> ifChanged() {
+        return Optional.ofNullable(changed());
+    }
+
     public Optional<R> ifChanged(String group) {
-        return Optional.ofNullable(this.changed(group));
+        return Optional.ofNullable(changed(group));
     }
 
     /**
@@ -163,11 +143,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
      * 获取变更的字段名称集合
      */
     public Set<String> changedFields() {
-        Set<String> results = Sets.newHashSet();
-        if (!root.isNew()) {
-            scanChangedFields(this.targetClass, root, snapshot, null, (field, value) -> results.add(field.getName()));
-        }
-        return results;
+        return changedFields(null);
     }
 
     /**
@@ -213,11 +189,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
      * @param collector   变更收集器 ({@link Field}, 新值) → void
      * @return true 至少一个字段发生变更
      */
-    private boolean scanChangedFields(Class<?> targetClass,
-                                      Object newSource,
-                                      Object oldSource,
-                                      String group,
-                                      FieldCollector collector) {
+    private boolean scanChangedFields(Class<?> targetClass, Object newSource, Object oldSource, String group, FieldCollector collector) {
         try {
             Collection<Field> fields  = ReflectionUtils.getDeepDeclaredFields(targetClass);
             boolean           changed = false;
@@ -259,66 +231,46 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     }
 
     /**
+     * 统一按需收集实体集合的新增/删除/更新
+     */
+    public <I extends Serializable, T extends Entity<I>> ChangedResult<I, T> collect(Function<R, Collection<T>> getCollection) {
+        return new ChangedResult<>(this, getCollection);
+    }
+
+    /**
+     * 一次性收集实体集合的新增/删除/更新，返回包含全部三种变更的结果。
+     */
+    public <I extends Serializable, T extends Entity<I>> ChangedResult<I, T> all(Function<R, Collection<T>> getCollection) {
+        return this.collect(getCollection).changed().added().removed();
+    }
+
+    /**
      * 如果聚合中含领域实体集合 获取该集合中变更的实体集合
      */
     public <I extends Serializable, T extends Entity<I>> List<T> changedEntities(Function<R, Collection<T>> getCollection) {
-        Collection<T> oldEntities = getCollection.apply(snapshot);
-        Collection<T> newEntities = getCollection.apply(root);
-
-        Map<I, T> oldEntityMap = oldEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
-        Map<I, T> newEntityMap = newEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
-
-        // 取新老数据的集合的交集
-        oldEntityMap.keySet().retainAll(newEntityMap.keySet());
-        List<T> results = Lists.newArrayList();
-        for (Map.Entry<I, T> entry : oldEntityMap.entrySet()) {
-            T oldEntity = entry.getValue();
-            T newEntity = newEntityMap.get(entry.getKey());
-            if (!DeepEquals.deepEquals(oldEntity, newEntity)) {
-                results.add(newEntity);
-            }
-        }
-        return results;
+        return this.collect(getCollection).changed().getChanged();
     }
 
     /**
      * 如果聚合中包含领域实体集合 获取该集合中已删除的实体集合
      */
     public <I extends Serializable, T extends Entity<I>> List<T> removedEntities(Function<R, Collection<T>> getCollection) {
-        Collection<T> oldEntities = getCollection.apply(snapshot);
-        Set<I>        newIds      = entityIds(getCollection.apply(root));
-        Set<I>        oldIds      = entityIds(oldEntities);
-        oldIds.removeAll(newIds);
-        return oldEntities.stream().filter(e -> oldIds.contains(e.getId())).toList();
+        return this.collect(getCollection).removed().getRemoved();
     }
 
     /**
      * 如果聚合中存在领域实体集合 获取新增的实体集合
      */
     public <I extends Serializable, T extends Entity<I>> List<T> newEntities(Function<R, Collection<T>> getCollection) {
-        Collection<T> newEntities = getCollection.apply(root);
-        Set<I>        newIds      = entityIds(newEntities);
-        Set<I>        oldIds      = entityIds(getCollection.apply(snapshot));
-        newIds.removeAll(oldIds);
-        return newEntities.stream().filter(e -> newIds.contains(e.getId())).toList();
-    }
-
-    /**
-     * 集合转换为Set
-     */
-    private static <V> Set<V> convertToSet(Collection<V> value) {
-        if (value instanceof Set<V> vSet) {
-            return vSet;
-        }
-        return Sets.newHashSet(value);
+        return this.collect(getCollection).added().getAdded();
     }
 
     /**
      * 比较两个集合的差异
      */
-    public static <V> CompareResult<V> compare(Collection<V> newValues, Collection<V> oldValues) {
-        Set<V> newSet       = convertToSet(newValues);
-        Set<V> oldSet       = convertToSet(oldValues);
+    public <V> CompareResult<V> compare(Function<R, Collection<V>> collector) {
+        Set<V> newSet       = Sets.newHashSet(Objects.requireNonNullElse(collector.apply(this.root), Collections.emptyList()));
+        Set<V> oldSet       = Sets.newHashSet(Objects.requireNonNullElse(collector.apply(this.snapshot), Collections.emptyList()));
         Set<V> intersection = Sets.intersection(newSet, oldSet);
         Set<V> deleted      = Sets.difference(oldSet, intersection);
         Set<V> added        = Sets.difference(newSet, intersection);
@@ -328,7 +280,7 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
     /**
      * 获取实体id集合
      */
-    private <I extends Serializable, T extends Entity<I>> Set<I> entityIds(Collection<T> collection) {
+    private static <I extends Serializable, T extends Entity<I>> Set<I> entityIds(Collection<T> collection) {
         return collection.stream().map(Entity::getId).collect(Collectors.toSet());
     }
 
@@ -348,6 +300,103 @@ public class Aggregate<K extends Serializable, R extends AggregateRoot<K>> {
             return targetClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new AggregateException(e);
+        }
+    }
+
+    @Getter
+    public static class ChangedResult<I extends Serializable, T extends Entity<I>> {
+        private final Collection<T> newEntities;
+        private final Collection<T> oldEntities;
+        private final Set<I>        newIds = Sets.newHashSet();
+        private final Set<I>        oldIds = Sets.newHashSet();
+
+        //变更收集结果
+        private List<T> changed = Collections.emptyList();
+        private List<T> added   = Collections.emptyList();
+        private List<T> removed = Collections.emptyList();
+
+        //判断是否计算
+        private boolean addComputed    = false;
+        private boolean changeComputed = false;
+        private boolean removeComputed = false;
+
+        public <K extends Serializable, R extends AggregateRoot<K>> ChangedResult(Aggregate<K, R> aggregate, Function<R, Collection<T>> getter) {
+            this.newEntities = Objects.requireNonNullElse(getter.apply(aggregate.root), Collections.emptyList());
+            this.oldEntities = Objects.requireNonNullElse(getter.apply(aggregate.snapshot), Collections.emptyList());
+        }
+
+        /**
+         * 收集变化的子实体集合
+         */
+        public ChangedResult<I, T> changed() {
+            if (changeComputed) {
+                return this;
+            }
+            if (oldEntities.isEmpty() || newEntities.isEmpty()) {
+                this.changeComputed = true;
+                return this;
+            }
+            Map<I, T> oldEntityMap = oldEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
+            Map<I, T> newEntityMap = newEntities.stream().collect(Collectors.toMap(Entity::getId, v -> v));
+
+            Set<I>  commonIds = Sets.intersection(oldEntityMap.keySet(), newEntityMap.keySet());
+            List<T> results   = Lists.newArrayList();
+            for (I id : commonIds) {
+                T oldEntity = oldEntityMap.get(id);
+                T newEntity = newEntityMap.get(id);
+                if (!DeepEquals.deepEquals(oldEntity, newEntity)) {
+                    results.add(newEntity);
+                }
+            }
+            this.changed = results;
+            this.changeComputed = true;
+            return this;
+        }
+
+        /**
+         * 收集新增的子实体集合
+         */
+        public ChangedResult<I, T> added() {
+            if (addComputed) {
+                return this;
+            }
+            lazyLoadEntityIds();
+            Set<I> addIds = Sets.newHashSet(this.newIds);
+            addIds.removeAll(oldIds);
+            if (!addIds.isEmpty()) {
+                this.added = newEntities.stream().filter(e -> addIds.contains(e.getId())).toList();
+            }
+            this.addComputed = true;
+            return this;
+        }
+
+        /**
+         * 收集删除子实体集合
+         */
+        public ChangedResult<I, T> removed() {
+            if (removeComputed) {
+                return this;
+            }
+            lazyLoadEntityIds();
+            Set<I> oldTemp = Sets.newHashSet(this.oldIds);
+            oldTemp.removeAll(newIds);
+            if (!oldTemp.isEmpty()) {
+                this.removed = oldEntities.stream().filter(e -> oldTemp.contains(e.getId())).toList();
+            }
+            this.removeComputed = true;
+            return this;
+        }
+
+        /**
+         * id集合懒加载计算
+         */
+        private void lazyLoadEntityIds() {
+            if (this.newIds.isEmpty()) {
+                this.newIds.addAll(entityIds(newEntities));
+            }
+            if (this.oldIds.isEmpty()) {
+                this.oldIds.addAll(entityIds(oldEntities));
+            }
         }
     }
 

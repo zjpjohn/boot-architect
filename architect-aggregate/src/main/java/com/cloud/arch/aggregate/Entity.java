@@ -44,5 +44,4 @@ public interface Entity<I extends Serializable> extends Serializable {
         return NEW_VERSION.equals(this.getVersion());
     }
 
-
 }

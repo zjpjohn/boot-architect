@@ -23,9 +23,9 @@ public class UserInfo implements AggregateRoot<Long> {
     private LocalDateTime gmtCreate;
 
     public void modify() {
-        this.name     = "周佳佳";
+        this.name = "周佳佳";
         this.password = "aqswdergtht";
-        this.state    = UserState.NORMAL;
+        this.state = UserState.NORMAL;
     }
 
     @Override
