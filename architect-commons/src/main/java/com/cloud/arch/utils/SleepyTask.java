@@ -36,6 +36,9 @@ public abstract class SleepyTask implements Runnable {
             }
         } finally {
             running.set(false);
+            if (ready.get() && running.compareAndSet(false, true)) {
+                executor.execute(this);
+            }
         }
     }
 
