@@ -13,7 +13,7 @@ public interface SmsFlowController {
      * @param expire   过期时间
      * @param timeUnit 时间单位
      */
-    void cacheCode(String phone, String channel, String code, Long expire, TimeUnit timeUnit);
+    void cacheCode(String phone, String channel, String code, long expire, TimeUnit timeUnit);
 
     /**
      * 校验短信验证码
@@ -22,7 +22,7 @@ public interface SmsFlowController {
      * @param channel 发送渠道
      * @param code    验证码
      */
-    Boolean checkCode(String phone, String channel, String code);
+    boolean checkCode(String phone, String channel, String code);
 
     /**
      * 发送验证码流控校验
@@ -30,6 +30,6 @@ public interface SmsFlowController {
      * @param phone   手机号
      * @param channel 发送渠道
      */
-    Boolean flowLimit(String phone, String channel);
+    boolean flowLimit(String phone, String channel);
 
 }

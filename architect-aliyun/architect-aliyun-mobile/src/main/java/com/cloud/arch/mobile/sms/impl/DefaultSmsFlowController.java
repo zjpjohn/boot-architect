@@ -16,7 +16,7 @@ public class DefaultSmsFlowController implements SmsFlowController {
      * @param timeUnit 时间单位
      */
     @Override
-    public void cacheCode(String phone, String channel, String code, Long expire, TimeUnit timeUnit) {
+    public void cacheCode(String phone, String channel, String code, long expire, TimeUnit timeUnit) {
 
     }
 
@@ -28,7 +28,7 @@ public class DefaultSmsFlowController implements SmsFlowController {
      * @param code    验证码
      */
     @Override
-    public Boolean checkCode(String phone, String channel, String code) {
+    public boolean checkCode(String phone, String channel, String code) {
         return true;
     }
 
@@ -39,7 +39,7 @@ public class DefaultSmsFlowController implements SmsFlowController {
      * @param channel 发送渠道
      */
     @Override
-    public Boolean flowLimit(String phone, String channel) {
+    public boolean flowLimit(String phone, String channel) {
         return true;
     }
 }
