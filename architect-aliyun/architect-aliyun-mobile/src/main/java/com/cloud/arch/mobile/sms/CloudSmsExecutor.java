@@ -54,13 +54,13 @@ public class CloudSmsExecutor implements InitializingBean {
      */
     private SendResult doSend(SmsParam param, String channel, long expire) {
         try {
-            String smsChannel = StringUtils.isNotBlank(channel) ? channel : DEFAULT_CHANNEL;
+            String smsChannel = StringUtils.defaultIfBlank(channel, DEFAULT_CHANNEL);
             if (flowControl.flowLimit(param.getPhone(), smsChannel)) {
                 return SendResult.limitError("verify code not expired");
             }
             SendSmsRequest  request  = buildRequest(param);
             SendSmsResponse response = this.client.getAcsResponse(request);
-            if (!isSuccess(response)) {
+            if (!SUCCESS_FLAG.equals(response.getCode())) {
                 log.error("发送短信验证码[{}]失败，失败原因:{}", response.getCode(), response.getMessage());
                 return SendResult.apiError("sms response error");
             }
@@ -70,10 +70,6 @@ public class CloudSmsExecutor implements InitializingBean {
             log.error("发送短信验证码异常:", e);
             return SendResult.apiError("sms send exception: " + Objects.toString(e.getMessage(), ""));
         }
-    }
-
-    private boolean isSuccess(SendSmsResponse response) {
-        return SUCCESS_FLAG.equals(response.getCode());
     }
 
     /**
