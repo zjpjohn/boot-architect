@@ -561,7 +561,11 @@ L1.maximumSize = 热点key数量 × 2
 userCache.put("key", value);  // L2 失败只记 warn 日志，不抛异常
 ```
 
-### 11.5 缓存 Key 设计
+### 11.5 缓存预热
+
+应用重启或定时刷新时，可配合 `architect-cache-warmup` 模块实现自动/手动缓存预热，消除冷启动延迟。详见 [architect-cache-boot-starter 使用文档](../architect-cache-boot-starter/README.md#10-缓存预热)。
+
+### 11.6 缓存 Key 设计
 
 ```
 ✅ 推荐：业务前缀:实体名:业务ID

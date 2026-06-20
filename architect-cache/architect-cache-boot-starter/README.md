@@ -112,6 +112,8 @@ public class UserService {
 | `enableLocal` | `boolean` | `false` | 是否启用 L1 本地缓存 |
 | `local` | `@Local` | 默认值 | L1 缓存配置 |
 | `remote` | `@Remote` | 默认值 | L2 缓存配置 |
+| `warmup` | `boolean` | `false` | 是否允许缓存预热，配合 `architect-cache-warmup` 模块使用 |
+| `remark` | `String` | `""` | 缓存备注，配合 warmup 使用，在元数据查询中展示业务含义 |
 
 **使用示例**：
 
@@ -134,6 +136,11 @@ public Config getConfig(String key) { ... }
 // SpEL 表达式引用方法参数属性
 @CacheResult(name = "order", key = "#order.id")
 public Order getOrder(Order order) { ... }
+
+// 标记为可预热（配合 architect-cache-warmup 模块）
+@CacheResult(name = "user_cache", key = "#userId",
+             warmup = true, remark = "用户信息缓存，按用户ID预热")
+public User getUser(Long userId) { ... }
 ```
 
 ### 3.2 @CachePut — 更新缓存
@@ -408,9 +415,255 @@ public class CacheController {
 
 ---
 
-## 10. 监控指标
+## 10. 缓存预热
 
-### 10.1 启用
+应用重启后首批请求命中空缓存，大量穿透到数据库造成 RT 毛刺。`architect-cache-warmup` 模块在启动时或定时主动填充缓存，消除冷启动延迟。
+
+### 10.1 添加依赖
+
+```xml
+<dependency>
+    <groupId>com.cloud.arch</groupId>
+    <artifactId>architect-cache-warmup</artifactId>
+</dependency>
+```
+
+> 要求 JDK 21+（虚拟线程），内部已传递依赖 `architect-cache-support`。
+
+### 10.2 自动预热
+
+**第一步：标记方法**
+
+在已有的 `@CacheResult` 方法上加 `warmup = true`：
+
+```java
+@Service
+public class HotDataService {
+
+    @CacheResult(name = "user_cache", key = "#userId",
+                 warmup = true, remark = "用户信息缓存，按用户ID预热")
+    public User getUser(Long userId) {
+        return userMapper.selectById(userId);
+    }
+
+    @CacheResult(name = "order_cache", key = "#orderId",
+                 warmup = true, remark = "订单缓存")
+    public Order getOrder(String orderId) { ... }
+}
+```
+
+**第二步：配置预热参数**
+
+```yaml
+com:
+  cloud:
+    cache:
+      warm-up:
+        enabled: true
+        timeout-seconds: 120
+        tasks:
+          user_cache:
+            args:
+              - [ 1001 ]
+              - [ 1002 ]
+          order_cache:
+            args:
+              - [ "ORDER_001" ]
+              - [ "ORDER_002" ]
+```
+
+**第三步：观察启动日志**
+
+应用启动后，`SmartInitializingSingleton` 回调自动扫描并预热，**不阻塞应用启动**：
+
+```
+[WarmUp] scanned 156 beans, registered 2 cache names
+[WarmUp] starting auto warm-up, 2 caches
+[WarmUp] ==== Cache Warm-Up Summary ====
+[WarmUp] cache=user_cache success=2/2 duration=45ms
+[WarmUp] cache=order_cache success=2/2 duration=67ms
+[WarmUp] ==== Total: 2 tasks, 4 total, 4 success, 112ms ====
+```
+
+**执行流程**：
+
+```
+SmartInitializingSingleton.afterSingletonsInstantiated()
+  → WarmUpScanner 扫描所有 @CacheResult(warmup=true)
+  → WarmUpRegistry 按缓存名注册任务
+  → WarmUpExecutor 虚拟线程并发执行
+    → WarmUpCoordinator 获取分布式锁（按缓存名粒度）
+    → method.invoke(bean, args) → AOP 拦截 → L2/L1 写入
+    → CompletableFuture.allOf().orTimeout(timeoutSeconds)
+```
+
+每个 key 一个虚拟线程并发执行，200 个 key 的耗时趋近于最慢的那个 key。
+
+### 10.3 手动预热（WarmUpTemplate）
+
+注入 `WarmUpTemplate` 即可编程式触发预热，返回 `CompletableFuture<WarmUpResult>`：
+
+```java
+@Component
+public class WarmUpJob {
+
+    @Autowired
+    private WarmUpTemplate warmUpTemplate;
+
+    // 参数从 YAML 配置读取
+    @Scheduled(cron = "0 0 6 * * ?")
+    public void morningWarmUp() {
+        WarmUpResult result = warmUpTemplate.warmUp("user_cache").join();
+        log.info("warm-up done: {}/{} in {}ms",
+                 result.getSuccessCount(), result.getTotalCount(), result.getDurationMs());
+    }
+}
+```
+
+**自定义参数**：
+
+```java
+List<Object[]> customArgs = List.of(
+    new Object[]{"EAST", 1001L},
+    new Object[]{"WEST", 1002L}
+);
+warmUpTemplate.warmUp("order_cache", customArgs)
+    .thenAccept(result -> log.info("warm-up: {}/{}",
+        result.getSuccessCount(), result.getTotalCount()));
+```
+
+**异步处理**：
+
+```java
+// 同步等待
+WarmUpResult result = warmUpTemplate.warmUp("user_cache").join();
+
+// 异步链式处理
+warmUpTemplate.warmUp("user_cache")
+    .thenAccept(r -> log.info("done: {}/{}", r.getSuccessCount(), r.getTotalCount()))
+    .exceptionally(ex -> { log.error("failed", ex); return null; });
+
+// 组合多个缓存并行预热
+CompletableFuture.allOf(
+    warmUpTemplate.warmUp("user_cache"),
+    warmUpTemplate.warmUp("order_cache")
+).join();
+```
+
+### 10.4 REST 端点
+
+引入模块后自动暴露 Actuator 端点，路径前缀 `/actuator/warmup`：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/actuator/warmup/caches` | 查询所有可预热缓存的元数据 |
+| `GET` | `/actuator/warmup/caches/{cacheName}` | 查询单个缓存的方法签名与示例参数 |
+| `POST` | `/actuator/warmup/cache/{cacheName}` | 触发手动预热（可选自定义参数 body） |
+
+**GET 查询元数据**：
+
+```bash
+# 列出所有可预热缓存
+curl http://localhost:8080/actuator/warmup/caches
+
+# 查看单个缓存详情
+curl http://localhost:8080/actuator/warmup/caches/user_cache
+```
+
+响应示例：
+
+```json
+{
+  "cacheName": "user_cache",
+  "remark": "用户信息缓存，按用户ID预热",
+  "methods": [
+    { "beanName": "hotDataService", "methodName": "getUser", "paramTypes": ["Long"] }
+  ],
+  "sampleArgs": [[1001], [1002]]
+}
+```
+
+**POST 触发预热**：
+
+```bash
+# 无 body → 使用 YAML 配置的参数
+curl -X POST http://localhost:8080/actuator/warmup/cache/user_cache
+
+# 自定义参数
+curl -X POST http://localhost:8080/actuator/warmup/cache/user_cache \
+  -H "Content-Type: application/json" \
+  -d '[[1001], [1002], [1003]]'
+```
+
+响应示例：
+
+```json
+{
+  "cacheName": "user_cache",
+  "success": true,
+  "totalCount": 3,
+  "successCount": 3,
+  "durationMs": 85
+}
+```
+
+> 端点路径在 `/actuator` 下，天然复用 Spring Boot Actuator 安全体系。生产环境建议对 POST 加权限控制，或通过 `rest-endpoint: false` 关闭端点。
+
+### 10.5 多实例部署
+
+分布式锁按缓存名粒度协调（key 格式 `cache:warmup:lock:<cacheName>`），多实例自动互斥：
+
+```
+实例A: 获取锁 cache:warmup:lock:user_cache → 执行预热 → 释放
+实例B: 尝试获取同一把锁 → 被跳过，记录 lock.skipped 指标
+实例C: 同B
+```
+
+无 Redisson 时自动降级为单机模式，不影响功能。
+
+### 10.6 配合 L1 动态切换
+
+典型组合：预热期关闭 L1 让流量直接打到 Redis 预热 L2，稳定后启用 L1 降低延迟：
+
+```java
+// 预热前关闭 L1
+cacheManager.detachLocal("user_cache");
+
+// 执行预热 → 数据写入 L2（Redis）
+warmUpTemplate.warmUp("user_cache").join();
+
+// 预热完成后开启 L1
+cacheManager.activateLocal("user_cache");
+```
+
+### 10.7 监控指标
+
+预热过程自动上报 Micrometer 指标：
+
+| 指标名 | 类型 | Tag | 说明 |
+|--------|------|-----|------|
+| `cache.warmup.total` | Counter | cache, status | 预热成功/失败条目数 |
+| `cache.warmup.duration` | Timer | cache | 每次预热耗时 |
+| `cache.warmup.lock.acquired` | Counter | cache | 锁获取成功次数 |
+| `cache.warmup.lock.skipped` | Counter | cache | 锁跳过次数（其他节点执行中） |
+
+### 10.8 配置参考
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `com.cloud.cache.warm-up.enabled` | `true` | 是否启用自动预热 |
+| `com.cloud.cache.warm-up.fail-fast` | `false` | 预热失败是否阻止应用启动 |
+| `com.cloud.cache.warm-up.timeout-seconds` | `120` | 预热总超时（秒），超时后聚合已完成结果 |
+| `com.cloud.cache.warm-up.lock-wait-seconds` | `30` | 分布式锁等待超时（秒） |
+| `com.cloud.cache.warm-up.caches` | (空=全部) | 要执行的缓存名列表 |
+| `com.cloud.cache.warm-up.rest-endpoint` | `true` | 是否暴露 `/actuator/warmup` 端点 |
+| `com.cloud.cache.warm-up.tasks.<name>.args` | — | 预热参数，二维数组，内层为一次方法调用的参数列表 |
+
+---
+
+## 11. 监控指标
+
+### 11.1 启用
 
 ```yaml
 com:
@@ -419,7 +672,7 @@ com:
       enable-metric: true
 ```
 
-### 10.2 指标项
+### 11.2 指标项
 
 | 指标 | 说明 |
 |------|------|
@@ -435,7 +688,7 @@ com:
 
 ---
 
-## 11. 扩展点
+## 12. 扩展点
 
 所有扩展点均通过 `@ConditionalOnMissingBean` 实现，用户只需注册同名 Bean 即可覆盖：
 
@@ -466,7 +719,7 @@ public class CustomCacheErrorHandler implements CacheErrorHandler {
 
 ---
 
-## 12. SpEL 表达式上下文
+## 13. SpEL 表达式上下文
 
 注解中可用的 SpEL 变量：
 
@@ -497,9 +750,9 @@ public User getUser(Long userId) { ... }
 
 ---
 
-## 13. 配置参考
+## 14. 配置参考
 
-### 13.1 全部配置项
+### 14.1 全部配置项
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
@@ -513,24 +766,28 @@ public User getUser(Long userId) { ... }
 | `com.cloud.cache.ttl-refresh-interval` | `-60` | TTL 刷新检查间隔（秒） |
 | `com.cloud.cache.only-public` | `true` | 是否仅代理 public 方法 |
 | `com.cloud.cache.hotkey.etcd-server` | — | 热 key 探测 Etcd 地址 |
+| `com.cloud.cache.warm-up.enabled` | `true` | 是否启用自动预热 |
+| `com.cloud.cache.warm-up.timeout-seconds` | `120` | 预热总超时（秒） |
+| `com.cloud.cache.warm-up.rest-endpoint` | `true` | 是否暴露 `/actuator/warmup` 端点 |
+| `com.cloud.cache.warm-up.tasks.<name>.args` | — | 预热参数，二维数组，内层为一次方法调用的参数列表 |
 
-### 13.2 过期时间计算
+### 14.2 过期时间计算
 
 - **正常数据**：`expire + random(0, randomBound)`，默认 1800~3000 秒
 - **空值数据**：`(expire + random) / magnification`，默认 600~1000 秒
 
 ---
 
-## 14. 最佳实践
+## 15. 最佳实践
 
-### 14.1 缓存 Key 设计
+### 15.1 缓存 Key 设计
 
 ```
 推荐格式：业务前缀:实体名:业务ID
 示例：user:1001, product:50023, config:site_settings
 ```
 
-### 14.2 L1 容量规划
+### 15.2 L1 容量规划
 
 ```
 L1.maximumSize = 热点 key 数量 × 2
@@ -540,7 +797,7 @@ L1.maximumSize = 热点 key 数量 × 2
   → 内存占用 ≈ 400 × 2KB = 800KB
 ```
 
-### 14.3 过期时间建议
+### 15.3 过期时间建议
 
 | 数据特征 | `expire` | `randomBound` | `enableRefresh` |
 |---------|---------|---------------|-----------------|
@@ -549,7 +806,7 @@ L1.maximumSize = 热点 key 数量 × 2
 | 静态字典 | 7200+ | 1200+ | false |
 | 用户 Session | 600~1800 | 300 | false |
 
-### 14.4 哪些场景开启 L1
+### 15.4 哪些场景开启 L1
 
 ```
 适合 L1：
@@ -563,7 +820,7 @@ L1.maximumSize = 热点 key 数量 × 2
   - 一致性要求极高（Pub/Sub 有极低延迟）
 ```
 
-### 14.5 事务场景
+### 15.5 事务场景
 
 ```java
 // @CacheEvict 配合 @Transactional 自动启用延迟双删
@@ -577,7 +834,7 @@ public void updateUser(Long userId, UserUpdateDto dto) {
 
 ---
 
-## 15. 常见问题
+## 16. 常见问题
 
 **Q: 缓存穿透、击穿、雪崩如何防护？**
 
@@ -613,9 +870,30 @@ public void updateUser(Long userId, UserUpdateDto dto) {
 - 回源加载：DB 查询耗时 + L2 写入耗时
 - AOP 开销：SpEL 评估 ≈ 0.01ms，元数据缓存命中后基本无开销
 
+**Q: 缓存预热和 TTL 异步刷新有什么区别？**
+
+- **预热**：应用启动时或手动触发，批量填充缓存，消除冷启动延迟。适合启动后立即需要的高频数据
+- **TTL 刷新**：运行时自动续期，防止热点 key 过期。适合持续高访问的热点数据
+- 两者互补：预热负责"冷启动"，TTL 刷新负责"运行中保温"
+
+**Q: 预热会阻塞应用启动吗？**
+
+不会。预热在后台线程中执行（`SmartInitializingSingleton` 回调 + `CacheThreadPoolExecutor`），应用主流程不等待预热完成即可接收请求。预热期间的请求走正常的懒加载路径。
+
+**Q: 如何确认预热是否生效？**
+
+1. 查看启动日志中的 `[WarmUp] ==== Cache Warm-Up Summary ====` 摘要
+2. 调用 `GET /actuator/warmup/caches` 确认可预热列表是否包含目标缓存
+3. 检查 Micrometer 指标 `cache.warmup.total` 的 success 计数
+4. 预热后首次请求日志中不应出现缓存加载日志（说明已命中）
+
+**Q: YAML 配置的参数数量和类型如何确定？**
+
+调用 `GET /actuator/warmup/caches/{cacheName}` 查看 `methods[].paramTypes`，参数类型必须与之一一对应。Spring `ConversionService` 会自动将 YAML 值转换为目标类型（如字符串 `"1001"` 自动转 `Long`）。
+
 ---
 
-## 16. 与 Spring Cache 对比
+## 17. 与 Spring Cache 对比
 
 | 特性 | architect-cache | Spring Cache |
 |------|:---:|:---:|
@@ -624,6 +902,7 @@ public void updateUser(Long userId, UserUpdateDto dto) {
 | 热 key 探测 | ✅ | ❌ |
 | L1 动态开关 | ✅ | ❌ |
 | TTL 异步刷新 | ✅ | ❌ |
+| 缓存预热 | ✅ | ❌ |
 | 集群一致性 | ✅ Redis Pub/Sub | ❌ |
 | 缓存穿透防护 | ✅ 空值编码 | ❌ 需手动实现 |
 | 注解数量 | 3 个 | 4 个 |
