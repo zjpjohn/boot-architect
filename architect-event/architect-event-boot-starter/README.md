@@ -159,15 +159,17 @@ public class OrderEventListener {
 
 ### 3.4 GenericEvent — 泛化事件
 
-当跨服务通信不共享 Java 类型时使用：
+当跨服务通信不共享 Java 类型时，通过 `GenericEvent` 接口发布：
 
 ```java
-GenericEvent event = GenericEvent.builder()
-    .eventType("order.created")
-    .payload(orderJson)
-    .build();
-DomainEventPublisher.publish(event);
+// 最小用法：仅指定事件内容与 topic
+DomainEventPublisher.publish(GenericEvent.create(orderJson, "order.created"));
+
+// 完整用法：指定 filter 与分片键
+DomainEventPublisher.publish(GenericEvent.create(orderJson, "order.created", "created", userId));
 ```
+
+`GenericEvent` 接口还提供了 `filter()`、`shardingKey()`、`delay()`、`timeUnit()`、`bizGroup()` 等默认方法，可通过构造 `PublishGenericEvent` 实例按需覆盖。
 
 ---
 
