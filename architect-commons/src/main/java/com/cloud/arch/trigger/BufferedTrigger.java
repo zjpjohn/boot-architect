@@ -148,7 +148,7 @@ public class BufferedTrigger<E> {
         }
 
         public BufferedTrigger<E> build() {
-            Preconditions.checkNotNull(this.listener, "时间监听器不允许为空");
+            Preconditions.checkNotNull(this.listener, "监听处理器不允许为空");
             this.queue = Objects.requireNonNullElseGet(this.queue, LinkedBlockingQueue::new);
             this.executor = Objects.requireNonNullElseGet(this.executor, () -> Executors.newFixedThreadPool(this.consumers));
             BufferedTrigger<E> trigger = new BufferedTrigger<>(this.queue, this.listener, this.executor, this.batchSize, this.timeout);

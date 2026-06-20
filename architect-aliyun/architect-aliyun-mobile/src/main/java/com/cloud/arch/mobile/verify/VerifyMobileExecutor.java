@@ -4,20 +4,12 @@ import com.aliyun.dypnsapi20170525.Client;
 import com.aliyun.dypnsapi20170525.models.VerifyMobileRequest;
 import com.aliyun.dypnsapi20170525.models.VerifyMobileResponse;
 import com.aliyun.dypnsapi20170525.models.VerifyMobileResponseBody;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Getter
-public class VerifyMobileExecutor {
+public record VerifyMobileExecutor(Client client) {
 
     public static final String SUCCESS = "OK";
-
-    private final Client client;
-
-    public VerifyMobileExecutor(Client client) {
-        this.client = client;
-    }
 
     /**
      * 校验手机号好是否为本机号码

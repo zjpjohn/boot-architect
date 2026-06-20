@@ -7,19 +7,9 @@ import com.aliyun.dypnsapi20170525.models.GetMobileResponseBody;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GetMobileExecutor {
+public record GetMobileExecutor(Client client) {
 
     public static final String SUCCESS = "OK";
-
-    private final Client client;
-
-    public GetMobileExecutor(Client client) {
-        this.client = client;
-    }
-
-    public Client getClient() {
-        return client;
-    }
 
     /**
      * 根据移动端token换取手机号

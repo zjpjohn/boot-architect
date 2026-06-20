@@ -32,7 +32,7 @@ com:
         enable: true
         name: THA-X-VERSION
       share:
-        excludes: /v3/**,/web/**,/version/**,/auth/**,/executor/**,/dictionary,/dictionary/**
+        excludes: /v3/**,/web/**,/version/**,/auth/**,/executor/**,/dictionary,/dictionary/**,/open/**
       auth:
         token:
           expire: 24

@@ -45,21 +45,12 @@ public class OperateLogConfiguration {
     }
 
     @Bean
-    public OperationLogHandle operationLogHandle(OperateLogProperties properties,
-                                                 LogJdbcRepository logJdbcRepository,
-                                                 Ip2RegionSearcher ipRegionSearcher,
-                                                 IOperatorResolver operatorResolver,
-                                                 ITenantResolver tenantResolver) {
-        return new OperationLogHandle(logJdbcRepository,
-                                      properties,
-                                      ipRegionSearcher,
-                                      operatorResolver,
-                                      tenantResolver);
+    public OperationLogHandle operationLogHandle(OperateLogProperties properties, LogJdbcRepository logJdbcRepository, Ip2RegionSearcher ipRegionSearcher, IOperatorResolver operatorResolver, ITenantResolver tenantResolver) {
+        return new OperationLogHandle(logJdbcRepository, properties, ipRegionSearcher, operatorResolver, tenantResolver);
     }
 
     @Bean
-    public AsyncLogDispatcher asyncLogDispatcher(OperateLogProperties properties,
-                                                 OperationLogHandle operationLogHandle) {
+    public AsyncLogDispatcher asyncLogDispatcher(OperateLogProperties properties, OperationLogHandle operationLogHandle) {
         return new AsyncLogDispatcher(properties, operationLogHandle);
     }
 

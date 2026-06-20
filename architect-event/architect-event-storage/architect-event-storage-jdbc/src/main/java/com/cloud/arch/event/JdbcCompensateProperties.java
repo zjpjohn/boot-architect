@@ -30,7 +30,7 @@ public class JdbcCompensateProperties {
      * 启动延迟时间
      */
     @DurationUnit(ChronoUnit.SECONDS)
-    private Duration initialDelay = Duration.ofSeconds(5);
+    private Duration initialDelay = Duration.ofSeconds(10);
     /**
      * 补偿间隔时间
      */
