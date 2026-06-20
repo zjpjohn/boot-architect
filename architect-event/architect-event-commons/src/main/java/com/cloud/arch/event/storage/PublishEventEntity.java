@@ -69,4 +69,5 @@ public class PublishEventEntity implements Version {
     public Integer getEventState() {
         return state.getState();
     }
+
 }

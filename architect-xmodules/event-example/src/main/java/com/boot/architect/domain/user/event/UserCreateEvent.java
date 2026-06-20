@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Publish
-//@Publish(name = "user-topic", filter = "user-create")
+@Publish(name = "user-topic", filter = "user-create")
 public class UserCreateEvent {
 
     private Long   userId;

@@ -21,9 +21,11 @@ DomainEventPublisher.publish(event)                  ← 业务代码调用
         ↓
 TransactionSynchronization                          ← Spring 事务同步
   ├── beforeCommit: initStorage() 持久化             ← 事务内，保证不丢
-  └── afterCommit:  publish()     投递               ← 事务提交后，异步发送
+  └── afterCommit:  publish()     入队               ← 事务提交后，非阻塞入队
         ↓
-Kafka / RocketMQ / Pulsar / RabbitMQ                ← 消息队列
+BufferedTrigger drain → BatchMessagePublisher       ← 攒批按 topic 分组异步发送
+        ↓
+Kafka / RocketMQ / Pulsar / RabbitMQ                ← 消息队列（原生异步 API）
         ↓
 SubscriberProcessor → EventSubscribeHandler         ← 消费端
   ├── isProcessed()  INSERT IGNORE 幂等检查          ← 原子去重
@@ -56,8 +58,6 @@ com:
     event:
       publisher:
         enable: true                           # 启用事件发布
-        jdbc:
-          compenstate-cron: "*/10 * * * * ?"   # 补偿扫描 cron
 ```
 
 > 发布端需要存在 `DataSource` Bean，如果项目未配置数据源，需额外引入 `spring-boot-starter-jdbc`。
@@ -128,10 +128,13 @@ public class OrderEventListener {
     └── 本地事件 → ApplicationContext.publishEvent(event) 直接消费
 
 事务 commit 后:
-  → afterCommit: MessageQueuePublisher.publish(entities)
-    └── 每条 entity 独立 submit 到线程池异步投递 MQ
-      ├── 成功 → eventRepository.markSucceeded(entity)
-      └── 失败 → eventRepository.markFailed(entity)
+  → afterCommit: BatchMessagePublisher.publish(entities)
+    └── 实体非阻塞入队 BufferedTrigger 内部队列
+      → trigger 按 batchSize + drainTimeoutMs 攒批 drain
+      → processBatch: 按 topic 分组 → eventPublisher.publishBatch(messages)
+      → 每条 message 独立 CompletableFuture 回调:
+        ├── 成功 → BatchEventMarker.markSucceeded(entity)
+        └── 失败 → BatchEventMarker.markFailed(entity)
 
 事务 complete:
   → afterCompletion: DomainEventPublisher.clear() 清理 ThreadLocal
@@ -272,10 +275,10 @@ com:
 
 | 消息队列 | 配置前缀 | 条件 |
 |---------|---------|------|
-| Kafka | `com.cloud.event.kafka` | 类路径存在 `KafkaEventProperties` |
+| Kafka | —（复用 `spring.kafka.*`） | 类路径存在 `KafkaEventProperties` |
 | RocketMQ 5.x | `com.cloud.event.rocket.v5x` | `name-srv` 配置 |
 | RocketMQ ONS | `com.cloud.event.rocket.ons` | `access-key`、`secret-key`、`ons-address` 配置 |
-| Pulsar | `com.cloud.event.pulsar` | `endpoints` 配置 |
+| Pulsar | `com.cloud.event.pulsar` | `enpoints` 配置 |
 | RabbitMQ | `com.cloud.event.rabbit` | 类路径存在 `RabbitmqProperties` |
 
 ### 6.2 RocketMQ 5.x 配置示例
@@ -291,13 +294,20 @@ com:
       rocket:
         v5x:
           name-srv: 127.0.0.1:9876
-          topic: order-event-topic
-          consumer-group: order-consumer
+          publisher:
+            group: order-producer-group
+          subscriber:
+            group: order-consumer-group
 ```
+
+> topic 由事件元数据动态指定，非全局配置。
 
 ### 6.3 Kafka 配置示例
 
 ```yaml
+spring:
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
 com:
   cloud:
     event:
@@ -305,14 +315,17 @@ com:
         enable: true
       subscriber:
         enable: true
-      kafka:
-        bootstrap-servers: 127.0.0.1:9092
-        topic: order-event-topic
 ```
+
+> Kafka 连接和 topic 配置复用 `spring.kafka.*`，无需 `com.cloud.event.kafka.*` 额外配置。
 
 ### 6.4 RabbitMQ 配置示例
 
 ```yaml
+spring:
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
 com:
   cloud:
     event:
@@ -321,11 +334,11 @@ com:
       subscriber:
         enable: true
       rabbit:
-        host: 127.0.0.1
-        port: 5672
-        exchange: order.exchange
-        queue: order.queue
+        producer:
+          exchange: order.exchange
 ```
+
+> 连接信息（`host`/`port`/`username`）复用 `spring.rabbitmq.*`；routing key 为事件名动态指定。
 
 ---
 
@@ -342,7 +355,10 @@ com:
       publisher:
         enable: true
         jdbc:
-          compenstate-cron: "*/10 * * * * ?"    # 补偿扫描 cron
+          batch: 20                  # 每次扫描捞取条数
+          max-version: 10            # 最大重试次数
+          initial-delay: 10s         # 补偿任务启动延迟
+          period: 2m                 # 补偿任务执行间隔
 ```
 
 **消息主表 `arch_event`：**
@@ -400,9 +416,10 @@ CREATE TABLE arch_event_idempot (
 JdbcCompensateEventScheduler
   → 分布式锁获取执行权
   → 扫描 arch_event 表中 state<>1 的记录（乐观锁 version 控制并发）
-  → JdbcCompensateProcessor 重新投递到 MQ
-  → 成功 → markSucceeded（version+1 CAS 更新）
-  → 失败 → markFailed + 写入 arch_event_compen 补偿记录
+  → JdbcCompensateProcessor.processBatch(entities)
+    ├── 按 topic 分组 → eventPublisher.publishBatch(messages) 批量异步投递
+    ├── 每条 future 回调中: 成功 → markSucceeded / 失败 → markFailed
+    └── allOf(chained).whenComplete → eventRepository.batchCompensate(audits) 批量写入补偿审计
 ```
 
 **核心 SQL 说明：**
@@ -410,9 +427,9 @@ JdbcCompensateEventScheduler
 | SQL | 说明 |
 |-----|------|
 | `INSERT INTO arch_event` | `beforeCommit` 批量写入，业务事务内保证不丢 |
-| `UPDATE state=1, version=version+1 WHERE id=? AND version=?` | 乐观锁 CAS 更新，防止重复标记 |
+| `UPDATE state=1, version=version+1 WHERE id=? AND version=?` | 乐观锁 CAS 更新，防止重复标记（BatchEventMarker 批量执行） |
 | `SELECT ... WHERE state<>1 AND version<maxVersion` | 补偿扫描，按 version 升序取，防止死循环 |
-| `INSERT INTO arch_event_compen` | 补偿记录留存，用于追溯和告警 |
+| `INSERT INTO arch_event_compen (batch)` | 补偿审计记录 batch 写入，补偿批次所有 future 完成后一次性插入 |
 
 ### 7.2 RocksDB 存储
 
@@ -456,33 +473,94 @@ checker.setRetryFor(TimeoutException.class);
 
 ### 9.1 全部配置项
 
+**发布端 — 核心配置**（前缀 `com.cloud.event`）
+
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
-| `com.cloud.event.publisher.enable` | false | 启用事件发布端 |
-| `com.cloud.event.publisher.publish-threads` | 2 | 异步发送核心线程数 |
-| `com.cloud.event.publisher.max-publish-threads` | 8 | 异步发送最大线程数 |
-| `com.cloud.event.publisher.publish-cached-event-size` | 8192 | 异步发送队列容量 |
-| `com.cloud.event.publisher.jdbc.compenstate-cron` | — | JDBC 补偿扫描 cron |
-| `com.cloud.event.publisher.rocksdb.event-path` | — | RocksDB 数据目录 |
-| `com.cloud.event.subscriber.enable` | false | 启用事件订阅端 |
-| `com.cloud.event.subscriber.before` | 2d | 回收多久前的幂等记录 |
-| `com.cloud.event.subscriber.initial-delay` | 10s | 首次清理延迟 |
-| `com.cloud.event.subscriber.period` | 4d | 清理间隔周期 |
-| `com.cloud.event.subscriber.mutex.initial-delay` | 5s | 分布式锁初始延迟 |
-| `com.cloud.event.subscriber.mutex.ttl` | 30s | 分布式锁过期时间 |
-| `com.cloud.event.subscriber.mutex.transition` | 15s | 分布式锁续期间隔 |
+| `publisher.enable` | false | 启用事件发布端 |
+| `publisher.batch.batch-size` | 20 | 每次 drain 攒批最大条数 |
+| `publisher.batch.drain-timeout-ms` | 200 | drain 等待超时(ms) |
+| `publisher.batch.queue-capacity` | 65536 | 内存队列容量 |
+| `publisher.marker.batch-size` | 100 | 状态标记单次 batchUpdate 最大条数 |
+| `publisher.marker.interval` | 200 | 标记攒批刷新间隔(ms) |
+| `metric.enabled` | false | 启用 Micrometer 指标采集 |
+
+**发布端 — JDBC 存储与补偿**（前缀 `com.cloud.event.publisher.jdbc`）
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `batch` | 20 | 每次扫描捞取条数 |
+| `max-version` | 10 | 最大重试次数（超过则进入死信） |
+| `before` | 1m | 扫描多久前的事件 |
+| `range` | 7d | 扫描时间范围 |
+| `initial-delay` | 10s | 补偿任务启动延迟 |
+| `period` | 2m | 补偿任务执行间隔 |
+| `mutex.initial-delay` | 5s | 补偿锁初始延迟 |
+| `mutex.ttl` | 30s | 补偿锁过期时间 |
+| `mutex.transition` | 15s | 补偿锁续期间隔 |
+| `clean-succeed.retain-days` | 7 | 成功事件保留天数 |
+| `clean-succeed.batch-size` | 1000 | 每次清理批大小 |
+| `clean-succeed.initial-delay` | 10s | 清理任务启动延迟 |
+| `clean-succeed.period` | 1h | 清理任务间隔 |
+| `dead-letter.batch` | 10 | 死信归档批量 |
+| `dead-letter.before` | 1m | 死信归档 before |
+| `dead-letter.range` | 7d | 死信归档 range |
+| `dead-letter.initial-delay` | 30s | 死信归档启动延迟 |
+| `dead-letter.period` | 30m | 死信归档间隔 |
+
+**发布端 — RocksDB 存储**（前缀 `com.cloud.event.publisher.rocksdb`）
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `event-path` | — | RocksDB 数据目录 |
+
+**订阅端**（前缀 `com.cloud.event`）
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `subscriber.enable` | false | 启用事件订阅端 |
+| `subscriber.before` | 2d | 回收多久前的幂等记录 |
+| `subscriber.initial-delay` | 10s | 首次清理延迟 |
+| `subscriber.period` | 4d | 清理间隔周期 |
+| `subscriber.mutex.initial-delay` | 5s | 分布式锁初始延迟 |
+| `subscriber.mutex.ttl` | 30s | 分布式锁过期时间 |
+| `subscriber.mutex.transition` | 15s | 分布式锁续期间隔 |
 
 ### 9.2 队列专属配置
 
+**RocketMQ 5.x**（前缀 `com.cloud.event.rocket.v5x`）
+
 | 配置项 | 说明 |
 |--------|------|
-| `com.cloud.event.kafka.bootstrap-servers` | Kafka 地址 |
-| `com.cloud.event.rocket.v5x.name-srv` | RocketMQ NameServer |
-| `com.cloud.event.rocket.ons.access-key` | 阿里云 AccessKey |
-| `com.cloud.event.rocket.ons.secret-key` | 阿里云 SecretKey |
-| `com.cloud.event.rocket.ons.ons-address` | ONS 接入点 |
-| `com.cloud.event.pulsar.endpoints` | Pulsar 端点 |
-| `com.cloud.event.rabbit.host` | RabbitMQ 主机 |
+| `name-srv` | NameServer 地址 |
+| `access-key` / `secret-key` | ACL 认证 |
+| `publisher.group` | 生产者组名 |
+
+**RocketMQ ONS**（前缀 `com.cloud.event.rocket.ons`）
+
+| 配置项 | 说明 |
+|--------|------|
+| `access-key` / `secret-key` | 阿里云 AccessKey/SecretKey |
+| `ons-address` | ONS 接入点 |
+
+**Kafka** — 无需 `com.cloud.event.kafka.*` 额外配置，连接信息复用 `spring.kafka.bootstrap-servers`。
+
+**Pulsar**（前缀 `com.cloud.event.pulsar`）
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `enpoints` | — | Pulsar 端点 |
+| `publisher.enable-batching` | true | 客户端自动攒批 |
+| `publisher.batching-max-messages` | 1000 | 每批最大消息数 |
+| `publisher.batching-max-publish-delay` | 10 | 批发送最大等待(ms) |
+| `publisher.send-timeout` | 30 | 发送超时(s) |
+| `publisher.max-pending-messages` | 1000 | 待发送最大消息数 |
+
+**RabbitMQ**（前缀 `com.cloud.event.rabbit`，连接信息复用 `spring.rabbitmq.*`）
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `producer.exchange` | "" | 生产者交换机 |
 
 ---
 
@@ -565,15 +643,21 @@ public void createOrder(Order order) {
   key = "#event.orderId"  → 自动拼接为 "order.created:ORD20260509001"
 ```
 
-### 11.4 队列容量规划
+### 11.4 攒批参数调优
 
 ```
-异步发布线程池队列容量 = 峰值 TPS × 消息处理耗时（秒）
+queueCapacity > 峰值 TPS × drainTimeoutMs / 1000
 
-示例：峰值 500 TPS，处理 200ms
-  → publishCachedEventSize = 500 × 0.2 = 100
-  → 预留 2 倍余量：2048
+示例：峰值 500 TPS，drainTimeoutMs=200
+  → 每 200ms 攒批 ≈ 100 条 → batchSize 设 100~150
+  → queueCapacity = 500 × 0.2 × 10 倍余量 = 1000
+  → marker.batchSize 设 100~200，interval 设 200~500ms
 ```
+
+- `publisher.batch.batch-size`：单次 drain 最大条数，太小浪费攒批效果，太大增加单次发送延迟
+- `publisher.batch.drain-timeout-ms`：攒批窗口，到达即排空；配合 batchSize 先到先发
+- `publisher.marker.batch-size`：状态标记批量写入大小，减少逐条 UPDATE
+- `publisher.marker.interval`：标记攒批刷新间隔，延迟越小标记越实时
 
 ### 11.5 分库分表场景
 
@@ -602,7 +686,7 @@ public void createOrder(Order order) {
 
 **Q: 消息队列投递失败怎么办？**
 
-`doPublish()` 中捕获异常后调用 `eventRepository.markFailed(entity)` 标记失败，补偿定时任务 `JdbcCompensateEventScheduler` 会定期扫描失败记录重新投递。
+每条消息的 `CompletableFuture` 回调中，失败时通过 `BatchEventMarker.markFailed(entity)` 标记；补偿定时任务 `JdbcCompensateEventScheduler` 定期扫描失败记录，按 topic 分组后调用 `publishBatch` 批量重试，完成后批量写入补偿审计记录。
 
 **Q: 如何切换存储后端？**
 
@@ -614,7 +698,15 @@ public void createOrder(Order order) {
 
 **Q: 同一事务内发布多个事件，先后顺序是否有保证？**
 
-有。`ThreadLocal<LinkedList>` 保证事件按 publish 调用顺序存储，`beforeCommit` 按序持久化，`afterCommit` 按序提交到线程池（但线程池异步执行不保证投递到 MQ 的顺序，如需严格顺序，请使用同一个 partition key）。
+有。`ThreadLocal<LinkedList>` 保证事件按 publish 调用顺序存储，`beforeCommit` 按序持久化，`afterCommit` 按序入队 BufferedTrigger。攒批 drain 后按 topic 分组发送，同一 topic 内顺序由 MQ 的 partition key 保证。
+
+**Q: 为什么不需要线程池了？**
+
+旧版用 `ThreadPoolExecutor` + 虚线程包装同步发送模拟异步。现在所有 MQ 客户端直接返回原生异步结果（RocketMQ v5 `send(msg, SendCallback)` → `CompletableFuture`、Pulsar `sendAsync()` → `CompletableFuture`、Kafka `ListenableFuture` → `CompletableFuture`），上层仅需 `BufferedTrigger` 单线程 drain + `CompletableFuture` 回调，不再需要额外线程池。
+
+**Q: 异步发送如何限流？**
+
+`BufferedTrigger` 内存队列容量 `publisher.batch.queue-capacity`（默认 65536）即天然背压。队列满时 `LinkedBlockingQueue.offer` 返回 false，调用方直接收到 `RejectedExecutionException`，等同于限流拒绝。
 
 ---
 
@@ -624,14 +716,14 @@ public void createOrder(Order order) {
 architect-event/
 ├── architect-event-commons/          # 公共接口和 POJO
 │   └── core/
-│       ├── publish/                  # PublishEvent、MetadataFactory、Publisher
+│       ├── publish/                  # EventPublisher、BatchMessagePublisher、BatchEventMarker
 │       └── subscribe/                # SubscribeHandler、SubscribeEventMetadata
 ├── architect-event-boot-starter/     # 本模块 — Spring Boot 自动配置
 │   └── src/main/java/com/cloud/arch/event/
-│       ├── boot/                     # 自动配置类
+│       ├── boot/                     # 自动配置类 (CloudEventAutoConfiguration)
 │       ├── commons/                  # ApplicationContextHolder
-│       ├── props/                    # 配置属性
-│       ├── publisher/                # 事件发布同步器、DomainEventPublisher
+│       ├── props/                    # 配置属性 (EventProperties)
+│       ├── publisher/                # EventPublisherSynchronization、DomainEventPublisher
 │       ├── subscribe/                # 订阅处理器、幂等检查器
 │       │   └── impl/                 # JDBC 幂等实现、事务型幂等实现
 │       ├── expression/               # SpEL 表达式缓存
@@ -639,6 +731,8 @@ architect-event/
 │           ├── queue/                # Kafka/Pulsar/Rabbit/RocketMQ 扩展配置
 │           └── storage/              # JDBC/RocksDB 存储扩展配置
 ├── architect-event-storage/          # 事件持久化层（JDBC/RocksDB 实现）
+│   └── architect-event-storage-jdbc/
+│       └── JdbcCompensateProcessor   # 批量补偿（按 topic 分组 + publishBatch + batchCompensate）
 ├── architect-event-queue/            # 消息队列发布/订阅实现
 └── architect-event-watcher/          # HTTP 补偿通道（RocksDB 方案用）
 ```
