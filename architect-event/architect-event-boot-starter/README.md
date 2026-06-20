@@ -877,7 +877,88 @@ public void createOrder(Order order) {
 
 ---
 
-## 15. 版本兼容
+## 15. 架构升级记录：sync 线程池 → async 批量原生
+
+### 15.1 架构模型对比
+
+| 维度 | 旧版（v2.x） | 新版（v3.x） |
+|------|-------------|-------------|
+| 发送模型 | 同步阻塞 `send()` 等待响应 | 原生异步 `sendAsync()` / `send(callback)` → `CompletableFuture<Void>` |
+| 线程模型 | `ThreadPoolExecutor`（core=2, max=8） + `runAsync` 包装 | 零额外线程，MQ 客户端 IO 线程直接回调 |
+| 攒批入口 | `MessageQueuePublisher` 逐条 `submit` 到线程池 | `BatchMessagePublisher` + `BufferedTrigger` 非阻塞入队攒批 drain |
+| 批量发送 | 逐条循环 `publish(msg)` | RocketMQ v5 `producer.send(Collection, callback)` 单次网络往返 |
+| 状态标记 | 每条 `markSucceeded` → 1 次 DB UPDATE | `BatchEventMarker` + `BufferedTrigger` → `batchUpdate` 合并 |
+| 补偿审计 | 逐条 `compensate()` INSERT | `batchCompensate()` → `jdbcTemplate.batchUpdate` |
+| 限流方式 | 线程池队列 8K + `RejectedExecutionException` | 内存队列 64K（默认）+ `offer` 失败拒绝 |
+
+### 15.2 调用链路对比
+
+```
+旧版（v2.x）：
+afterCommit
+  └→ MessageQueuePublisher.publish(entities)
+       └→ entities.forEach(e → executor.submit(() → doPublish(e)))
+            └→ eventPublisher.publish(msg)          ← 同步阻塞等待 MQ 响应
+            └→ markSucceeded/markFailed(entity)     ← 每条一次 UPDATE
+
+新版（v3.x）：
+afterCommit
+  └→ BatchMessagePublisher.publish(entities)
+       └→ BufferedTrigger.offer(entities)            ← 非阻塞入队，O(1)
+       └→ SleepyTask drain（batchSize + timeout）
+            └→ groupBy topic
+                 └→ eventPublisher.publishBatch(msgs) ← 原生异步，单次网络往返
+                      └→ CompletableFuture.whenComplete
+                           └→ BatchEventMarker.markSucceeded/markFailed ← 攒批批量 UPDATE
+```
+
+### 15.3 关键性能提升
+
+**线程消除**
+
+旧版每条消息占用一个线程等待 MQ 响应（~100ms IO wait），500 TPS 需 ~50 个线程常驻。新版 MQ 客户端 IO 线程直接回调 `CompletableFuture`，零业务线程等待。
+
+**网络往返合并（RocketMQ v5）**
+
+旧版 100 条消息 = 100 次 `send()` 网络往返。新版 `producer.send(Collection)` = **1 次网络往返**，吞吐量提升约 50~100 倍。
+
+**DB 写入合并**
+
+| 操作 | 旧版 | 新版 |
+|------|------|------|
+| 状态标记 | N 条 × 1 UPDATE | N 条 → `batchUpdate`（marker.interval 内攒批） |
+| 补偿审计 | N 条 × 1 INSERT | N 条 → `batchUpdate`（allOf 完成后一次写入） |
+
+以 200 条/批次估算，DB 交互从 400 次降至 2 次，**减少约 99%**。
+
+**端到端吞吐量估算**
+
+```
+旧版（200 条事件）:
+  DB: 200 INSERT + 200 UPDATE + 200 INSERT(审计) = 600 次
+  MQ: 200 次 send() 同步等待 ≈ 200 × 100ms = 20s
+
+新版（200 条事件）:
+  DB: 1 batchInsert + 2 batchUpdate + 1 batchInsert(审计) = 4 次
+  MQ: 1 次 send(Collection) ≈ 100ms
+```
+
+端到端延迟从 **秒级降至毫秒级**，吞吐量提升 **50~200 倍**（取决于 MQ 类型和批大小）。
+
+### 15.4 配置迁移
+
+| 旧版配置（已废弃） | 新版替代 |
+|-------------------|---------|
+| `com.cloud.event.publisher.publish-threads` | — 不再需要 |
+| `com.cloud.event.publisher.max-publish-threads` | — 不再需要 |
+| `com.cloud.event.publisher.publish-cached-event-size` | `publisher.batch.queue-capacity` |
+| `com.cloud.event.publisher.jdbc.compenstate-cron` | `publisher.jdbc.initial-delay` + `period` |
+
+> 注意：`PublishEventProperties` 已重命名为 `EventProperties`。
+
+---
+
+## 16. 版本兼容
 
 | 组件 | 依赖 | 说明 |
 |------|------|------|
