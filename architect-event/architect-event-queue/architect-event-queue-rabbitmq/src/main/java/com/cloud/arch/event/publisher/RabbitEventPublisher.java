@@ -7,18 +7,25 @@ import com.cloud.arch.event.utils.RabbitEventConstants;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class RabbitEventPublisher implements EventPublisher {
+public class RabbitEventPublisher implements EventPublisher, DisposableBean {
 
-    private final RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate   rabbitTemplate;
+    private final ExecutorService  executor;
 
     public RabbitEventPublisher(RabbitmqProperties properties, ConnectionFactory connectionFactory) {
         this.rabbitTemplate = new RabbitTemplate(connectionFactory);
         this.rabbitTemplate.setExchange(properties.getProducer().getExchange());
+        this.executor = Executors.newThreadPerTaskExecutor(
+            Thread.ofVirtual().name("rabbit-publisher-").factory());
     }
 
     /**
@@ -27,10 +34,16 @@ public class RabbitEventPublisher implements EventPublisher {
      * @param message 事件消息
      */
     @Override
-    public void publish(EventMessage message) {
+    public CompletableFuture<Void> publish(EventMessage message) {
         Message messageExt = checkAndConvert(message);
         String  routingKey = message.getName();
-        rabbitTemplate.send(routingKey, messageExt);
+        return CompletableFuture.runAsync(
+            () -> rabbitTemplate.send(routingKey, messageExt), executor);
+    }
+
+    @Override
+    public void destroy() {
+        executor.shutdown();
     }
 
     /**

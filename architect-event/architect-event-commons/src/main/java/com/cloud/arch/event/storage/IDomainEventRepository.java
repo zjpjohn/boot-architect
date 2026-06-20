@@ -18,6 +18,12 @@ public interface IDomainEventRepository {
     default void compensate(EventCompensateEntity entity) {
     }
 
+    default void batchCompensate(List<EventCompensateEntity> entities) {
+        if (!entities.isEmpty()) {
+            entities.forEach(this::compensate);
+        }
+    }
+
     /**
      * 查询待移入死信的候选事件（version >= maxVersion）。
      */

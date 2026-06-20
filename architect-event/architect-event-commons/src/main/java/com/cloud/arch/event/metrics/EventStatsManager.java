@@ -1,5 +1,6 @@
 package com.cloud.arch.event.metrics;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -45,6 +46,9 @@ public interface EventStatsManager {
     }
 
     default void registerThreadPoolGauges(ThreadPoolExecutor pool) {
+    }
+
+    default void registerSemaphoreGauges(Semaphore semaphore) {
     }
 
 }

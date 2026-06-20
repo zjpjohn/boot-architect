@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.CollectionUtils;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -45,15 +44,12 @@ public class JdbcCompensateEventScheduler implements CompensateHandler, SmartIni
      */
     @Override
     public void handle() {
-        long metricStart = System.currentTimeMillis();
         statsManager.incrementCompensateCycle();
-
         final List<PublishEventEntity> entities = eventRepository.queryFailed(properties.getBatch(), properties.getMaxVersion(), properties.getBefore(), properties.getRange());
         if (!CollectionUtils.isEmpty(entities)) {
-            entities.forEach(compensateProcessor::process);
+            compensateProcessor.processBatch(entities);
             statsManager.incrementCompensateRetry(entities.size());
         }
-        statsManager.recordCompensateLatency(System.currentTimeMillis() - metricStart);
     }
 
     /**

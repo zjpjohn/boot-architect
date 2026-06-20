@@ -1,6 +1,6 @@
 package com.cloud.arch.event.subscribe;
 
-import com.cloud.arch.event.props.PublishEventProperties;
+import com.cloud.arch.event.props.EventProperties;
 import com.cloud.arch.mutex.MutexTemplate;
 import com.cloud.arch.mutex.core.ContendMutexProps;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -16,15 +16,13 @@ public class IdempotentCleanScheduler implements SmartInitializingSingleton {
 
     public static final String IDEMPOTENT_CLEAN_MUTEX = "idempotent_clean_mutex";
 
-    private final PublishEventProperties properties;
-    private final MutexTemplate          mutexTemplate;
-    private final IdempotentChecker      idempotentChecker;
+    private final EventProperties   properties;
+    private final MutexTemplate     mutexTemplate;
+    private final IdempotentChecker idempotentChecker;
 
-    public IdempotentCleanScheduler(PublishEventProperties properties,
-                                    MutexTemplate mutexTemplate,
-                                    IdempotentChecker idempotentChecker) {
-        this.properties        = properties;
-        this.mutexTemplate     = mutexTemplate;
+    public IdempotentCleanScheduler(EventProperties properties, MutexTemplate mutexTemplate, IdempotentChecker idempotentChecker) {
+        this.properties = properties;
+        this.mutexTemplate = mutexTemplate;
         this.idempotentChecker = idempotentChecker;
     }
 
@@ -36,10 +34,9 @@ public class IdempotentCleanScheduler implements SmartInitializingSingleton {
 
     @Override
     public void afterSingletonsInstantiated() {
-        final PublishEventProperties.Subscriber     subscriber = properties.getSubscriber();
-        final PublishEventProperties.SchedulerMutex mutex      = subscriber.getMutex();
-        final ContendMutexProps props
-                = new ContendMutexProps(mutex.getInitialDelay(), mutex.getTtl(), mutex.getTransition());
+        final EventProperties.Subscriber     subscriber = properties.getSubscriber();
+        final EventProperties.SchedulerMutex mutex      = subscriber.getMutex();
+        final ContendMutexProps              props      = new ContendMutexProps(mutex.getInitialDelay(), mutex.getTtl(), mutex.getTransition());
         mutexTemplate.scheduleAtRate(props, IDEMPOTENT_CLEAN_MUTEX, subscriber.getInitialDelay(), subscriber.getPeriod(), this::cleanWork);
     }
 

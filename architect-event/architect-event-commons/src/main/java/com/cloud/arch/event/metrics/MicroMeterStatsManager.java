@@ -8,6 +8,7 @@ import io.micrometer.core.instrument.Timer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -22,9 +23,11 @@ public class MicroMeterStatsManager implements EventStatsManager {
     private static final String COMPENSATE_CYCLE      = "domain.event.compensate.cycle";
     private static final String COMPENSATE_EVENTS     = "domain.event.compensate.events";
     private static final String COMPENSATE_LATENCY    = "domain.event.compensate.latency";
-    private static final String THREADPOOL_QUEUE_SIZE = "domain.event.publisher.threadpool.queue.size";
-    private static final String THREADPOOL_ACTIVE     = "domain.event.publisher.threadpool.active.threads";
-    private static final String BATCH_MARK            = "domain.event.batch.mark";
+    private static final String THREADPOOL_QUEUE_SIZE    = "domain.event.publisher.threadpool.queue.size";
+    private static final String THREADPOOL_ACTIVE        = "domain.event.publisher.threadpool.active.threads";
+    private static final String SEMAPHORE_AVAILABLE      = "domain.event.publisher.semaphore.available";
+    private static final String SEMAPHORE_WAITING        = "domain.event.publisher.semaphore.waiting";
+    private static final String BATCH_MARK               = "domain.event.batch.mark";
     private static final String BATCH_MARK_SIZE       = "domain.event.batch.mark.size";
 
     private final MeterRegistry                  registry;
@@ -114,6 +117,16 @@ public class MicroMeterStatsManager implements EventStatsManager {
              .register(registry);
         Gauge.builder(THREADPOOL_ACTIVE, pool, ThreadPoolExecutor::getActiveCount)
              .description("发布线程池活跃线程数")
+             .register(registry);
+    }
+
+    @Override
+    public void registerSemaphoreGauges(Semaphore semaphore) {
+        Gauge.builder(SEMAPHORE_AVAILABLE, semaphore, Semaphore::availablePermits)
+             .description("发布信号量可用许可数")
+             .register(registry);
+        Gauge.builder(SEMAPHORE_WAITING, semaphore, Semaphore::getQueueLength)
+             .description("发布信号量等待线程数")
              .register(registry);
     }
 

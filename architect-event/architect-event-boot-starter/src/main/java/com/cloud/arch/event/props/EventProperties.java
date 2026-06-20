@@ -12,13 +12,17 @@ import java.time.temporal.ChronoUnit;
  */
 @Data
 @ConfigurationProperties(prefix = "com.cloud.event")
-public class PublishEventProperties {
+public class EventProperties {
 
+    /**
+     * 是否开启指标采集
+     */
+    private Metric    metric    = new Metric();
     /**
      * 生产者配置
      */
-    private Metric     metric     = new Metric();
-    private Publisher  publisher  = new Publisher();
+    private Publisher publisher = new Publisher();
+
     /**
      * 订阅者配置
      */
@@ -37,19 +41,44 @@ public class PublishEventProperties {
         /**
          * 事件发布端，按需启动
          */
-        private boolean enable                 = false;
+        private boolean enable = false;
         /**
-         * 异步发送线程数
+         * 批量标记参数
          */
-        private Integer publishThreads         = 2;
+        private Marker  marker = new Marker();
         /**
-         * 异步发送最大线程数
+         * 攒批发送配置
          */
-        private Integer maxPublishThreads      = 8;
+        private Batch   batch  = new Batch();
+
+    }
+
+    @Data
+    public static class Marker {
         /**
-         * 异步发送缓存大小
+         * 单次 batchUpdate 最大条数
          */
-        private Integer publishCachedEventSize = 8192;
+        private int  batchSize = 100;
+        /**
+         * 窃取刷新间隔(ms)
+         */
+        private long interval  = 200;
+    }
+
+    @Data
+    public static class Batch {
+        /**
+         * 每次 drain 最大条数
+         */
+        private int  batchSize      = 20;
+        /**
+         * drain 等待超时(ms)
+         */
+        private long drainTimeoutMs = 200;
+        /**
+         * 内存队列容量
+         */
+        private int  queueCapacity  = 65536;
     }
 
     @Data

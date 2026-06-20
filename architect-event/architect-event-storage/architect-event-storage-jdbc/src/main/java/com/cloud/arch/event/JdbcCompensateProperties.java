@@ -15,7 +15,7 @@ public class JdbcCompensateProperties {
     /**
      * 补偿发送批量
      */
-    private Integer  batch        = 10;
+    private Integer  batch        = 20;
     /**
      * 补偿发送before时间前的事件
      */
@@ -40,16 +40,7 @@ public class JdbcCompensateProperties {
     /**
      * 补偿分布式配置
      */
-    private SchedulerMutex mutex      = new SchedulerMutex();
-    /**
-     * 补偿处理器线程池
-     */
-    private Compensate     compensate = new Compensate();
-
-    /**
-     * 批量标记配置
-     */
-    private Marker marker = new Marker();
+    private SchedulerMutex mutex = new SchedulerMutex();
 
     /**
      * 成功事件清理配置
@@ -61,17 +52,6 @@ public class JdbcCompensateProperties {
      */
     private DeadLetter deadLetter = new DeadLetter();
 
-    @Data
-    public static class Marker {
-        /**
-         * 单次 batchUpdate 最大条数
-         */
-        private int  maxBatchSize  = 500;
-        /**
-         * 窃取刷新间隔(ms)
-         */
-        private long stealInterval = 500;
-    }
 
     @Data
     public static class CleanSucceed {
@@ -99,22 +79,6 @@ public class JdbcCompensateProperties {
         private SchedulerMutex mutex        = new SchedulerMutex();
     }
 
-
-    @Data
-    public static class Compensate {
-        /**
-         * 核心线程数
-         */
-        private int coreThreads = 2;
-        /**
-         * 最大线程数
-         */
-        private int maxThreads  = 4;
-        /**
-         * 任务队列容量
-         */
-        private int queueSize   = 100;
-    }
 
     @Data
     public static class DeadLetter {

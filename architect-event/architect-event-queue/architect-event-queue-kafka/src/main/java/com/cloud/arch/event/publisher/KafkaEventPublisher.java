@@ -10,7 +10,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
 public class KafkaEventPublisher implements EventPublisher {
 
@@ -21,21 +21,15 @@ public class KafkaEventPublisher implements EventPublisher {
     }
 
     /**
-     * 发布跨应用领域事件，同步等待 broker 确认后返回。
+     * 发布跨应用领域事件，异步发送到 Kafka。
      *
      * @param message 事件消息
+     * @return 异步发送结果
      */
     @Override
-    public void publish(EventMessage message) {
+    public CompletableFuture<Void> publish(EventMessage message) {
         ProducerRecord<String, String> producerRecord = this.checkAndConvert(message);
-        try {
-            template.send(producerRecord).get(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Kafka send interrupted", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Kafka send failed", e);
-        }
+        return template.send(producerRecord).thenApply(r -> null);
     }
 
     /**

@@ -4,11 +4,11 @@ import com.cloud.arch.event.codec.EventCodec;
 import com.cloud.arch.event.codec.FastJson2EventCodec;
 import com.cloud.arch.event.commons.ApplicationContextHolder;
 import com.cloud.arch.event.core.publish.BatchEventMarker;
+import com.cloud.arch.event.core.publish.BatchMessagePublisher;
 import com.cloud.arch.event.core.publish.EventMetadataFactory;
-import com.cloud.arch.event.core.publish.MessageQueuePublisher;
 import com.cloud.arch.event.metrics.EventStatsManager;
 import com.cloud.arch.event.metrics.MicroMeterStatsManager;
-import com.cloud.arch.event.props.PublishEventProperties;
+import com.cloud.arch.event.props.EventProperties;
 import com.cloud.arch.event.publisher.EventPublisherSynchronization;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.subscribe.EventSubscribeHandler;
@@ -19,7 +19,6 @@ import com.cloud.arch.mutex.MutexTemplate;
 import com.cloud.arch.mutex.boot.CloudMutexAutoConfiguration;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import com.cloud.arch.event.JdbcCompensateProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -75,7 +74,7 @@ public class CloudEventAutoConfiguration {
     @Slf4j
     @Configuration
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    @EnableConfigurationProperties(PublishEventProperties.class)
+    @EnableConfigurationProperties(EventProperties.class)
     @ConditionalOnProperty(prefix = "com.cloud.event.publisher", name = "enable")
     public static class EventPublisherConfiguration {
 
@@ -85,32 +84,24 @@ public class CloudEventAutoConfiguration {
         }
 
         @Bean
-        public MessageQueuePublisher queuePublisher(PublishEventProperties properties,
-                                                     BatchEventMarker batchEventMarker,
-                                                     ObjectProvider<EventStatsManager> statsManagerProvider) {
-            PublishEventProperties.Publisher props     = properties.getPublisher();
-            MessageQueuePublisher            publisher = new MessageQueuePublisher(props.getPublishThreads(), props.getMaxPublishThreads(), props.getPublishCachedEventSize(), batchEventMarker);
+        public BatchMessagePublisher batchMessagePublisher(BatchEventMarker batchEventMarker, EventProperties properties, ObjectProvider<EventStatsManager> statsManagerProvider) {
+            EventProperties.Batch props     = properties.getPublisher().getBatch();
+            BatchMessagePublisher publisher = new BatchMessagePublisher(props.getBatchSize(), props.getDrainTimeoutMs(), props.getQueueCapacity(), batchEventMarker);
             statsManagerProvider.ifAvailable(publisher::setEventStatsManager);
             return publisher;
         }
 
         @Bean
-        public EventPublisherSynchronization eventPublisherSynchronization(MessageQueuePublisher queuePublisher) {
-            return new EventPublisherSynchronization(queuePublisher);
+        public EventPublisherSynchronization eventPublisherSynchronization(BatchMessagePublisher batchPublisher) {
+            return new EventPublisherSynchronization(batchPublisher);
         }
 
         @Bean
-        public BatchEventMarker batchEventMarker(IDomainEventRepository repository, ObjectProvider<JdbcCompensateProperties> compensateProperties, ObjectProvider<EventStatsManager> statsManagerProvider) {
-            JdbcCompensateProperties props = compensateProperties.getIfAvailable();
-            BatchEventMarker         marker;
-            if (props != null) {
-                marker = new BatchEventMarker(repository, props.getMarker().getMaxBatchSize(), props.getMarker()
-                                                                                                    .getStealInterval());
-            } else {
-                marker = new BatchEventMarker(repository);
-            }
-            statsManagerProvider.ifAvailable(marker::setEventStatsManager);
-            return marker;
+        public BatchEventMarker batchEventMarker(IDomainEventRepository repository, EventProperties properties, ObjectProvider<EventStatsManager> statsManagerProvider) {
+            EventProperties.Marker marker           = properties.getPublisher().getMarker();
+            BatchEventMarker       batchEventMarker = new BatchEventMarker(repository, marker.getBatchSize(), marker.getInterval());
+            statsManagerProvider.ifAvailable(batchEventMarker::setEventStatsManager);
+            return batchEventMarker;
         }
 
     }
@@ -121,7 +112,7 @@ public class CloudEventAutoConfiguration {
     @Slf4j
     @Configuration
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    @EnableConfigurationProperties(PublishEventProperties.class)
+    @EnableConfigurationProperties(EventProperties.class)
     @ConditionalOnProperty(prefix = "com.cloud.event.subscriber", name = "enable")
     public static class EventSubscriberConfiguration {
 
@@ -138,7 +129,7 @@ public class CloudEventAutoConfiguration {
         }
 
         @Bean
-        public IdempotentCleanScheduler idempotentCleanScheduler(IdempotentChecker idempotentChecker, PublishEventProperties properties, MutexTemplate mutexTemplate) {
+        public IdempotentCleanScheduler idempotentCleanScheduler(IdempotentChecker idempotentChecker, EventProperties properties, MutexTemplate mutexTemplate) {
             return new IdempotentCleanScheduler(properties, mutexTemplate, idempotentChecker);
         }
 

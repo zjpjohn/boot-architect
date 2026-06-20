@@ -1,7 +1,7 @@
 package com.cloud.arch.event.publisher;
 
 import com.cloud.arch.event.commons.ApplicationContextHolder;
-import com.cloud.arch.event.core.publish.MessageQueuePublisher;
+import com.cloud.arch.event.core.publish.BatchMessagePublisher;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -14,10 +14,10 @@ import java.util.List;
 @Slf4j
 public class EventPublisherSynchronization implements TransactionSynchronization {
 
-    private final MessageQueuePublisher queuePublisher;
+    private final BatchMessagePublisher batchPublisher;
 
-    public EventPublisherSynchronization(MessageQueuePublisher queuePublisher) {
-        this.queuePublisher = queuePublisher;
+    public EventPublisherSynchronization(BatchMessagePublisher batchPublisher) {
+        this.batchPublisher = batchPublisher;
     }
 
     /**
@@ -27,9 +27,9 @@ public class EventPublisherSynchronization implements TransactionSynchronization
     @Override
     public void beforeCommit(boolean readOnly) {
         //远程领域事件本地持久化
-        if (queuePublisher.isConfigured()) {
+        if (batchPublisher.isConfigured()) {
             List<PublishEventEntity> remoteEvents = DomainEventPublisher.getRemotes();
-            queuePublisher.initStorage(remoteEvents);
+            batchPublisher.initStorage(remoteEvents);
         }
         //本地领域事件直接发送不进行持久化，直接通过spring event进行发布
         DomainEventPublisher.getLocals().forEach(ApplicationContextHolder::publishEvent);
@@ -40,9 +40,9 @@ public class EventPublisherSynchronization implements TransactionSynchronization
      */
     @Override
     public void afterCommit() {
-        if (queuePublisher.isConfigured()) {
+        if (batchPublisher.isConfigured()) {
             List<PublishEventEntity> entities = DomainEventPublisher.getEntities();
-            queuePublisher.publish(entities);
+            batchPublisher.publish(entities);
         }
     }
 

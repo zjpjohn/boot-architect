@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 事件标记批量处理器，基于 {@link BufferedTrigger} 的 drain-timeout 机制
@@ -23,9 +22,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class BatchEventMarker implements DisposableBean {
 
-    private static final int  DEFAULT_MAX_BATCH_SIZE = 500;
-    private static final long DEFAULT_STEAL_INTERVAL = 500;
-
     private final IDomainEventRepository     repository;
     private final BufferedTrigger<MarkEntry> trigger;
     private final ExecutorService            executor;
@@ -35,24 +31,17 @@ public class BatchEventMarker implements DisposableBean {
     }
 
     /**
-     * 使用默认参数创建。
+     * @param repository 事件存储
+     * @param batchSize  单次批量写入上限
+     * @param interval   排空超时（ms），等同于窃取间隔
      */
-    public BatchEventMarker(IDomainEventRepository repository) {
-        this(repository, DEFAULT_MAX_BATCH_SIZE, DEFAULT_STEAL_INTERVAL);
-    }
-
-    /**
-     * @param repository    事件存储
-     * @param maxBatchSize  单次批量写入上限
-     * @param stealInterval 排空超时（ms），等同于窃取间隔
-     */
-    public BatchEventMarker(IDomainEventRepository repository, int maxBatchSize, long stealInterval) {
+    public BatchEventMarker(IDomainEventRepository repository, int batchSize, long interval) {
         this.repository = repository;
         this.executor = Executors.newSingleThreadExecutor(Threads.threadFactory("event-marker"));
         this.trigger = BufferedTrigger.<MarkEntry>builder()
                                       .executor(executor)
-                                      .batchSize(maxBatchSize)
-                                      .timeout(Duration.ofMillis(stealInterval))
+                                      .batchSize(batchSize)
+                                      .timeout(Duration.ofMillis(interval))
                                       .consumer(this::flush)
                                       .build();
     }
@@ -103,14 +92,6 @@ public class BatchEventMarker implements DisposableBean {
     @Override
     public void destroy() {
         trigger.shutdown();
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+        executor.shutdownNow();
     }
 }

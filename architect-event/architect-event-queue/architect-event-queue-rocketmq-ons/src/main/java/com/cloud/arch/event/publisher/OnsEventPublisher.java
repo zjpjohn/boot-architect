@@ -2,8 +2,11 @@ package com.cloud.arch.event.publisher;
 
 import com.aliyun.openservices.ons.api.Message;
 import com.aliyun.openservices.ons.api.ONSFactory;
+import com.aliyun.openservices.ons.api.OnExceptionContext;
 import com.aliyun.openservices.ons.api.Producer;
 import com.aliyun.openservices.ons.api.PropertyKeyConst;
+import com.aliyun.openservices.ons.api.SendCallback;
+import com.aliyun.openservices.ons.api.SendResult;
 import com.cloud.arch.event.core.publish.EventMessage;
 import com.cloud.arch.event.core.publish.EventPublisher;
 import com.cloud.arch.event.props.OnsQueueProperties;
@@ -16,6 +19,7 @@ import org.springframework.util.Assert;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class OnsEventPublisher implements EventPublisher, DisposableBean, SmartInitializingSingleton {
@@ -35,9 +39,14 @@ public class OnsEventPublisher implements EventPublisher, DisposableBean, SmartI
      * @param message 领域事件消息
      */
     @Override
-    public void publish(EventMessage message) {
+    public CompletableFuture<Void> publish(EventMessage message) {
         Message onsMessage = checkAnConvert(message);
-        this.producer.send(onsMessage);
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        producer.sendAsync(onsMessage, new SendCallback() {
+            public void onSuccess(SendResult result) { future.complete(null); }
+            public void onException(OnExceptionContext ctx) { future.completeExceptionally(ctx.getException()); }
+        });
+        return future;
     }
 
     /**

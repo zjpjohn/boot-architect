@@ -4,6 +4,7 @@ import com.cloud.arch.event.JdbcCompensateEventScheduler;
 import com.cloud.arch.event.JdbcCompensateProcessor;
 import com.cloud.arch.event.JdbcCompensateProperties;
 import com.cloud.arch.event.JdbcDomainEventRepository;
+import com.cloud.arch.event.core.publish.BatchEventMarker;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.metrics.EventStatsManager;
 import com.cloud.arch.mutex.MutexTemplate;
@@ -47,8 +48,10 @@ public class JdbcStorageExtensionConfiguration {
     }
 
     @Bean
-    public JdbcCompensateProcessor compensateProcessor(IDomainEventRepository eventRepository, JdbcCompensateProperties properties) {
-        return new JdbcCompensateProcessor(eventRepository, properties);
+    public JdbcCompensateProcessor compensateProcessor(IDomainEventRepository eventRepository, BatchEventMarker batchMarker, ObjectProvider<EventStatsManager> statsManagerProvider) {
+        JdbcCompensateProcessor processor = new JdbcCompensateProcessor(eventRepository, batchMarker);
+        statsManagerProvider.ifAvailable(processor::setStatsManager);
+        return processor;
     }
 
     @Bean

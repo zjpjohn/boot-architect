@@ -132,6 +132,20 @@ public class JdbcDomainEventRepository implements IDomainEventRepository {
     }
 
     @Override
+    public void batchCompensate(List<EventCompensateEntity> entities) {
+        MapSqlParameterSource[] params = entities.stream()
+                                                 .map(e -> new MapSqlParameterSource("id", e.getId())
+                                                         .addValue("event_id", e.getEventId())
+                                                         .addValue("shard_key", e.getShardingKey())
+                                                         .addValue("start_time", e.getStartTime())
+                                                         .addValue("taken", e.getTaken())
+                                                         .addValue("fail_msg", e.getFailedMsg())
+                                                         .addValue("gmt_create", e.getGmtCreate()))
+                                                 .toArray(MapSqlParameterSource[]::new);
+        jdbcTemplate.batchUpdate(COMPENSATE_SQL, params);
+    }
+
+    @Override
     public List<PublishEventEntity> deadEventCandidates(int limit, int maxVersion, Duration before, Duration range) {
         final long            current   = System.currentTimeMillis();
         MapSqlParameterSource parameter = new MapSqlParameterSource("limit", limit);

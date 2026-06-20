@@ -18,6 +18,7 @@ import org.springframework.util.StringValueResolver;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -40,22 +41,17 @@ public class PulsarEventPublisher implements EventPublisher, SmartInitializingSi
      * @param message 事件消息
      */
     @Override
-    public void publish(EventMessage message) {
+    public CompletableFuture<Void> publish(EventMessage message) {
         Assert.state(StringUtils.isNotBlank(message.getName()), "消息topic不允许为空");
         Assert.state(StringUtils.isNotBlank(message.getData()), "消息内容不允许为空");
         Assert.state(StringUtils.isNotBlank(message.getKey()), "消息业务key不允许为空.");
-        try {
-            Producer<String>            producer = producerHolder.computeIfAbsent(message.getName(), this::createProducer);
-            TypedMessageBuilder<String> builder  = producer.newMessage().key(message.getKey()).value(message.getData());
-            Long                        delay    = message.getDelay();
-            if (delay != null && delay > 0) {
-                builder.deliverAfter(delay, TimeUnit.MILLISECONDS);
-            }
-            builder.send();
-        } catch (PulsarClientException error) {
-            log.error(error.getMessage(), error);
-            throw new RuntimeException(error.getMessage(), error);
+        Producer<String>            producer = producerHolder.computeIfAbsent(message.getName(), this::createProducer);
+        TypedMessageBuilder<String> builder  = producer.newMessage().key(message.getKey()).value(message.getData());
+        Long                        delay    = message.getDelay();
+        if (delay != null && delay > 0) {
+            builder.deliverAfter(delay, TimeUnit.MILLISECONDS);
         }
+        return builder.sendAsync().thenApply(id -> null);
     }
 
     @Override
