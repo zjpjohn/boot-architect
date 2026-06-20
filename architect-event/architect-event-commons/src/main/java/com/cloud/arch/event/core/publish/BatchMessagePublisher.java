@@ -43,14 +43,14 @@ public class BatchMessagePublisher implements DisposableBean, ApplicationContext
     private       EventStatsManager                   statsManager = EventStatsManager.disabled();
     private       ApplicationContext                  applicationContext;
 
-    public BatchMessagePublisher(int batchSize, long drainTimeoutMs, int queueCapacity, BatchEventMarker batchMarker) {
+    public BatchMessagePublisher(int batchSize, long drainTimeout, int queueCapacity, BatchEventMarker batchMarker) {
         this.batchMarker = batchMarker;
         this.drainExecutor = Executors.newSingleThreadExecutor(Threads.threadFactory("outbox-stealer"));
         this.trigger = BufferedTrigger.<PublishEventEntity>builder()
                                       .executor(drainExecutor)
                                       .batchSize(batchSize)
                                       .queue(new LinkedBlockingQueue<>(queueCapacity))
-                                      .timeout(Duration.ofMillis(drainTimeoutMs))
+                                      .timeout(Duration.ofMillis(drainTimeout))
                                       .consumer(this::processBatch)
                                       .build();
     }

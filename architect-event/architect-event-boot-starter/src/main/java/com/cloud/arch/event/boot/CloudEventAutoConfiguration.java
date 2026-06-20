@@ -86,7 +86,7 @@ public class CloudEventAutoConfiguration {
         @Bean
         public BatchMessagePublisher batchMessagePublisher(BatchEventMarker batchEventMarker, EventProperties properties, ObjectProvider<EventStatsManager> statsManagerProvider) {
             EventProperties.Batch props     = properties.getPublisher().getBatch();
-            BatchMessagePublisher publisher = new BatchMessagePublisher(props.getBatchSize(), props.getDrainTimeoutMs(), props.getQueueCapacity(), batchEventMarker);
+            BatchMessagePublisher publisher = new BatchMessagePublisher(props.getBatchSize(), props.getDrainTimeout(), props.getQueueCapacity(), batchEventMarker);
             statsManagerProvider.ifAvailable(publisher::setEventStatsManager);
             return publisher;
         }

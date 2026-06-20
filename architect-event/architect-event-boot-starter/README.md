@@ -130,7 +130,7 @@ public class OrderEventListener {
 事务 commit 后:
   → afterCommit: BatchMessagePublisher.publish(entities)
     └── 实体非阻塞入队 BufferedTrigger 内部队列
-      → trigger 按 batchSize + drainTimeoutMs 攒批 drain
+      → trigger 按 batchSize + drainTimeout 攒批 drain
       → processBatch: 按 topic 分组 → eventPublisher.publishBatch(messages)
       → 每条 message 独立 CompletableFuture 回调:
         ├── 成功 → BatchEventMarker.markSucceeded(entity)
@@ -481,7 +481,7 @@ checker.setRetryFor(TimeoutException.class);
 |--------|--------|------|
 | `publisher.enable` | false | 启用事件发布端 |
 | `publisher.batch.batch-size` | 20 | 每次 drain 攒批最大条数 |
-| `publisher.batch.drain-timeout-ms` | 200 | drain 等待超时(ms) |
+| `publisher.batch.drain-timeout` | 200 | drain 等待超时(ms) |
 | `publisher.batch.queue-capacity` | 65536 | 内存队列容量 |
 | `publisher.marker.batch-size` | 100 | 状态标记单次 batchUpdate 最大条数 |
 | `publisher.marker.interval` | 200 | 标记攒批刷新间隔(ms) |
@@ -648,16 +648,16 @@ public void createOrder(Order order) {
 ### 11.4 攒批参数调优
 
 ```
-queueCapacity > 峰值 TPS × drainTimeoutMs / 1000
+queueCapacity > 峰值 TPS × drainTimeout / 1000
 
-示例：峰值 500 TPS，drainTimeoutMs=200
+示例：峰值 500 TPS，drainTimeout=200
   → 每 200ms 攒批 ≈ 100 条 → batchSize 设 100~150
   → queueCapacity = 500 × 0.2 × 10 倍余量 = 1000
   → marker.batchSize 设 100~200，interval 设 200~500ms
 ```
 
 - `publisher.batch.batch-size`：单次 drain 最大条数，太小浪费攒批效果，太大增加单次发送延迟
-- `publisher.batch.drain-timeout-ms`：攒批窗口，到达即排空；配合 batchSize 先到先发
+- `publisher.batch.drain-timeout`：攒批窗口，到达即排空；配合 batchSize 先到先发
 - `publisher.marker.batch-size`：状态标记批量写入大小，减少逐条 UPDATE
 - `publisher.marker.interval`：标记攒批刷新间隔，延迟越小标记越实时
 
@@ -881,7 +881,7 @@ public void createOrder(Order order) {
 
 ### 15.1 架构模型对比
 
-| 维度 | 旧版（v2.x） | 新版（v3.x） |
+| 维度 | 旧版（v1.0） | 新版（v2.0） |
 |------|-------------|-------------|
 | 发送模型 | 同步阻塞 `send()` 等待响应 | 原生异步 `sendAsync()` / `send(callback)` → `CompletableFuture<Void>` |
 | 线程模型 | `ThreadPoolExecutor`（core=2, max=8） + `runAsync` 包装 | 零额外线程，MQ 客户端 IO 线程直接回调 |
@@ -894,14 +894,14 @@ public void createOrder(Order order) {
 ### 15.2 调用链路对比
 
 ```
-旧版（v2.x）：
+旧版（v1.0）：
 afterCommit
   └→ MessageQueuePublisher.publish(entities)
        └→ entities.forEach(e → executor.submit(() → doPublish(e)))
             └→ eventPublisher.publish(msg)          ← 同步阻塞等待 MQ 响应
             └→ markSucceeded/markFailed(entity)     ← 每条一次 UPDATE
 
-新版（v3.x）：
+新版（v2.0）：
 afterCommit
   └→ BatchMessagePublisher.publish(entities)
        └→ BufferedTrigger.offer(entities)            ← 非阻塞入队，O(1)

@@ -29,13 +29,13 @@ public class PublishGenericEvent implements GenericEvent {
     }
 
     public PublishGenericEvent(Object event, String name, String filter, String shadingKey, String bizGroup, Long delay, TimeUnit timeUnit) {
-        this.event      = event;
-        this.name       = name;
-        this.filter     = filter;
+        this.event = event;
+        this.name = name;
+        this.filter = filter;
         this.shadingKey = shadingKey;
-        this.bizGroup   = bizGroup;
-        this.delay      = delay;
-        this.timeUnit   = timeUnit;
+        this.bizGroup = bizGroup;
+        this.delay = delay;
+        this.timeUnit = timeUnit;
     }
 
     /**

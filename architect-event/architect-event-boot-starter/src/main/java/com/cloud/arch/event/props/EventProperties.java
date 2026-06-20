@@ -70,15 +70,15 @@ public class EventProperties {
         /**
          * 每次 drain 最大条数
          */
-        private int  batchSize      = 20;
+        private int  batchSize     = 20;
         /**
          * drain 等待超时(ms)
          */
-        private long drainTimeoutMs = 200;
+        private long drainTimeout  = 200;
         /**
          * 内存队列容量
          */
-        private int  queueCapacity  = 65536;
+        private int  queueCapacity = 65536;
     }
 
     @Data
