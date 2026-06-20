@@ -47,11 +47,23 @@ public class PulsarMqProperties {
         /**
          * 发送消息超时时间，单位毫秒
          */
-        private Integer sendTimeout        = 30;
+        private Integer sendTimeout             = 30;
         /**
-         * 等待消费最大消息数量
+         * 待发送最大消息数量
          */
-        private Integer maxPendingMessages = 1000;
+        private Integer maxPendingMessages      = 1000;
+        /**
+         * 是否启用自动攒批
+         */
+        private boolean enableBatching          = true;
+        /**
+         * 每批最大消息数
+         */
+        private int     batchingMaxMessages     = 1000;
+        /**
+         * 批发送最大等待时间(ms)
+         */
+        private long    batchingMaxPublishDelay = 10;
     }
 
     @Data

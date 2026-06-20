@@ -71,12 +71,14 @@ public class PulsarEventPublisher implements EventPublisher, SmartInitializingSi
 
     private Producer<String> createProducer(String topic) {
         try {
-            Integer sendTimeout        = properties.getPublisher().getSendTimeout();
-            Integer maxPendingMessages = properties.getPublisher().getMaxPendingMessages();
+            PulsarMqProperties.PulsarProducer cfg = properties.getPublisher();
             return pulsarClient.newProducer(Schema.STRING)
                                .topic(topic)
-                               .sendTimeout(sendTimeout, TimeUnit.SECONDS)
-                               .maxPendingMessages(maxPendingMessages)
+                               .sendTimeout(cfg.getSendTimeout(), TimeUnit.SECONDS)
+                               .maxPendingMessages(cfg.getMaxPendingMessages())
+                               .enableBatching(cfg.isEnableBatching())
+                               .batchingMaxMessages(cfg.getBatchingMaxMessages())
+                               .batchingMaxPublishDelay(cfg.getBatchingMaxPublishDelay(), TimeUnit.MILLISECONDS)
                                .create();
         } catch (PulsarClientException e) {
             throw new RuntimeException("create pulsar producer for topic[" + topic + "] failed", e);

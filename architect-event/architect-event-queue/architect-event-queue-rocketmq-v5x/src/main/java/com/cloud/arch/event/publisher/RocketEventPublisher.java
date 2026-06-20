@@ -3,6 +3,7 @@ package com.cloud.arch.event.publisher;
 import com.cloud.arch.event.core.publish.EventMessage;
 import com.cloud.arch.event.core.publish.EventPublisher;
 import com.cloud.arch.event.props.RocketmqProperties;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
@@ -19,6 +20,8 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.Assert;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,14 +39,68 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
 
     /**
      * 发布跨应用领域事件
-     *
-     * @param message 事件消息
      */
     @Override
     public CompletableFuture<Void> publish(EventMessage message) {
+        return sendSingle(checkAndConvert(message));
+    }
+
+    /**
+     * 批量发送：普通消息走批量发送，延迟消息退化循环发送
+     */
+    @Override
+    public List<CompletableFuture<Void>> publishBatch(List<EventMessage> messages) {
+        int                       n       = messages.size();
+        CompletableFuture<Void>[] results = new CompletableFuture[n];
+        List<Message>             batch   = Lists.newArrayList();
+        List<Integer>             indices = Lists.newArrayList();
+
+        for (int i = 0; i < n; i++) {
+            EventMessage message = messages.get(i);
+            if (message.isDelay()) {
+                results[i] = publish(message);
+            } else {
+                indices.add(i);
+                batch.add(checkAndConvert(message));
+                results[i] = new CompletableFuture<>();
+            }
+        }
+        if (!batch.isEmpty()) {
+            try {
+                producer.send(batch, new SendCallback() {
+                    public void onSuccess(SendResult sendResult) {
+                        callbackHandle(results, indices, null);
+                    }
+
+                    public void onException(Throwable error) {
+                        callbackHandle(results, indices, error);
+                    }
+                });
+            } catch (Exception error) {
+                callbackHandle(results, indices, error);
+            }
+        }
+        return Arrays.asList(results);
+    }
+
+    private void callbackHandle(CompletableFuture<Void>[] results, List<Integer> indices, Throwable throwable) {
+        if (throwable != null) {
+            for (int idx : indices) {
+                results[idx].completeExceptionally(throwable);
+            }
+            return;
+        }
+        for (int idx : indices) {
+            results[idx].complete(null);
+        }
+    }
+
+    /**
+     * 对已转换的 {@link Message} 执行单条异步发送。
+     */
+    private CompletableFuture<Void> sendSingle(Message msg) {
         CompletableFuture<Void> future = new CompletableFuture<>();
         try {
-            Message msg = checkAndConvert(message);
             producer.send(msg, new SendCallback() {
                 public void onSuccess(SendResult result) {
                     future.complete(null);
@@ -54,7 +111,6 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
                 }
             });
         } catch (Exception e) {
-            log.error("发送rocketmq消息topic:[{}],key:[{}]异常:", message.getName(), message.getKey(), e);
             future.completeExceptionally(new RuntimeException(e));
         }
         return future;

@@ -27,4 +27,8 @@ public class EventMessage {
      */
     private String data;
 
+    public boolean isDelay() {
+        return this.delay != null && this.delay > 0;
+    }
+
 }

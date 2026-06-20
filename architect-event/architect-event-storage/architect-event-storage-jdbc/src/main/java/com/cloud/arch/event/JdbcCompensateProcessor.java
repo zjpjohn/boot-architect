@@ -11,6 +11,7 @@ import com.cloud.arch.event.storage.PublishEventEntity;
 import com.cloud.arch.utils.CollectionUtils;
 import com.cloud.arch.utils.IdWorker;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
@@ -114,7 +115,7 @@ public class JdbcCompensateProcessor implements ApplicationContextAware, SmartIn
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
