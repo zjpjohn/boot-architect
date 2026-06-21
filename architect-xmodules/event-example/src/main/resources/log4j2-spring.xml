@@ -94,8 +94,7 @@
         </root>
         <!--过滤掉spring的一些无用的DEBUG信息 -->
         <logger name="org.springframework" level="WARN"/>
-        <logger name="com.boot.architect" level="INFO"/>
-        <logger name="com.cloud.arch.web.support" level="INFO"/>
+        <logger name="com.cloud.arch" level="INFO"/>
         <logger name="com.alibaba" level="WARN"/>
     </loggers>
 </configuration>

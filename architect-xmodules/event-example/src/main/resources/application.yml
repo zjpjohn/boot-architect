@@ -35,12 +35,28 @@ com:
     event:
       publisher:
         enable: true
+      subscriber:
+        enable: true
       rocket:
-        ons:
+        v5x:
+          access-channel: CLOUD
           access-key:
           secret-key:
+          name-srv:
           publisher:
-            send-timeout-millis: 5000
+            group: GID_user_producer
+            send-message-timeout: 5000
+          subscriber:
+            group: GID_user_subscribe
+
+#        ons:
+#          access-key:
+#          secret-key:
+#          ons-address:
+#          publisher:
+#            send-timeout-millis: 5000
+#          subscriber:
+#            group: GID_thales_ucenter_app
 
 mybatis-plus:
   mapper-locations: classpath:mappers/*.xml

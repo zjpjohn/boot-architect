@@ -3,12 +3,10 @@ package com.cloud.arch.event.publisher;
 import com.cloud.arch.event.core.publish.EventMessage;
 import com.cloud.arch.event.core.publish.EventPublisher;
 import com.cloud.arch.event.props.RocketmqProperties;
+import com.cloud.arch.utils.CollectionUtils;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.acl.common.AclClientRPCHook;
-import org.apache.rocketmq.acl.common.SessionCredentials;
-import org.apache.rocketmq.client.AccessChannel;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendCallback;
@@ -21,6 +19,7 @@ import org.springframework.util.Assert;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -42,7 +41,7 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
      */
     @Override
     public CompletableFuture<Void> publish(EventMessage message) {
-        return sendSingle(checkAndConvert(message));
+        return send(checkAndConvert(message));
     }
 
     /**
@@ -50,39 +49,15 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
      */
     @Override
     public List<CompletableFuture<Void>> publishBatch(List<EventMessage> messages) {
-        int                       n       = messages.size();
-        CompletableFuture<Void>[] results = new CompletableFuture[n];
-        List<Message>             batch   = Lists.newArrayList();
-        List<Integer>             indices = Lists.newArrayList();
-
-        for (int i = 0; i < n; i++) {
-            EventMessage message = messages.get(i);
-            if (message.isDelay()) {
-                results[i] = publish(message);
-            } else {
-                indices.add(i);
-                batch.add(checkAndConvert(message));
-                results[i] = new CompletableFuture<>();
-            }
+        if (properties.getPublisher().isEnableBatch()) {
+            return nativeBatch(messages);
         }
-        if (!batch.isEmpty()) {
-            try {
-                producer.send(batch, new SendCallback() {
-                    public void onSuccess(SendResult sendResult) {
-                        callbackHandle(results, indices, null);
-                    }
-
-                    public void onException(Throwable error) {
-                        callbackHandle(results, indices, error);
-                    }
-                });
-            } catch (Exception error) {
-                callbackHandle(results, indices, error);
-            }
-        }
-        return Arrays.asList(results);
+        return this.sendBatch(messages);
     }
 
+    /**
+     * 发送结果处理
+     */
     private void callbackHandle(CompletableFuture<Void>[] results, List<Integer> indices, Throwable throwable) {
         if (throwable != null) {
             for (int idx : indices) {
@@ -98,7 +73,7 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
     /**
      * 对已转换的 {@link Message} 执行单条异步发送。
      */
-    private CompletableFuture<Void> sendSingle(Message msg) {
+    private CompletableFuture<Void> send(Message msg) {
         CompletableFuture<Void> future = new CompletableFuture<>();
         try {
             producer.send(msg, new SendCallback() {
@@ -114,6 +89,55 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
             future.completeExceptionally(new RuntimeException(e));
         }
         return future;
+    }
+
+    /**
+     * 批量发送消息
+     */
+    private List<CompletableFuture<Void>> sendBatch(List<EventMessage> messages) {
+        if (CollectionUtils.isEmpty(messages)) {
+            return Collections.emptyList();
+        }
+        List<Message> innerMessages = messages.stream().map(this::checkAndConvert).toList();
+        return innerMessages.stream().map(this::send).toList();
+    }
+
+    /**
+     * 原生批量发送
+     */
+    @SuppressWarnings("unchecked")
+    private List<CompletableFuture<Void>> nativeBatch(List<EventMessage> messages) {
+        int                       size       = messages.size();
+        CompletableFuture<Void>[] results    = new CompletableFuture[size];
+        List<Message>             normalList = Lists.newArrayList();
+        List<Integer>             indices    = Lists.newArrayList();
+
+        for (int index = 0; index < size; index++) {
+            EventMessage message = messages.get(index);
+            if (message.isDelay()) {
+                results[index] = publish(message);
+            } else {
+                indices.add(index);
+                normalList.add(checkAndConvert(message));
+                results[index] = new CompletableFuture<>();
+            }
+        }
+        if (CollectionUtils.isNotEmpty(normalList)) {
+            try {
+                producer.send(normalList, new SendCallback() {
+                    public void onSuccess(SendResult sendResult) {
+                        callbackHandle(results, indices, null);
+                    }
+
+                    public void onException(Throwable error) {
+                        callbackHandle(results, indices, error);
+                    }
+                });
+            } catch (Exception error) {
+                callbackHandle(results, indices, error);
+            }
+        }
+        return Arrays.asList(results);
     }
 
     /**
@@ -141,30 +165,20 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
     @Override
     public void afterSingletonsInstantiated() {
         try {
-            boolean enableAcl = StringUtils.isNotBlank(properties.getAccessKey()) &&
-                                StringUtils.isNotBlank(properties.getSecretKey());
-            RPCHook rpcHook = null;
-            if (enableAcl) {
-                rpcHook = new AclClientRPCHook(new SessionCredentials(properties.getAccessKey(), properties.getSecretKey()));
-            }
-            String group = properties.getPublisher().getGroup();
-            this.producer = new DefaultMQProducer(group, rpcHook, properties.getPublisher()
-                                                                            .isEnableTrace(), properties.getPublisher()
-                                                                                                        .getTraceTopic());
-            this.producer.setSendMessageWithVIPChannel(enableAcl);
+            RPCHook                             rpcHook   = properties.rpcHook();
+            RocketmqProperties.RocketmqProducer publisher = properties.getPublisher();
+            this.producer = new DefaultMQProducer(publisher.getGroup(), rpcHook, publisher.isEnableTrace(), publisher.getTraceTopic());
+            this.producer.setSendMessageWithVIPChannel(rpcHook != null);
             this.producer.setNamesrvAddr(properties.getNameSrv());
-            this.producer.setSendMsgTimeout(properties.getPublisher().getSendMessageTimeout());
-            this.producer.setMaxMessageSize(properties.getPublisher().getMaxMessageSize());
-            this.producer.setRetryTimesWhenSendFailed(properties.getPublisher().getRetryTimesWhenSendFailed());
-            this.producer.setRetryAnotherBrokerWhenNotStoreOK(properties.getPublisher().isRetryNextServer());
-            this.producer.setCompressMsgBodyOverHowmuch(properties.getPublisher().getCompressMsgBodyThrottle());
-            String accessChannel = properties.getAccessChannel();
-            if (StringUtils.isNotBlank(accessChannel)) {
-                this.producer.setAccessChannel(AccessChannel.valueOf(accessChannel));
-            }
+            this.producer.setSendMsgTimeout(publisher.getSendMessageTimeout());
+            this.producer.setMaxMessageSize(publisher.getMaxMessageSize());
+            this.producer.setRetryTimesWhenSendFailed(publisher.getRetryTimesWhenSendFailed());
+            this.producer.setRetryAnotherBrokerWhenNotStoreOK(publisher.isRetryNextServer());
+            this.producer.setCompressMsgBodyOverHowmuch(publisher.getCompressMsgBodyThrottle());
+            this.producer.setAccessChannel(properties.accessChannel());
             this.producer.start();
         } catch (MQClientException e) {
-            log.error("创建rocketmq生产者异常:", e);
+            log.error("创建RocketMq生产者异常:", e);
             throw new RuntimeException("RocketMQ producer start failed", e);
         }
     }

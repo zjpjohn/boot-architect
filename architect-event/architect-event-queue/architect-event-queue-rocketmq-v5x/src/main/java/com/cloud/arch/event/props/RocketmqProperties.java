@@ -1,7 +1,14 @@
 package com.cloud.arch.event.props;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.acl.common.AclClientRPCHook;
+import org.apache.rocketmq.acl.common.SessionCredentials;
+import org.apache.rocketmq.client.AccessChannel;
 import org.apache.rocketmq.common.topic.TopicValidator;
+import org.apache.rocketmq.remoting.RPCHook;
+
+import java.util.Objects;
 
 @Data
 public class RocketmqProperties {
@@ -17,14 +24,26 @@ public class RocketmqProperties {
     private RocketmqProducer publisher                     = new RocketmqProducer();
     private RocketmqConsumer subscriber                    = new RocketmqConsumer();
 
+    public RPCHook rpcHook() {
+        if (StringUtils.isBlank(this.accessKey) || StringUtils.isBlank(this.secretKey)) {
+            return null;
+        }
+        return new AclClientRPCHook(new SessionCredentials(this.accessKey, this.secretKey));
+    }
+
+    public AccessChannel accessChannel() {
+        String channel = Objects.toString(this.accessChannel, "LOCAL");
+        return AccessChannel.valueOf(channel);
+    }
+
     @Data
     public static class RocketmqProducer {
-        /*
+        /**
          * 普通消息生产者group
          */
         private String  group                    = "DEFAULT_PRODUCER";
         /**
-         * 发送消息超时时间：默认-3秒
+         * 发送消息超时时间：默认-3000ms
          */
         private int     sendMessageTimeout       = 3000;
         /**
@@ -35,6 +54,10 @@ public class RocketmqProperties {
          * 同步消息发送失败重试次数,默认-2次
          */
         private int     retryTimesWhenSendFailed = 2;
+        /**
+         * 是否支持批量发送
+         */
+        private boolean enableBatch              = false;
         /**
          * 发送失败是否重试其他broker
          */
@@ -74,7 +97,7 @@ public class RocketmqProperties {
         /**
          * 消费者线程池核心线程数量
          */
-        private int     consumerThreadMin = 8;
+        private int     consumerThreadMin = 4;
         /**
          * 消费者消费超时时间
          */

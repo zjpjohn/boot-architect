@@ -8,9 +8,7 @@ import com.cloud.arch.event.publisher.RocketEventPublisher;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.acl.common.AclClientRPCHook;
-import org.apache.rocketmq.acl.common.SessionCredentials;
-import org.apache.rocketmq.client.AccessChannel;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.rebalance.AllocateMessageQueueAveragely;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -19,7 +17,6 @@ import org.apache.rocketmq.remoting.protocol.heartbeat.MessageModel;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -40,12 +37,8 @@ public class RocketEventSubscriber implements InitializingBean, DisposableBean {
     private DefaultMQPushConsumer                         consumer;
     private EventConcurrentlyListener                     listener;
 
-    public RocketEventSubscriber(String group,
-                                 EventCodec eventCodec,
-                                 RocketmqProperties properties,
-                                 List<SubscribeEventMetadata> registrations,
-                                 SubscribeHandler subscribeHandler) {
-        Assert.state(StringUtils.hasText(group), "consumer group不允许为空.");
+    public RocketEventSubscriber(String group, EventCodec eventCodec, RocketmqProperties properties, List<SubscribeEventMetadata> registrations, SubscribeHandler subscribeHandler) {
+        Assert.state(StringUtils.isNotBlank(group), "consumer group不允许为空.");
         this.group = group;
         this.properties = properties;
         this.eventCodec = eventCodec;
@@ -65,11 +58,11 @@ public class RocketEventSubscriber implements InitializingBean, DisposableBean {
         for (SubscribeEventMetadata registration : this.registrations) {
             // 消息topic解析校验
             String topic = registration.getName();
-            Assert.state(StringUtils.hasText(topic), "消息topic不允许为空.");
+            Assert.state(StringUtils.isNotBlank(topic), "消息topic不允许为空.");
             // 消息tag解析校验
             String tagRegex = registration.getFilter();
             // 消息过滤tag配置规则:不允许为空、不允许为'*'、不允许包含'||'
-            boolean tagValidation = StringUtils.hasText(tagRegex) &&
+            boolean tagValidation = StringUtils.isNotBlank(tagRegex) &&
                                     !RocketEventPublisher.ROCKETMQ_ALL_TAG_REGEX.equals(tagRegex) &&
                                     !tagRegex.contains(COMPOSITE_TAG_DELIMITER);
             Assert.state(tagValidation, "请配置具有业务意义的消息tag.");
@@ -82,28 +75,17 @@ public class RocketEventSubscriber implements InitializingBean, DisposableBean {
 
     /**
      * 创建消费者实例
-     *
-     * @throws MQClientException
      */
     private void createConsumer() throws MQClientException {
-        RPCHook rpcHook = null;
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(properties.getAccessKey()) &&
-            org.apache.commons.lang3.StringUtils.isNotBlank(properties.getSecretKey())) {
-            rpcHook = new AclClientRPCHook(new SessionCredentials(properties.getAccessKey(),
-                                                                  properties.getSecretKey()));
-        }
-        this.consumer = new DefaultMQPushConsumer(group,
-                                                  rpcHook,
-                                                  new AllocateMessageQueueAveragely(),
-                                                  properties.getSubscriber().isEnableTrace(),
-                                                  properties.getSubscriber().getTraceTopic());
-        this.consumer.setConsumeThreadMax(properties.getSubscriber().getConsumerThreadMax());
-        if (this.properties.getSubscriber().getConsumerThreadMax() < this.consumer.getConsumeThreadMin()) {
-            this.consumer.setConsumeThreadMin(this.properties.getSubscriber().getConsumerThreadMax());
-        }
+        RPCHook                             rpcHook    = properties.rpcHook();
+        RocketmqProperties.RocketmqConsumer subscriber = properties.getSubscriber();
+        this.consumer = new DefaultMQPushConsumer(group, rpcHook, new AllocateMessageQueueAveragely(), subscriber.isEnableTrace(), subscriber.getTraceTopic());
+        this.consumer.setConsumeThreadMax(subscriber.getConsumerThreadMax());
+        int consumerThreadMin = Math.min(subscriber.getConsumerThreadMax(), subscriber.getConsumerThreadMin());
+        this.consumer.setConsumeThreadMin(consumerThreadMin);
         this.consumer.setNamesrvAddr(properties.getNameSrv());
-        this.consumer.setAccessChannel(AccessChannel.valueOf(properties.getAccessChannel()));
-        this.consumer.setConsumeTimeout(properties.getSubscriber().getConsumerTimeout());
+        this.consumer.setAccessChannel(properties.accessChannel());
+        this.consumer.setConsumeTimeout(subscriber.getConsumerTimeout());
         this.consumer.setMessageModel(MessageModel.CLUSTERING);
         this.consumer.registerMessageListener(this.listener);
         for (String topic : metas.rowKeySet()) {

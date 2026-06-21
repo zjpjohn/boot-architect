@@ -2,9 +2,9 @@ package com.cloud.arch.event.publisher;
 
 import com.cloud.arch.event.codec.EventCodec;
 import com.cloud.arch.event.commons.ApplicationContextHolder;
+import com.cloud.arch.event.core.publish.BatchMessagePublisher;
 import com.cloud.arch.event.core.publish.EventMetadataFactory;
 import com.cloud.arch.event.core.publish.GenericEvent;
-import com.cloud.arch.event.core.publish.MessageQueuePublisher;
 import com.cloud.arch.event.core.publish.PublishEvent;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import lombok.experimental.UtilityClass;
@@ -81,8 +81,8 @@ public class DomainEventPublisher {
      */
     private static boolean enableRemoteQueue() {
         if (remoteQueueEnabled == null) {
-            MessageQueuePublisher queuePublisher = ApplicationContextHolder.getBean(MessageQueuePublisher.class);
-            remoteQueueEnabled = queuePublisher.isConfigured();
+            BatchMessagePublisher batchPublisher = ApplicationContextHolder.getBean(BatchMessagePublisher.class);
+            remoteQueueEnabled = batchPublisher.isConfigured();
         }
         return remoteQueueEnabled;
     }

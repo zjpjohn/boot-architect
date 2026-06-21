@@ -24,12 +24,10 @@ public class EventConcurrentlyListener implements MessageListenerConcurrently {
     private final EventCodec                                    eventCodec;
     private final Table<String, String, SubscribeEventMetadata> registry;
 
-    public EventConcurrentlyListener(Table<String, String, SubscribeEventMetadata> registry,
-                                     SubscribeHandler subscribeHandler,
-                                     EventCodec eventCodec) {
-        this.registry         = registry;
+    public EventConcurrentlyListener(Table<String, String, SubscribeEventMetadata> registry, SubscribeHandler subscribeHandler, EventCodec eventCodec) {
+        this.registry = registry;
         this.subscribeHandler = subscribeHandler;
-        this.eventCodec       = eventCodec;
+        this.eventCodec = eventCodec;
     }
 
     @Override
@@ -47,7 +45,9 @@ public class EventConcurrentlyListener implements MessageListenerConcurrently {
                 String event       = new String(messageExt.getBody(), StandardCharsets.UTF_8);
                 Object domainEvent = eventCodec.decode(event, metadata.getType());
                 subscribeHandler.handle(messageExt.getKeys(), domainEvent, metadata);
-                log.info("concurrently consume topic:[{}],tags:[{}}], message id:[{}] success,taken:[{}]ms", topic, tags, messageExt.getMsgId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                if (log.isInfoEnabled()) {
+                    log.info("concurrently consume topic:[{}],tags:[{}], message id:[{}] success,taken:[{}]ms", topic, tags, messageExt.getMsgId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                }
             } catch (Throwable e) {
                 log.warn("concurrently consume message topic:[{}],message id:[{}] error,taken:[{}]ms", messageExt.getTopic(), messageExt.getMsgId(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 context.setDelayLevelWhenNextConsume(delayLevelWhenNextConsume);
