@@ -3,8 +3,11 @@ package com.cloud.arch.event.storage;
 import com.cloud.arch.event.core.publish.EventMessage;
 import com.cloud.arch.event.core.publish.EventState;
 import com.cloud.arch.event.core.publish.Version;
+import com.cloud.arch.utils.IdWorker;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -64,6 +67,21 @@ public class PublishEventEntity implements Version {
         message.setData(event);
         message.setKey(String.valueOf(id));
         return message;
+    }
+
+    /**
+     * 构建事件的补偿记录
+     */
+    public EventCompensateEntity compensate(long start, long taken, Throwable error) {
+        EventCompensateEntity compensate = new EventCompensateEntity();
+        compensate.setId(IdWorker.nextId());
+        compensate.setEventId(this.id);
+        compensate.setShardingKey(this.shardingKey);
+        compensate.setStartTime(start);
+        compensate.setTaken(taken);
+        compensate.error(error);
+        compensate.setGmtCreate(LocalDateTime.now());
+        return compensate;
     }
 
     public Integer getEventState() {

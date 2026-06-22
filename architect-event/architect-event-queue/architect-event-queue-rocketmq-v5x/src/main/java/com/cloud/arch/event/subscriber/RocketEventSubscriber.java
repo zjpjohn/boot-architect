@@ -76,33 +76,38 @@ public class RocketEventSubscriber implements InitializingBean, DisposableBean {
     /**
      * 创建消费者实例
      */
-    private void createConsumer() throws MQClientException {
-        RPCHook                             rpcHook    = properties.rpcHook();
-        RocketmqProperties.RocketmqConsumer subscriber = properties.getSubscriber();
-        this.consumer = new DefaultMQPushConsumer(group, rpcHook, new AllocateMessageQueueAveragely(), subscriber.isEnableTrace(), subscriber.getTraceTopic());
-        this.consumer.setConsumeThreadMax(subscriber.getConsumerThreadMax());
-        int consumerThreadMin = Math.min(subscriber.getConsumerThreadMax(), subscriber.getConsumerThreadMin());
-        this.consumer.setConsumeThreadMin(consumerThreadMin);
-        this.consumer.setNamesrvAddr(properties.getNameSrv());
-        this.consumer.setAccessChannel(properties.accessChannel());
-        this.consumer.setConsumeTimeout(subscriber.getConsumerTimeout());
-        this.consumer.setMessageModel(MessageModel.CLUSTERING);
-        this.consumer.registerMessageListener(this.listener);
-        for (String topic : metas.rowKeySet()) {
-            Map<String, SubscribeEventMetadata> column       = metas.column(topic);
-            String                              compositeTag = String.join(COMPOSITE_TAG_DELIMITER, column.keySet());
-            this.consumer.subscribe(topic, compositeTag);
+    private void createConsumer() {
+        try {
+            RPCHook                             rpcHook    = properties.rpcHook();
+            RocketmqProperties.RocketmqConsumer subscriber = properties.getSubscriber();
+            this.consumer = new DefaultMQPushConsumer(group, rpcHook, new AllocateMessageQueueAveragely(), subscriber.isEnableTrace(), subscriber.getTraceTopic());
+            this.consumer.setConsumeThreadMax(subscriber.getConsumerThreadMax());
+            int consumerThreadMin = Math.min(subscriber.getConsumerThreadMax(), subscriber.getConsumerThreadMin());
+            this.consumer.setConsumeThreadMin(consumerThreadMin);
+            this.consumer.setNamesrvAddr(properties.getNameSrv());
+            this.consumer.setAccessChannel(properties.accessChannel());
+            this.consumer.setConsumeTimeout(subscriber.getConsumerTimeout());
+            this.consumer.setMessageModel(MessageModel.CLUSTERING);
+            this.consumer.registerMessageListener(this.listener);
+            for (String topic : metas.rowKeySet()) {
+                Map<String, SubscribeEventMetadata> column       = metas.column(topic);
+                String                              compositeTag = String.join(COMPOSITE_TAG_DELIMITER, column.keySet());
+                this.consumer.subscribe(topic, compositeTag);
+            }
+            this.consumer.start();
+        } catch (MQClientException e) {
+            log.error("创建RocketMq消费者异常:", e);
+            throw new RuntimeException("RocketMQ consumer start failed", e);
         }
-        this.consumer.start();
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         Optional.ofNullable(consumer).ifPresent(DefaultMQPushConsumer::shutdown);
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         // 解析并创建监听器
         this.parseRegistryAndCreate();
         // 创建消费者并启动

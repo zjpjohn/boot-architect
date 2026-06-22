@@ -9,7 +9,6 @@ import com.cloud.arch.event.storage.EventCompensateEntity;
 import com.cloud.arch.event.storage.IDomainEventRepository;
 import com.cloud.arch.event.storage.PublishEventEntity;
 import com.cloud.arch.utils.CollectionUtils;
-import com.cloud.arch.utils.IdWorker;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
@@ -18,7 +17,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +62,7 @@ public class JdbcCompensateProcessor implements ApplicationContextAware, SmartIn
                 PublishEventEntity entity = events.get(i);
                 CompletableFuture<Void> future = publishFutures.get(i).whenComplete((v, ex) -> {
                     long taken = System.currentTimeMillis() - batchStart;
-                    audits[index] = buildAudit(entity, batchStart, taken, ex);
+                    audits[index] = entity.compensate(batchStart, taken, ex);
                     EventStatsCounter statsCounter = statsManager.statsCounter(entity.getName());
                     if (ex != null) {
                         statsCounter.recordPublishFailure(taken);
@@ -79,27 +77,6 @@ public class JdbcCompensateProcessor implements ApplicationContextAware, SmartIn
             CompletableFuture.allOf(chained.toArray(CompletableFuture[]::new))
                              .whenComplete((v, ex) -> eventRepository.batchCompensate(Arrays.asList(audits)));
         });
-    }
-
-    private EventCompensateEntity buildAudit(PublishEventEntity entity, long start, long taken, Throwable error) {
-        EventCompensateEntity compensate = new EventCompensateEntity();
-        compensate.setId(IdWorker.nextId());
-        compensate.setEventId(entity.getId());
-        compensate.setShardingKey(entity.getShardingKey());
-        compensate.setStartTime(start);
-        compensate.setTaken(taken);
-        compensate.setGmtCreate(LocalDateTime.now());
-        if (error != null) {
-            compensate.setFailedMsg(extractMessage(error));
-        }
-        return compensate;
-    }
-
-    private static String extractMessage(Throwable error) {
-        if (error.getMessage() != null) {
-            return error.getClass().getSimpleName() + ": " + error.getMessage();
-        }
-        return error.getClass().getSimpleName();
     }
 
     /**

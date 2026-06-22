@@ -116,6 +116,8 @@ public class BatchMessagePublisher implements DisposableBean, ApplicationContext
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).whenComplete((v, ex) -> {
                 if (ex != null) {
                     log.error("batch publish error for topic:[{}], count:[{}]", topic, entities.size(), ex);
+                } else if (log.isInfoEnabled()) {
+                    log.info("batch publish success for topic:[{}], count:[{}], taken:[{}]ms", topic, entities.size(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 }
             });
         });

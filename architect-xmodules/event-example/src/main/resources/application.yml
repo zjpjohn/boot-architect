@@ -38,25 +38,28 @@ com:
       subscriber:
         enable: true
       rocket:
-        v5x:
-          access-channel: CLOUD
+        #        v5x:
+        #          access-channel: CLOUD
+        #          access-key:
+        #          secret-key:
+        #          name-srv:
+        #          publisher:
+        #            enable-batch: false
+        #            group: GID_user_producer_app
+        #            send-message-timeout: 5000
+        #            retry-times-when-send-failed: 0
+        #          subscriber:
+        #            group: GID_thales_ucenter_app
+
+        ons:
           access-key:
           secret-key:
-          name-srv:
+          ons-address:
           publisher:
-            group: GID_user_producer
-            send-message-timeout: 5000
+            send-timeout-millis: 3000
+            group: GID_user_producer_app
           subscriber:
-            group: GID_user_subscribe
-
-#        ons:
-#          access-key:
-#          secret-key:
-#          ons-address:
-#          publisher:
-#            send-timeout-millis: 5000
-#          subscriber:
-#            group: GID_thales_ucenter_app
+            group: GID_thales_ucenter_app
 
 mybatis-plus:
   mapper-locations: classpath:mappers/*.xml

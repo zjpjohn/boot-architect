@@ -58,7 +58,7 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
     /**
      * 发送结果处理
      */
-    private void callbackHandle(CompletableFuture<Void>[] results, List<Integer> indices, Throwable throwable) {
+    private void resultHandle(CompletableFuture<Void>[] results, List<Integer> indices, Throwable throwable) {
         if (throwable != null) {
             for (int idx : indices) {
                 results[idx].completeExceptionally(throwable);
@@ -126,15 +126,15 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
             try {
                 producer.send(normalList, new SendCallback() {
                     public void onSuccess(SendResult sendResult) {
-                        callbackHandle(results, indices, null);
+                        resultHandle(results, indices, null);
                     }
 
                     public void onException(Throwable error) {
-                        callbackHandle(results, indices, error);
+                        resultHandle(results, indices, error);
                     }
                 });
             } catch (Exception error) {
-                callbackHandle(results, indices, error);
+                resultHandle(results, indices, error);
             }
         }
         return Arrays.asList(results);
@@ -168,6 +168,7 @@ public class RocketEventPublisher implements EventPublisher, DisposableBean, Sma
             RPCHook                             rpcHook   = properties.rpcHook();
             RocketmqProperties.RocketmqProducer publisher = properties.getPublisher();
             this.producer = new DefaultMQProducer(publisher.getGroup(), rpcHook, publisher.isEnableTrace(), publisher.getTraceTopic());
+            this.producer.setAutoBatch(publisher.isEnableBatch());
             this.producer.setSendMessageWithVIPChannel(rpcHook != null);
             this.producer.setNamesrvAddr(properties.getNameSrv());
             this.producer.setSendMsgTimeout(publisher.getSendMessageTimeout());

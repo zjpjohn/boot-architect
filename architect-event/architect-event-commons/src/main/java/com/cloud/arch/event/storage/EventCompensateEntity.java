@@ -3,6 +3,7 @@ package com.cloud.arch.event.storage;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Data
 public class EventCompensateEntity {
@@ -32,5 +33,14 @@ public class EventCompensateEntity {
      * 记录创建时间
      */
     private LocalDateTime gmtCreate;
+
+    public void error(Throwable error) {
+        if (error != null) {
+            this.failedMsg = error.getClass().getSimpleName();
+            if (error.getMessage() != null) {
+                this.failedMsg = this.failedMsg + ": " + error.getMessage();
+            }
+        }
+    }
 
 }

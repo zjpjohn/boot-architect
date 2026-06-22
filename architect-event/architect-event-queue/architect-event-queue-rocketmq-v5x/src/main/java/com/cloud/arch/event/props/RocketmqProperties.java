@@ -45,7 +45,7 @@ public class RocketmqProperties {
         /**
          * 发送消息超时时间：默认-3000ms
          */
-        private int     sendMessageTimeout       = 3000;
+        private int     sendMessageTimeout       = 5000;
         /**
          * 消息题超过(默认:4k)开始压缩
          */
@@ -93,11 +93,11 @@ public class RocketmqProperties {
         /**
          * 消费者线程池最大线程数量
          */
-        private int     consumerThreadMax = 8;
+        private int     consumerThreadMax = 16;
         /**
          * 消费者线程池核心线程数量
          */
-        private int     consumerThreadMin = 4;
+        private int     consumerThreadMin = 16;
         /**
          * 消费者消费超时时间
          */
