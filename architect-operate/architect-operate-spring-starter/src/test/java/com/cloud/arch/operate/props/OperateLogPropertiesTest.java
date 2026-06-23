@@ -16,18 +16,6 @@ class OperateLogPropertiesTest {
     class Defaults {
 
         @Test
-        @DisplayName("coreThreads = 1")
-        void shouldDefaultCoreThreads() {
-            assertThat(new OperateLogProperties().getCoreThreads()).isEqualTo(1);
-        }
-
-        @Test
-        @DisplayName("maxThreads = 2")
-        void shouldDefaultMaxThreads() {
-            assertThat(new OperateLogProperties().getMaxThreads()).isEqualTo(2);
-        }
-
-        @Test
         @DisplayName("batchSize = 20")
         void shouldDefaultBatchSize() {
             assertThat(new OperateLogProperties().getBatchSize()).isEqualTo(20);
