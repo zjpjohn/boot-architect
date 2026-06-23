@@ -10,18 +10,11 @@ import java.util.concurrent.*;
 @Slf4j
 public class AsyncLogDispatcher implements DisposableBean {
 
-    private static final Integer DEFAULT_KEEP_ALIVE = 1;
-
     private final ExecutorService             executor;
     private final BufferedTrigger<LogContext> bufferedTrigger;
 
     public AsyncLogDispatcher(OperateLogProperties properties, OperationLogHandle logHandle) {
-        this.executor        = new ThreadPoolExecutor(properties.getCoreThreads(),
-                                                      properties.getMaxThreads(),
-                                                      DEFAULT_KEEP_ALIVE,
-                                                      TimeUnit.MINUTES,
-                                                      new SynchronousQueue<>(),
-                                                      new NamedThreadFactory("async-log-thread-", false));
+        this.executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("operate-log-", true));
         this.bufferedTrigger = BufferedTrigger.<LogContext>builder()
                                               .consumer(logHandle)
                                               .executor(this.executor)
@@ -40,10 +33,8 @@ public class AsyncLogDispatcher implements DisposableBean {
 
     @Override
     public void destroy() throws Exception {
-        bufferedTrigger.shutdown();
-        if (this.executor != null) {
-            this.executor.shutdownNow();
-        }
+        this.bufferedTrigger.shutdown();
+        this.executor.shutdownNow();
     }
 
 }
