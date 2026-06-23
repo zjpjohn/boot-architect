@@ -24,7 +24,7 @@
         <commons-collections.version>4.5.0</commons-collections.version>
         <commons-codec.version>1.21.0</commons-codec.version>
         <commons-io.version>2.21.0</commons-io.version>
-        <fory.version>1.1.0</fory.version>
+        <fory.version>1.2.0</fory.version>
         <fastjson2.version>2.0.61</fastjson2.version>
         <netty.version>4.1.77.Final</netty.version>
         <mapstruct.version>1.6.3</mapstruct.version>
@@ -45,7 +45,7 @@
         <aliyun-oss.version>3.18.1</aliyun-oss.version>
         <aliyun-mobile.version>1.2.3</aliyun-mobile.version>
         <aliyun-sms.version>2.2.1</aliyun-sms.version>
-        <ons.version>1.9.1.Final</ons.version>
+        <ons.version>1.9.6.Final</ons.version>
         <pulsar.version>3.3.1</pulsar.version>
         <auto-service.version>1.1.1</auto-service.version>
         <elastic.version>8.3.2</elastic.version>

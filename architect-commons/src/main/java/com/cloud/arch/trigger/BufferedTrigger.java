@@ -1,6 +1,5 @@
 package com.cloud.arch.trigger;
 
-import com.cloud.arch.utils.CollectionUtils;
 import com.cloud.arch.utils.SleepyTask;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -9,39 +8,35 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Objects;
+import java.util.concurrent.*;
 
 public class BufferedTrigger<E> {
 
     /**
      * 缓存队列
      */
-    private BlockingQueue<E>    queue;
+    private final BlockingQueue<E>    queue;
     /**
      * 消费监听处理器
      */
-    private ConsumerListener<E> consumer;
+    private final ConsumerListener<E> consumer;
     /**
      * 执行线程池
      */
-    private ExecutorService     executor;
+    private final ExecutorService     executor;
     /**
      * 单次处理数量
      */
-    private int                 batchSize;
+    private final int                 batchSize;
     /**
      * 触发时间间隔
      */
-    private Duration            timeout;
+    private final Duration            timeout;
     /**
      * 消费者出发策略
      */
-    private TriggerStrategy     strategy;
-
-    private BufferedTrigger() {
-    }
+    private       TriggerStrategy     strategy;
 
     private BufferedTrigger(BlockingQueue<E> queue, ConsumerListener<E> consumer, ExecutorService executor, int batchSize, Duration timeout) {
         this.queue = queue;
@@ -98,11 +93,11 @@ public class BufferedTrigger<E> {
         /**
          * 缓存队列
          */
-        private BlockingQueue<E>    queue     = Queues.newLinkedBlockingQueue();
+        private BlockingQueue<E>    queue;
         /**
          * 执行线程池
          */
-        private ExecutorService     executor  = Executors.newSingleThreadExecutor();
+        private ExecutorService     executor;
         /**
          * 单次处理数量,默认20
          */
@@ -136,7 +131,7 @@ public class BufferedTrigger<E> {
         }
 
         public Builder<E> batchSize(int batchSize) {
-            Preconditions.checkState(consumers >= 1, "批次数量不小于1");
+            Preconditions.checkState(batchSize >= 1, "批次数量不小于1");
             this.batchSize = batchSize;
             return this;
         }
@@ -153,12 +148,16 @@ public class BufferedTrigger<E> {
         }
 
         public BufferedTrigger<E> build() {
+            Preconditions.checkNotNull(this.listener, "监听处理器不允许为空");
+            this.queue = Objects.requireNonNullElseGet(this.queue, LinkedBlockingQueue::new);
+            this.executor = Objects.requireNonNullElseGet(this.executor, () -> Executors.newFixedThreadPool(this.consumers));
             BufferedTrigger<E> trigger = new BufferedTrigger<>(this.queue, this.listener, this.executor, this.batchSize, this.timeout);
             if (consumers == 1) {
                 return trigger.single();
             }
             return trigger.multi(this.consumers);
         }
+
     }
 
     /**
@@ -188,17 +187,13 @@ public class BufferedTrigger<E> {
      */
     public static class MultiStrategy<E> implements TriggerStrategy {
 
-        private final Integer              size;
-        private final BufferedTrigger<E>   trigger;
         private final List<TriggerTask<E>> tasks;
 
         public MultiStrategy(Integer size, BufferedTrigger<E> trigger) {
-            this.size = size;
-            this.trigger = trigger;
-            this.tasks = this.buildTasks();
+            this.tasks = this.buildTasks(trigger, size);
         }
 
-        private List<TriggerTask<E>> buildTasks() {
+        private List<TriggerTask<E>> buildTasks(BufferedTrigger<E> trigger, Integer size) {
             List<TriggerTask<E>> tasks = Lists.newArrayList();
             for (int i = 0; i < size; i++) {
                 tasks.add(new TriggerTask<>(trigger));
@@ -236,9 +231,12 @@ public class BufferedTrigger<E> {
                 try {
                     List<E> events  = Lists.newArrayList();
                     int     drained = Queues.drain(this.trigger.queue, events, trigger.batchSize, trigger.timeout);
-                    if (drained > 0 && CollectionUtils.isNotEmpty(events)) {
+                    if (drained > 0) {
                         this.trigger.consumer.handle(events);
                     }
+                } catch (InterruptedException error) {
+                    Thread.currentThread().interrupt();
+                    break;
                 } catch (Exception error) {
                     log.error(error.getMessage(), error);
                 }
