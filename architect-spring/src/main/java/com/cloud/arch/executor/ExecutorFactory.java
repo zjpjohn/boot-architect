@@ -15,7 +15,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
-@Slf4j
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ExecutorFactory implements SmartInitializingSingleton, ApplicationContextAware {
 
