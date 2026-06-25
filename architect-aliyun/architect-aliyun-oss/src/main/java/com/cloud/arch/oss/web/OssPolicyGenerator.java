@@ -30,12 +30,12 @@ public record OssPolicyGenerator(OSSClient client, OssCloudProperties properties
         String                                 objectKey  = buildObjectKey(scene, req.getFileName());
 
         // 限制上传目录前缀，防止客户端上传到其他位置
-        String           keyPrefix   = scene.module() + "/" + scene.value() + "/";
-        PolicyConditions policyConds = new PolicyConditions();
-        policyConds.addConditionItem(PolicyConditions.COND_CONTENT_LENGTH_RANGE, 1, scene.maxSize());
-        policyConds.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, keyPrefix);
+        String           keyPrefix  = keyPrefix(scene);
+        PolicyConditions conditions = new PolicyConditions();
+        conditions.addConditionItem(PolicyConditions.COND_CONTENT_LENGTH_RANGE, 1, scene.maxSize());
+        conditions.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, keyPrefix);
 
-        String postPolicy = client.generatePostPolicy(expiration, policyConds);
+        String postPolicy = client.generatePostPolicy(expiration, conditions);
         String signature  = client.calculatePostSignature(postPolicy);
         String policy     = Base64.getEncoder().encodeToString(postPolicy.getBytes(StandardCharsets.UTF_8));
 
@@ -86,6 +86,22 @@ public record OssPolicyGenerator(OSSClient client, OssCloudProperties properties
         return String.format("https://%s.%s", properties.getBucket(), properties.getEndpoint());
     }
 
+    /**
+     * objKey前缀
+     * @param scene 上传文件前缀
+     */
+    private String keyPrefix(OssScene scene) {
+        String module = scene.module();
+        if (StringUtils.isNotBlank(module)) {
+            return module + "/" + scene.value() + "/";
+        }
+        return scene.value() + "/";
+    }
+
+    /**
+     * 解析objKey
+     * @param accessUrl 文件路径
+     */
     public String extractObjectKey(String accessUrl) {
         if (StringUtils.isBlank(accessUrl)) {
             return null;
@@ -103,6 +119,11 @@ public record OssPolicyGenerator(OSSClient client, OssCloudProperties properties
         }
     }
 
+    /**
+     * 构建objKey
+     * @param scene  上传文件场景
+     * @param fileName 文件名称
+     */
     private String buildObjectKey(OssScene scene, String fileName) {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String ext  = "";
@@ -110,8 +131,12 @@ public record OssPolicyGenerator(OSSClient client, OssCloudProperties properties
         if (dot > 0) {
             ext = fileName.substring(dot);
         }
-        String uuid = String.valueOf(IdWorker.nextId());
-        return String.format("%s/%s/%s/%s%s", scene.module(), scene.value(), date, uuid, ext);
+        String uuid   = String.valueOf(IdWorker.nextId());
+        String module = scene.module();
+        if (StringUtils.isNotBlank(module)) {
+            return String.format("%s/%s/%s/%s%s", module, scene.value(), date, uuid, ext);
+        }
+        return String.format("%s/%s/%s%s", scene.value(), date, uuid, ext);
     }
 
 }
