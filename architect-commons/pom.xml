@@ -62,11 +62,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <!-- BOM 管理为 test scope，此处继承 -->
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <!-- BOM 管理为 test scope，此处继承 -->
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
