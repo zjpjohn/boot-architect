@@ -1,39 +1,46 @@
 package com.cloud.arch.oss.web;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.Map;
 
 @Data
+@Builder
 public class OssPolicy {
     /**
      * oss接口app
      */
-    private String appId;
+    private String              appId;
     /**
      * 文件上传策略
      */
-    private String policy;
+    private String              policy;
     /**
      * 签名
      */
-    private String signature;
+    private String              signature;
     /**
      * 上传域名
      */
-    private String domain;
+    private String              domain;
     /**
-     * 允许的文件件
+     * 上传对象key
      */
-    private String dir;
-    /**
-     * 上传host地址
-     */
-    private String host;
+    private String              objKey;
     /**
      * policy过期时间
      */
-    private Long   expire;
+    private Long                expire;
     /**
      * 上传结果回调地址
+     * Base64 编码的回调配置（含 callbackUrl + callbackBody + callbackVar）
      */
-    private String callback;
+    private String              callback;
+    /**
+     * 回调自定义变量
+     */
+    private Map<String, String> callbackVars;
 }

@@ -3,6 +3,8 @@ package com.cloud.arch.oss.props;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Date;
+
 @Data
 @ConfigurationProperties(prefix = "com.cloud.oss")
 public class OssCloudProperties {
@@ -41,7 +43,7 @@ public class OssCloudProperties {
         /**
          * policy过期时间
          */
-        private Long   expire = 7200L;
+        private Long   expire = 300L;
         /**
          * 回调请求前缀地址(主要适配网关前缀地址)
          */
@@ -50,6 +52,12 @@ public class OssCloudProperties {
          * oss上传请求回调地址
          */
         private String callback;
+
+
+        public Date expireDate() {
+            return new Date(System.currentTimeMillis() + this.expire * 1000);
+        }
+
     }
 
 }
