@@ -2,7 +2,9 @@ package com.cloud.arch.executor;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.atteo.classindex.ClassIndex;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -13,6 +15,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
+@Slf4j
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ExecutorFactory implements SmartInitializingSingleton, ApplicationContextAware {
 
@@ -63,7 +66,8 @@ public class ExecutorFactory implements SmartInitializingSingleton, ApplicationC
 
     @Override
     public void afterSingletonsInstantiated() {
-        ClassIndex.getAnnotated(ExecPoint.class).forEach(e -> parseAndRegistry((Class<Executor>) e));
+        Iterable<Class<? extends Executor>> subclasses = ClassIndex.getSubclasses(Executor.class);
+        Streams.stream(subclasses).filter(Class::isInterface).forEach(this::parseAndRegistry);
     }
 
     private <K extends Comparable<K>, E extends Executor<K>> void parseAndRegistry(Class<E> executorType) {
