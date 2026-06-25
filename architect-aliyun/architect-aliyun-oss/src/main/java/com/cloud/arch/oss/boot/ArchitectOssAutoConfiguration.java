@@ -5,8 +5,8 @@ import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.common.auth.DefaultCredentialProvider;
 import com.cloud.arch.oss.props.OssCloudProperties;
 import com.cloud.arch.oss.store.OssStorageTemplate;
+import com.cloud.arch.oss.web.OssCallbackVerifier;
 import com.cloud.arch.oss.web.OssPolicyGenerator;
-import com.cloud.arch.oss.web.UploadCallbackExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -21,8 +21,7 @@ public class ArchitectOssAutoConfiguration {
 
     @Bean
     public OSSClient ossClient(OssCloudProperties properties) {
-        DefaultCredentialProvider provider
-                = new DefaultCredentialProvider(properties.getAppId(), properties.getSecret());
+        DefaultCredentialProvider provider = new DefaultCredentialProvider(properties.getAppId(), properties.getSecret());
         return new OSSClient(properties.getEndpoint(), provider, new ClientConfiguration());
     }
 
@@ -42,8 +41,8 @@ public class ArchitectOssAutoConfiguration {
         }
 
         @Bean
-        public UploadCallbackExecutor callbackExecutor(OssCloudProperties properties) {
-            return new UploadCallbackExecutor(properties);
+        public OssCallbackVerifier callbackVerifier() {
+            return new OssCallbackVerifier();
         }
 
     }

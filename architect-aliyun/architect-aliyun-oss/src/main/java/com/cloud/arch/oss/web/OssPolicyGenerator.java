@@ -1,81 +1,117 @@
 package com.cloud.arch.oss.web;
 
+import com.alibaba.fastjson2.JSON;
 import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.common.utils.BinaryUtil;
 import com.aliyun.oss.model.MatchMode;
 import com.aliyun.oss.model.PolicyConditions;
 import com.cloud.arch.oss.props.OssCloudProperties;
-import org.codehaus.jettison.json.JSONObject;
+import com.cloud.arch.utils.IdWorker;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-public class OssPolicyGenerator {
-
-    private final OSSClient          client;
-    private final OssCloudProperties properties;
-
-    public OssPolicyGenerator(OSSClient client, OssCloudProperties properties) {
-        this.client = client;
-        this.properties = properties;
-    }
+@Slf4j
+public record OssPolicyGenerator(OSSClient client, OssCloudProperties properties) {
 
     /**
-     * @param directory 上传文件夹
+     * 获取文件上传policy
      */
-    public OssPolicy execute(String directory) throws Exception {
-        PolicyConditions conditions = new PolicyConditions();
-        String           dir        = directory.endsWith("/") ? directory : directory + "/";
+    public OssPolicy generatePolicy(OssPolicyReq req) {
+        OssScene                               scene      = req.getScene();
+        OssCloudProperties.WebDirectProperties webDirect  = properties.getWebDirect();
+        Date                                   expiration = webDirect.expireDate();
+        String                                 objectKey  = buildObjectKey(scene, req.getFileName());
 
-        conditions.addConditionItem(PolicyConditions.COND_CONTENT_LENGTH_RANGE, 0, 1048576000);
-        conditions.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, dir);
+        // 限制上传目录前缀，防止客户端上传到其他位置
+        String           keyPrefix   = scene.module() + "/" + scene.value() + "/";
+        PolicyConditions policyConds = new PolicyConditions();
+        policyConds.addConditionItem(PolicyConditions.COND_CONTENT_LENGTH_RANGE, 1, scene.maxSize());
+        policyConds.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, keyPrefix);
 
-        //上传policy信息
-        long   expireAt      = System.currentTimeMillis() + properties.getWebDirect().getExpire() * 1000;
-        String policy        = client.generatePostPolicy(new Date(expireAt), conditions);
-        String encodedPolicy = BinaryUtil.toBase64String(policy.getBytes(StandardCharsets.UTF_8));
+        String postPolicy = client.generatePostPolicy(expiration, policyConds);
+        String signature  = client.calculatePostSignature(postPolicy);
+        String policy     = Base64.getEncoder().encodeToString(postPolicy.getBytes(StandardCharsets.UTF_8));
 
-        //policy签名
-        String signature = client.calculatePostSignature(policy);
+        boolean             callbackEnabled = StringUtils.isNotBlank(webDirect.getCallback());
+        String              callback        = null;
+        Map<String, String> callbackVars    = null;
+        if (callbackEnabled) {
+            Map<String, Object> callbackJson = new LinkedHashMap<>();
+            callbackJson.put("callbackUrl", webDirect.getCallback());
+            StringBuilder bodySb = new StringBuilder();
+            bodySb.append("object=${object}&size=${size}&mimeType=${mimeType}");
+            bodySb.append("&scene=${x:scene}");
 
-        OssPolicy ossPolicy = new OssPolicy();
-        ossPolicy.setAppId(properties.getAppId());
-        ossPolicy.setPolicy(encodedPolicy);
-        ossPolicy.setSignature(signature);
-        ossPolicy.setDir(directory);
-        ossPolicy.setDomain(properties.getDomainUri());
-        ossPolicy.setExpire(expireAt);
-        ossPolicy.setHost(properties.getHostUri());
-
-        //设置回调信息
-        ossPolicy.setCallback(getCallback());
-        return ossPolicy;
-    }
-
-    /**
-     * 构建回调信息
-     */
-    private String getCallback() throws Exception {
-        JSONObject callback = new JSONObject();
-        callback.put("callbackUrl", properties.getWebDirect().getCallback());
-        callback.put("callbackBodyType", "application/json");
-        callback.put("callbackBody", """
-                {
-                "filename":"${object}",
-                "size":"${size}",
-                "mimeType":"${mimeType}",
-                "height":"${imageInfo.height}",
-                "width":"${imageInfo.width}"
+            callbackVars = new LinkedHashMap<>();
+            callbackVars.put("x:scene", scene.value());
+            if (req.getUploadBy() != null) {
+                bodySb.append("&uploadBy=${x:upload_by}");
+                callbackVars.put("x:upload_by", String.valueOf(req.getUploadBy()));
+            }
+            if (StringUtils.isNotBlank(req.getReplaceUrl())) {
+                String oldObjectKey = extractObjectKey(req.getReplaceUrl());
+                if (oldObjectKey != null) {
+                    bodySb.append("&oldObject=${x:old_object}");
+                    callbackVars.put("x:old_object", oldObjectKey);
                 }
-                """);
-        return BinaryUtil.toBase64String(callback.toString().getBytes(StandardCharsets.UTF_8));
+            }
+            callbackJson.put("callbackBody", bodySb.toString());
+            callbackJson.put("callbackBodyType", "application/x-www-form-urlencoded");
+            callback = Base64.getEncoder()
+                             .encodeToString(JSON.toJSONString(callbackJson).getBytes(StandardCharsets.UTF_8));
+        }
+        return OssPolicy.builder()
+                        .appId(properties.getAppId())
+                        .policy(policy)
+                        .signature(signature)
+                        .domain(negotiateHost())
+                        .objKey(objectKey)
+                        .expire(webDirect.getExpire())
+                        .callback(callback)
+                        .callbackVars(callbackVars)
+                        .build();
     }
 
-    public OSSClient getClient() {
-        return client;
+    private String negotiateHost() {
+        if (StringUtils.isNotBlank(properties.getDomainUri())) {
+            return properties.getDomainUri();
+        }
+        return String.format("https://%s.%s", properties.getBucket(), properties.getEndpoint());
     }
 
-    public OssCloudProperties getProperties() {
-        return properties;
+    public String extractObjectKey(String accessUrl) {
+        if (StringUtils.isBlank(accessUrl)) {
+            return null;
+        }
+        try {
+            String withoutProtocol = accessUrl.substring(accessUrl.indexOf("://") + 3);
+            int    slashIdx        = withoutProtocol.indexOf('/');
+            if (slashIdx < 0 || slashIdx == withoutProtocol.length() - 1) {
+                return null;
+            }
+            return withoutProtocol.substring(slashIdx + 1);
+        } catch (Exception e) {
+            log.warn("无法从 URL 提取 object_key: {}", accessUrl, e);
+            return null;
+        }
     }
+
+    private String buildObjectKey(OssScene scene, String fileName) {
+        String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String ext  = "";
+        int    dot  = fileName.lastIndexOf('.');
+        if (dot > 0) {
+            ext = fileName.substring(dot);
+        }
+        String uuid = String.valueOf(IdWorker.nextId());
+        return String.format("%s/%s/%s/%s%s", scene.module(), scene.value(), date, uuid, ext);
+    }
+
 }
