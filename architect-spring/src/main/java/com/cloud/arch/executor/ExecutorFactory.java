@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import org.atteo.classindex.ClassIndex;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
