@@ -1,5 +1,7 @@
 package com.cloud.arch.web;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 /**
@@ -8,5 +10,9 @@ import java.util.Date;
  * @param expireAt token到期截止时间
  */
 public record TokenResult(String token, String tokenId, Date expireAt) {
+
+    public ZonedDateTime zonedExpire(ZoneId zoneId) {
+        return expireAt.toInstant().atZone(zoneId);
+    }
 
 }
