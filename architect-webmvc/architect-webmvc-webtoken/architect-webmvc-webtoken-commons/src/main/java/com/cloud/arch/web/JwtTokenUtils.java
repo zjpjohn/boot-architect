@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
+import com.auth0.jwt.RegisteredClaims;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.*;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -17,6 +18,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
@@ -54,6 +58,17 @@ public class JwtTokenUtils {
         String payload = new String(Base64.getDecoder().decode(encode), StandardCharsets.UTF_8);
         return JSON.parseObject(payload, new TypeReference<Map<String, Object>>() {
         });
+    }
+
+
+    /**
+     *
+     * token过期截止时间
+     */
+    public static LocalDateTime expireAt(String token) {
+        Preconditions.checkState(StringUtils.isNotBlank(token));
+        Instant instant = JWT.decode(token).getClaim(RegisteredClaims.EXPIRES_AT).asInstant();
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
     /**

@@ -11,7 +11,6 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-@SuppressWarnings({"rawtypes"})
 public class DictionaryRemark implements Comparable<DictionaryRemark> {
 
     //字典数据名称
@@ -25,9 +24,13 @@ public class DictionaryRemark implements Comparable<DictionaryRemark> {
 
     public DictionaryRemark(Dictionary dictionary, Class<? extends Value> type) {
         this.name = dictionary.name();
-        this.type = dictionary.type();
+        this.type = dictType(type);
         this.remark = dictionary.remark();
         this.values = this.typeToValue(type);
+    }
+
+    private String dictType(Class<? extends Value> target) {
+        return target.getEnumConstants()[0].value().getClass().getSimpleName().toLowerCase();
     }
 
     private Map<String, Object> typeToValue(Class<? extends Value> type) {
