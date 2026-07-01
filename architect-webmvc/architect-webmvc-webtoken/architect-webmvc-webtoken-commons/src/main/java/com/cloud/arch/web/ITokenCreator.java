@@ -12,4 +12,12 @@ public interface ITokenCreator {
      */
     TokenResult create(IHttpAuthSource source, Map<String, Object> claims);
 
+    /**
+     * 解析token
+     * @param token token信息
+     */
+    default TokenResult decode(String token) {
+        return null;
+    }
+
 }

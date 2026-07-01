@@ -12,7 +12,6 @@ import org.springframework.core.env.Environment;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 public class OperationLogHandle implements ConsumerListener<LogContext>, EnvironmentAware {

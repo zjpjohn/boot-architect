@@ -1,11 +1,20 @@
 package com.cloud.arch.web.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.TypeReference;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.RegisteredClaims;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.cloud.arch.web.*;
 import com.cloud.arch.web.utils.Assert;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -28,6 +37,20 @@ public record JwtTokenCreator(WebTokenProperties props) implements ITokenCreator
         //创建token
         Pair<String, Date> pair = JwtTokenUtils.create(tokenInfo);
         return new TokenResult(pair.getKey(), tokenId, pair.getValue());
+    }
+
+    @Override
+    public TokenResult decode(String token) {
+        Preconditions.checkState(StringUtils.isNotBlank(token));
+        DecodedJWT decoded = JWT.decode(token);
+        String     encode  = decoded.getClaim(WebTokenConstants.PAYLOAD_KEY).asString();
+        String     json    = new String(Base64.getDecoder().decode(encode), StandardCharsets.UTF_8);
+        Map<String, Object> payload = JSON.parseObject(json, new TypeReference<Map<String, Object>>() {
+        });
+        String tokenId  = (String) payload.get(WebTokenConstants.JWT_CLAIM_TOKEN_KEY);
+        Date   expireAt = decoded.getClaim(RegisteredClaims.EXPIRES_AT).asDate();
+
+        return new TokenResult(token, tokenId, expireAt);
     }
 
 }

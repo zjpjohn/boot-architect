@@ -14,7 +14,7 @@ public class NamedThreadFactory implements ThreadFactory {
     public NamedThreadFactory(String prefix, boolean daemon) {
         this.prefix = prefix;
         this.daemon = daemon;
-        this.group  = Thread.currentThread().getThreadGroup();
+        this.group = Thread.currentThread().getThreadGroup();
     }
 
     /**
@@ -32,4 +32,5 @@ public class NamedThreadFactory implements ThreadFactory {
         thread.setDaemon(daemon);
         return thread;
     }
+
 }
