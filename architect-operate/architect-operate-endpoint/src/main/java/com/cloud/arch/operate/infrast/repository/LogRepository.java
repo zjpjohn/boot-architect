@@ -27,8 +27,8 @@ public class LogRepository {
 
     private static final String LOG_SQL   = "select " +
                                             "id,app_no,tenant_id,biz_group,title,type,target,method,req_uri,op_id,op_name,inet_ntoa(op_ip) as op_ip,op_location,state,params,error,taken_time,gmt_create " +
-                                            "from sys_oper_log ";
-    private static final String COUNT_SQL = "select count(1) from sys_oper_log ";
+                                            "from arch_oper_log ";
+    private static final String COUNT_SQL = "select count(1) from arch_oper_log ";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final OperateProperties          properties;
