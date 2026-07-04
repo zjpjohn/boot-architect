@@ -638,7 +638,7 @@
             <dependency>
                 <groupId>com.cloud.arch</groupId>
                 <artifactId>architect-webmvc-swagger</artifactId>
-                <version>1.0</version>
+                <version>${revision}</version>
             </dependency>
             <!-- 测试相关组件管理 -->
             <dependency>
