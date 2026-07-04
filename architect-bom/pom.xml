@@ -51,7 +51,7 @@
         <async-http.version>2.12.3</async-http.version>
         <etcd-java.version>0.0.21</etcd-java.version>
         <snappy.version>1.1.8.4</snappy.version>
-        <hutool.version>5.8.40</hutool.version>
+        <hutool.version>5.8.46</hutool.version>
         <protostuff.version>1.8.0</protostuff.version>
         <collections.version>3.2.2</collections.version>
         <openapi3.version>3.0.3</openapi3.version>
@@ -96,7 +96,7 @@
             </dependency>
             <dependency>
                 <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
+                <artifactId>hutool-bom</artifactId>
                 <version>${hutool.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
