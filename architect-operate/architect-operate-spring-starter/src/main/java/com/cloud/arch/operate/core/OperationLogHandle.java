@@ -26,11 +26,7 @@ public class OperationLogHandle implements ConsumerListener<LogContext>, Environ
     private final IOperatorResolver    operatorResolver;
     private final ITenantResolver      tenantResolver;
 
-    public OperationLogHandle(LogJdbcRepository repository,
-                              OperateLogProperties properties,
-                              Ip2RegionSearcher ipRegionSearcher,
-                              IOperatorResolver operatorResolver,
-                              ITenantResolver tenantResolver) {
+    public OperationLogHandle(LogJdbcRepository repository, OperateLogProperties properties, Ip2RegionSearcher ipRegionSearcher, IOperatorResolver operatorResolver, ITenantResolver tenantResolver) {
         this.repository = repository;
         this.properties = properties;
         this.ipRegionSearcher = ipRegionSearcher;
