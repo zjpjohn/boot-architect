@@ -53,7 +53,7 @@
         <netty.version>4.1.77.Final</netty.version>
         <etcd-java.version>0.0.21</etcd-java.version>
         <snappy.version>1.1.8.4</snappy.version>
-        <hutool.version>5.8.40</hutool.version>
+        <hutool.version>5.8.46</hutool.version>
         <guice.version>5.1.0</guice.version>
         <protostuff.version>1.8.0</protostuff.version>
         <collections.version>3.2.2</collections.version>
@@ -100,7 +100,7 @@
             </dependency>
             <dependency>
                 <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
+                <artifactId>hutool-bom</artifactId>
                 <version>${hutool.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
