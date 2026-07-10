@@ -49,7 +49,7 @@ public class DictionaryFactory implements InitializingBean {
             throw new IllegalArgumentException(message);
         }
         if (dictionaryCache.containsKey(name)) {
-            log.warn("dictionary {} has duplicated name [{}}].", type.getName(), name);
+            log.warn("dictionary {} has duplicated name [{}].", type.getName(), name);
         }
         dictionaryCache.put(name, new DictionaryRemark(annotation, type));
     }
