@@ -2,6 +2,7 @@ package com.cloud.arch.web.dict;
 
 import com.cloud.arch.enums.Value;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.atteo.classindex.ClassIndex;
 import org.springframework.beans.factory.InitializingBean;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class DictionaryFactory implements InitializingBean {
 
@@ -47,8 +49,7 @@ public class DictionaryFactory implements InitializingBean {
             throw new IllegalArgumentException(message);
         }
         if (dictionaryCache.containsKey(name)) {
-            String message = String.format("dictionary %s has duplicated name [%s].", type.getName(), name);
-            throw new IllegalArgumentException(message);
+            log.warn("dictionary {} has duplicated name [{}}].", type.getName(), name);
         }
         dictionaryCache.put(name, new DictionaryRemark(annotation, type));
     }
