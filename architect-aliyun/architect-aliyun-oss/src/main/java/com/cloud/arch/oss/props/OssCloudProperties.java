@@ -43,6 +43,9 @@ public class OssCloudProperties {
         if (StringUtils.isNotBlank(this.domainUri)) {
             return this.domainUri;
         }
+        if (StringUtils.isNotBlank(hostUri)) {
+            return this.hostUri;
+        }
         return String.format("https://%s.%s", bucket, this.endpoint);
     }
 
@@ -52,10 +55,6 @@ public class OssCloudProperties {
          * policy过期时间
          */
         private Long   expire = 300L;
-        /**
-         * 回调请求前缀地址(主要适配网关前缀地址)
-         */
-        private String prefix;
         /**
          * oss上传请求回调地址
          */
