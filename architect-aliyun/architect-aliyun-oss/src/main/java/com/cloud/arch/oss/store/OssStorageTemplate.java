@@ -1,27 +1,30 @@
 package com.cloud.arch.oss.store;
 
 import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.DeleteObjectsRequest;
+import com.aliyun.oss.model.DeleteObjectsResult;
 import com.cloud.arch.oss.props.OssCloudProperties;
+import com.cloud.arch.utils.CollectionUtils;
 import com.google.common.collect.Lists;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 public class OssStorageTemplate {
     //图片类型
     public static final List<String> IMAGES = Lists.newArrayList(".jpg", ".jpeg", ".png", ".gif");
     //视频类型
-    public static final List<String> VIDEOS
-                                            = Lists.newArrayList(".mp4", ".avi", ".mov", ".wmv", ".asf", ".navi", ".3gp", ".mkv", ".f4v", ".rmvb", ".webm");
+    public static final List<String> VIDEOS = Lists.newArrayList(".mp4", ".avi", ".mov", ".wmv", ".asf", ".navi", ".3gp", ".mkv", ".f4v", ".rmvb", ".webm");
 
     private final OSSClient          client;
     private final OssCloudProperties properties;
 
     public OssStorageTemplate(OSSClient client, OssCloudProperties properties) {
-        this.client     = client;
+        this.client = client;
         this.properties = properties;
     }
 
@@ -67,6 +70,21 @@ public class OssStorageTemplate {
     public String remove(String key) throws Exception {
         client.deleteObject(this.properties.getBucket(), realKey(key));
         return key;
+    }
+
+    /**
+     * 批量删除文件
+     *
+     * @param keys 文件名集合
+     */
+    public List<String> removeBatch(List<String> keys) throws Exception {
+        if (CollectionUtils.isEmpty(keys)) {
+            return Collections.emptyList();
+        }
+        List<String>         realKeys = keys.stream().map(this::realKey).toList();
+        DeleteObjectsRequest request  = new DeleteObjectsRequest(properties.getBucket()).withKeys(realKeys);
+        DeleteObjectsResult  result   = client.deleteObjects(request);
+        return result.getDeletedObjects();
     }
 
     private String realKey(String key) {
