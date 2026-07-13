@@ -5,7 +5,10 @@ import com.aliyun.oss.model.DeleteObjectsRequest;
 import com.aliyun.oss.model.DeleteObjectsResult;
 import com.cloud.arch.oss.props.OssCloudProperties;
 import com.cloud.arch.utils.CollectionUtils;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -14,6 +17,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
+@Getter
 public class OssStorageTemplate {
     //图片类型
     public static final List<String> IMAGES = Lists.newArrayList(".jpg", ".jpeg", ".png", ".gif");
@@ -85,6 +89,15 @@ public class OssStorageTemplate {
         DeleteObjectsRequest request  = new DeleteObjectsRequest(properties.getBucket()).withKeys(realKeys);
         DeleteObjectsResult  result   = client.deleteObjects(request);
         return result.getDeletedObjects();
+    }
+
+    /**
+     * 获取 objKey 访问路径
+     */
+    public String urlPath(String objKey) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(objKey), "oss object key must not bet null.");
+        String key = objKey.startsWith("/") ? objKey : "/" + objKey;
+        return properties.hostPrefix() + key;
     }
 
     private String realKey(String key) {
