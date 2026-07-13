@@ -1,6 +1,7 @@
 package com.cloud.arch.oss.props;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Date;
@@ -37,6 +38,13 @@ public class OssCloudProperties {
      * web直传配置
      */
     private WebDirectProperties webDirect;
+
+    public String hostPrefix() {
+        if (StringUtils.isNotBlank(this.domainUri)) {
+            return this.domainUri;
+        }
+        return String.format("https://%s.%s", bucket, this.endpoint);
+    }
 
     @Data
     public static class WebDirectProperties {

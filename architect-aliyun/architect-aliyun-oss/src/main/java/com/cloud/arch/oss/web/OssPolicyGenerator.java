@@ -71,19 +71,12 @@ public record OssPolicyGenerator(OSSClient client, OssCloudProperties properties
                         .appId(properties.getAppId())
                         .policy(policy)
                         .signature(signature)
-                        .domain(negotiateHost())
+                        .domain(properties.hostPrefix())
                         .objKey(objectKey)
                         .expire(webDirect.getExpire())
                         .callback(callback)
                         .callbackVars(callbackVars)
                         .build();
-    }
-
-    private String negotiateHost() {
-        if (StringUtils.isNotBlank(properties.getDomainUri())) {
-            return properties.getDomainUri();
-        }
-        return String.format("https://%s.%s", properties.getBucket(), properties.getEndpoint());
     }
 
     /**
