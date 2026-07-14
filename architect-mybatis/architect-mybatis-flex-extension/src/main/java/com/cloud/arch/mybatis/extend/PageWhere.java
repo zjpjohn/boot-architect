@@ -1,33 +1,20 @@
 package com.cloud.arch.mybatis.extend;
 
-import com.cloud.arch.page.PageCondition;
+import com.cloud.arch.page.PageQuery;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
-import jakarta.validation.constraints.Min;
-import lombok.Data;
-import org.hibernate.validator.constraints.Range;
 
 import java.util.function.Consumer;
 
-@Data
-public class PageWhere implements Consumer<QueryWrapper> {
-
-    @Min(value = 1, message = "page index must greater than 0")
-    private Integer page  = 1;
-    @Range(min = 1, max = 1000, message = "page size must between 1 and 1000")
-    private Integer limit = 10;
+public class PageWhere extends PageQuery implements Consumer<QueryWrapper> {
 
     @Override
     public void accept(QueryWrapper wrapper) {
 
     }
 
-    public PageCondition from() {
-        return PageCondition.build(this.limit).setPage(this.page);
-    }
-
     public <T> Page<T> of() {
-        return Page.of(this.page, this.limit);
+        return Page.of(this.getPage(), this.getLimit());
     }
 
 }
