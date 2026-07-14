@@ -27,6 +27,13 @@ public class Pager<T> implements Serializable {
     //当前页数据
     private List<T> records  = Collections.emptyList();
 
+    public Pager(long total, long current, long pageSize, List<T> records) {
+        this.total = total;
+        this.current = current;
+        this.pageSize = pageSize;
+        setRecords(records);
+    }
+
     public void setRecords(List<T> records) {
         this.records = records;
         if (CollectionUtils.isNotEmpty(this.records)) {
