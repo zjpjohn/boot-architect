@@ -1,5 +1,6 @@
 package com.cloud.arch.mybatis.extend;
 
+import com.cloud.arch.page.PageCondition;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import jakarta.validation.constraints.Min;
@@ -19,6 +20,10 @@ public class PageWhere implements Consumer<QueryWrapper> {
     @Override
     public void accept(QueryWrapper wrapper) {
 
+    }
+
+    public PageCondition from() {
+        return PageCondition.build(this.limit).setPage(this.page);
     }
 
     public <T> Page<T> of() {
