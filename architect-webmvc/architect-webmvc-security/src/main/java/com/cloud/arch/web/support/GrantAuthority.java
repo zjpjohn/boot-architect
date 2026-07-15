@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -58,10 +59,11 @@ public record GrantAuthority(String identity, GrantMode mode, Set<String> roles,
      * @param roleSet 用户角色集合
      */
     private Pair<Boolean, Set<String>> roleCheck(Set<String> roleSet) {
-        if (CollectionUtils.isEmpty(roles) || roles.contains(Permission.DEFAULT_VALUE)) {
+        if (CollectionUtils.isEmpty(roles) || containsAll(roles) || containsAll(roleSet)) {
             return Pair.of(true, Collections.emptySet());
         }
-        Set<String> intersects = Sets.intersection(this.roles, roleSet);
+        Set<?>      target     = Objects.requireNonNullElse(roleSet, Sets.newHashSet());
+        Set<String> intersects = Sets.intersection(this.roles, target);
         return Pair.of(CollectionUtils.isNotEmpty(intersects), intersects);
     }
 
@@ -71,11 +73,19 @@ public record GrantAuthority(String identity, GrantMode mode, Set<String> roles,
      * @param permitSet 用户权限集合
      */
     private Pair<Boolean, Set<String>> permitCheck(Set<String> permitSet) {
-        if (CollectionUtils.isEmpty(permits) || permits.contains(Permission.DEFAULT_VALUE)) {
+        if (CollectionUtils.isEmpty(permits) || containsAll(permits) || containsAll(permitSet)) {
             return Pair.of(true, Collections.emptySet());
         }
-        Set<String> intersects = Sets.intersection(this.permits, permitSet);
+        Set<?>      target     = Objects.requireNonNullElse(permitSet, Sets.newHashSet());
+        Set<String> intersects = Sets.intersection(this.permits, target);
         return Pair.of(CollectionUtils.isNotEmpty(intersects), intersects);
+    }
+
+    /**
+     * 判断是否包含全部权限
+     */
+    private boolean containsAll(Set<String> values) {
+        return CollectionUtils.isNotEmpty(values) && values.contains(Permission.DEFAULT_VALUE);
     }
 
 }

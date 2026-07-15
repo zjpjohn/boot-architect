@@ -33,7 +33,7 @@ public class GatewayAuthFilter implements GlobalFilter, Ordered {
     private final IAuthRequestExclude requestExclude;
 
     public GatewayAuthFilter(ITokenVerifier tokenVerifier, IAuthRequestExclude requestExclude) {
-        this.tokenVerifier  = tokenVerifier;
+        this.tokenVerifier = tokenVerifier;
         this.requestExclude = requestExclude;
     }
 
