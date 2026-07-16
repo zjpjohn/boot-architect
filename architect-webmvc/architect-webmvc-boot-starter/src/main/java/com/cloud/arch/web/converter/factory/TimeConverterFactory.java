@@ -1,10 +1,10 @@
 package com.cloud.arch.web.converter.factory;
 
 import com.cloud.arch.web.converter.ConvertParseException;
+import io.micrometer.common.util.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ public class TimeConverterFactory {
     }
 
     private static String defaultIfBlank(String format, String defaultVal) {
-        if (StringUtils.hasText(format)) {
+        if (StringUtils.isNotBlank(format)) {
             return format;
         }
         return defaultVal;
@@ -43,6 +43,9 @@ public class TimeConverterFactory {
 
         @Override
         public LocalDate convert(String source) {
+            if (StringUtils.isBlank(source)) {
+                return null;
+            }
             try {
                 return LocalDate.parse(source, formatter);
             } catch (Exception error) {
@@ -62,6 +65,9 @@ public class TimeConverterFactory {
 
         @Override
         public LocalTime convert(String source) {
+            if (StringUtils.isBlank(source)) {
+                return null;
+            }
             try {
                 return LocalTime.parse(source, formatter);
             } catch (Exception error) {
@@ -81,6 +87,9 @@ public class TimeConverterFactory {
 
         @Override
         public LocalDateTime convert(String source) {
+            if (StringUtils.isBlank(source)) {
+                return null;
+            }
             try {
                 return LocalDateTime.parse(source, formatter);
             } catch (Exception error) {
@@ -99,6 +108,9 @@ public class TimeConverterFactory {
 
         @Override
         public Date convert(String source) {
+            if (StringUtils.isBlank(source)) {
+                return null;
+            }
             try {
                 return DateUtils.parseDate(source, pattern);
             } catch (Exception e) {
