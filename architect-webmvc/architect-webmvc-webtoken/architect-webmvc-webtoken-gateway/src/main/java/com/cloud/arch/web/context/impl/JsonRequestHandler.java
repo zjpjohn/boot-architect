@@ -60,7 +60,7 @@ public class JsonRequestHandler extends AbsRequestHandler {
                 @Override
                 public HttpHeaders getHeaders() {
                     HttpHeaders httpHeaders = new HttpHeaders();
-                    httpHeaders.putAll(context.getHeaders());
+                    httpHeaders.addAll(context.getHeaders());
                     if (!CollectionUtils.isEmpty(headers)) {
                         headers.forEach(httpHeaders::set);
                     }
