@@ -2,6 +2,7 @@ package com.cloud.arch.web.context;
 
 import com.cloud.arch.web.context.impl.FormRequestHandler;
 import com.cloud.arch.web.context.impl.JsonRequestHandler;
+import com.cloud.arch.web.context.impl.MultipartRequestHandler;
 import com.cloud.arch.web.context.impl.QueryRequestHandler;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -24,6 +25,12 @@ public enum RequestEnum {
         public AbsRequestHandler build(RequestContext context) {
             return new JsonRequestHandler(context);
         }
+    },
+    MULTIPART {
+        @Override
+        public AbsRequestHandler build(RequestContext context) {
+            return new MultipartRequestHandler(context);
+        }
     };
 
     public abstract AbsRequestHandler build(RequestContext context);
@@ -37,6 +44,9 @@ public enum RequestEnum {
         }
         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
             return JSON;
+        }
+        if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(mediaType)) {
+            return MULTIPART;
         }
         return null;
     }
