@@ -53,9 +53,19 @@ public abstract class CollectionUtils {
      * 集合转换为List
      */
     public static <T, V> List<V> toList(Collection<T> values, Function<T, V> converter) {
+        return toList(values, converter, false);
+    }
+
+    /**
+     * 集合转换为List
+     */
+    public static <T, V> List<V> toList(Collection<T> values, Function<T, V> converter, boolean noneNull) {
         Preconditions.checkNotNull(converter);
         if (values == null || values.isEmpty()) {
             return Lists.newArrayList();
+        }
+        if (noneNull) {
+            return values.stream().map(converter).filter(Objects::nonNull).collect(Collectors.toList());
         }
         return values.stream().map(converter).collect(Collectors.toList());
     }
@@ -64,9 +74,19 @@ public abstract class CollectionUtils {
      * 集合转换为元素不重复的List
      */
     public static <T, V> List<V> distinctList(Collection<T> values, Function<T, V> converter) {
+        return distinctList(values, converter, false);
+    }
+
+    /**
+     * 集合转换为元素不重复的List
+     */
+    public static <T, V> List<V> distinctList(Collection<T> values, Function<T, V> converter, boolean nonNull) {
         Preconditions.checkNotNull(converter);
         if (values == null || values.isEmpty()) {
             return Lists.newArrayList();
+        }
+        if (nonNull) {
+            return values.stream().map(converter).filter(Objects::nonNull).distinct().collect(Collectors.toList());
         }
         return values.stream().map(converter).distinct().collect(Collectors.toList());
     }
@@ -75,9 +95,19 @@ public abstract class CollectionUtils {
      * 集合转换为Set
      */
     public static <T, V> Set<V> toSet(Collection<T> values, Function<T, V> converter) {
+        return toSet(values, converter, false);
+    }
+
+    /**
+     * 集合转换为Set
+     */
+    public static <T, V> Set<V> toSet(Collection<T> values, Function<T, V> converter, boolean noneNull) {
         Preconditions.checkNotNull(converter);
         if (values == null || values.isEmpty()) {
             return Sets.newHashSet();
+        }
+        if (noneNull) {
+            return values.stream().map(converter).filter(Objects::nonNull).collect(Collectors.toSet());
         }
         return values.stream().map(converter).collect(Collectors.toSet());
     }
@@ -96,9 +126,7 @@ public abstract class CollectionUtils {
     /**
      * 集合转换为Map，重复key进行覆盖
      */
-    public static <K, V, T> Map<K, T> toMap(Collection<V> values,
-                                            Function<? super V, K> keyFunction,
-                                            Function<? super V, T> valueFunction) {
+    public static <K, V, T> Map<K, T> toMap(Collection<V> values, Function<? super V, K> keyFunction, Function<? super V, T> valueFunction) {
         Preconditions.checkNotNull(keyFunction);
         if (values == null || values.isEmpty()) {
             return Maps.newHashMap();
@@ -109,8 +137,7 @@ public abstract class CollectionUtils {
     /**
      * 集合扁平转换List
      */
-    public static <V, R> List<R> flatList(Collection<V> values,
-                                          Function<? super V, Collection<? extends R>> converter) {
+    public static <V, R> List<R> flatList(Collection<V> values, Function<? super V, Collection<? extends R>> converter) {
         Preconditions.checkNotNull(converter);
         if (values == null || values.isEmpty()) {
             return Lists.newArrayList();
@@ -138,6 +165,18 @@ public abstract class CollectionUtils {
             return Maps.newHashMap();
         }
         return values.stream().collect(Collectors.groupingBy(classifier));
+    }
+
+    /**
+     * 集合分组转换
+     */
+    public static <K, R, V> Map<K, List<R>> groupBy(Collection<V> values, Function<? super V, ? extends K> classifier, Function<? super V, ? extends R> valueMapper) {
+        Preconditions.checkNotNull(classifier);
+        if (values == null || values.isEmpty()) {
+            return Maps.newHashMap();
+        }
+        return values.stream()
+                     .collect(Collectors.groupingBy(classifier, Collectors.mapping(valueMapper, Collectors.toList())));
     }
 
     /**
@@ -268,7 +307,7 @@ public abstract class CollectionUtils {
         for (Object elem : collection) {
             if (!hasCandidate) {
                 hasCandidate = true;
-                candidate    = elem;
+                candidate = elem;
             } else if (candidate != elem) {
                 return false;
             }
