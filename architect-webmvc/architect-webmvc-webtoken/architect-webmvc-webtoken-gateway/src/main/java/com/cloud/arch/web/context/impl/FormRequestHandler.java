@@ -45,16 +45,15 @@ public class FormRequestHandler extends AbsRequestHandler {
             params.forEach((key, value) -> bodyData.add(key, value.toString()));
             //追加请求头,注：从请求中获取的请求为ReadOnlyHeaders,不允许set需新建一份
             HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.putAll(context.getHeaders());
+            httpHeaders.addAll(context.getHeaders());
             if (!CollectionUtils.isEmpty(headers)) {
                 headers.forEach(httpHeaders::set);
             }
             httpHeaders.remove(HttpHeaders.CONTENT_LENGTH);
             httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             //重新构造请求信息
-            CachedBodyOutputMessage message = new CachedBodyOutputMessage(exchange, httpHeaders);
-            BodyInserter<MultiValueMap<String, String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(
-                    bodyData);
+            CachedBodyOutputMessage                                                message      = new CachedBodyOutputMessage(exchange, httpHeaders);
+            BodyInserter<MultiValueMap<String, String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(bodyData);
             return bodyInserter.insert(message, new BodyInserterContext()).then(Mono.defer(() -> {
                 ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
                     @Override
