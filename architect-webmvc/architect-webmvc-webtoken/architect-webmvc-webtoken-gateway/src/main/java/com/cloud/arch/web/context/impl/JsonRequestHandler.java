@@ -37,7 +37,7 @@ public class JsonRequestHandler extends AbsRequestHandler {
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         //Json Body请求uri上有参数，直接将参数追加在uri上,建议直接使用uri参数
         if (!CollectionUtils.isEmpty(queryParams)) {
-            QueryRequestHandler handler = new QueryRequestHandler(this.context);
+            GenericRequestHandler handler = new GenericRequestHandler(this.context);
             return handler.handle(params, headers);
         }
         //请求uri上没有参数，需要处理Json参数
