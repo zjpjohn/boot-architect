@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class QueryRequestHandler extends AbsRequestHandler {
+public class GenericRequestHandler extends AbsRequestHandler {
 
-    public QueryRequestHandler(RequestContext context) {
+    public GenericRequestHandler(RequestContext context) {
         super(context);
     }
 
@@ -36,7 +36,7 @@ public class QueryRequestHandler extends AbsRequestHandler {
                .forEach(entry -> allParams.put(entry.getKey(), entry.getValue()));
         //添加新参数
         params.forEach((key, value) -> allParams.add(key, value.toString()));
-        //追加替换请求参数
+        //追加替换请求参数到uri
         URI uri = UriComponentsBuilder.fromUri(request.getURI()).replaceQueryParams(allParams).build(false).toUri();
         //构造新的请求
         ServerHttpRequest.Builder builder = exchange.getRequest().mutate().uri(uri);

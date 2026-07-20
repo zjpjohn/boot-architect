@@ -2,16 +2,15 @@ package com.cloud.arch.web.context;
 
 import com.cloud.arch.web.context.impl.FormRequestHandler;
 import com.cloud.arch.web.context.impl.JsonRequestHandler;
-import com.cloud.arch.web.context.impl.MultipartRequestHandler;
-import com.cloud.arch.web.context.impl.QueryRequestHandler;
+import com.cloud.arch.web.context.impl.GenericRequestHandler;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 
 public enum RequestEnum {
-    QUERY {
+    GENERIC {
         @Override
         public AbsRequestHandler build(RequestContext context) {
-            return new QueryRequestHandler(context);
+            return new GenericRequestHandler(context);
         }
     },
     FORM {
@@ -25,29 +24,20 @@ public enum RequestEnum {
         public AbsRequestHandler build(RequestContext context) {
             return new JsonRequestHandler(context);
         }
-    },
-    MULTIPART {
-        @Override
-        public AbsRequestHandler build(RequestContext context) {
-            return new MultipartRequestHandler(context);
-        }
     };
 
     public abstract AbsRequestHandler build(RequestContext context);
 
     public static RequestEnum valueOf(HttpMethod method, MediaType mediaType) {
-        if (HttpMethod.GET == method || MediaType.TEXT_PLAIN.isCompatibleWith(mediaType)) {
-            return QUERY;
-        }
+        //表单请求重写参数
         if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
             return FORM;
         }
+        //json请求重写参数
         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
             return JSON;
         }
-        if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(mediaType)) {
-            return MULTIPART;
-        }
-        return null;
+        //其他请求方式直接重写参数
+        return GENERIC;
     }
 }

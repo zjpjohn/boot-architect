@@ -53,8 +53,8 @@ public class RequestContext {
 
     public RequestContext(ServerWebExchange exchange, GatewayFilterChain chain, List<String> retains) {
         this.exchange = exchange;
-        this.chain    = chain;
-        this.retains  = retains;
+        this.chain = chain;
+        this.retains = retains;
         this.initialize();
     }
 
@@ -64,11 +64,11 @@ public class RequestContext {
      */
     private void initialize() {
         ServerHttpRequest request = this.exchange.getRequest();
-        this.method    = request.getMethod();
-        this.headers   = request.getHeaders();
+        this.method = request.getMethod();
+        this.headers = request.getHeaders();
         this.mediaType = Optional.ofNullable(this.headers.getContentType())
                                  .orElse(MediaType.APPLICATION_FORM_URLENCODED);
-        this.type      = RequestEnum.valueOf(this.method, this.mediaType);
+        this.type = RequestEnum.valueOf(this.method, this.mediaType);
     }
 
     /**
@@ -78,9 +78,6 @@ public class RequestContext {
      * @param headers 请求头信息
      */
     public Mono<Void> handle(Map<String, Object> params, Map<String, String> headers) throws Exception {
-        if (this.type == null) {
-            return this.chain.filter(exchange);
-        }
         return this.type.build(this).handle(params, headers).flatMap(this::filter);
     }
 
