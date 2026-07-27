@@ -29,6 +29,9 @@ public enum RequestEnum {
     public abstract AbsRequestHandler build(RequestContext context);
 
     public static RequestEnum valueOf(HttpMethod method, MediaType mediaType) {
+        if (HttpMethod.GET.equals(method)) {
+            return GENERIC;
+        }
         //表单请求重写参数
         if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
             return FORM;
