@@ -29,15 +29,15 @@ public enum RequestEnum {
     public abstract AbsRequestHandler build(RequestContext context);
 
     public static RequestEnum valueOf(HttpMethod method, MediaType mediaType) {
-        //表单请求重写参数
+        if (HttpMethod.GET.equals(method)) {
+            return GENERIC;
+        }
         if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
             return FORM;
         }
-        //json请求重写参数
         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
             return JSON;
         }
-        //其他请求方式直接重写参数
         return GENERIC;
     }
 }
