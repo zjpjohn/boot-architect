@@ -2,15 +2,16 @@ package com.cloud.arch.web.context.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.cloud.arch.utils.CollectionUtils;
 import com.cloud.arch.web.context.AbsRequestHandler;
 import com.cloud.arch.web.context.RequestContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
@@ -24,6 +25,7 @@ import java.util.Objects;
 
 import static com.cloud.arch.web.context.RequestContext.JSON_OBJECT_SYMBOL;
 
+@Slf4j
 public class JsonRequestHandler extends AbsRequestHandler {
 
     public JsonRequestHandler(RequestContext context) {
@@ -35,8 +37,8 @@ public class JsonRequestHandler extends AbsRequestHandler {
         ServerWebExchange             exchange    = this.context.getExchange();
         ServerHttpRequest             request     = exchange.getRequest();
         MultiValueMap<String, String> queryParams = request.getQueryParams();
-        //Json Body请求uri上有参数，直接将参数追加在uri上,建议直接使用uri参数
-        if (!CollectionUtils.isEmpty(queryParams)) {
+        //Json Body请求uri上有参数，直接将参数追加在uri上,建议直接使用uri参数或者请求体没有参数
+        if (CollectionUtils.isNotEmpty(queryParams) || request.getHeaders().getContentLength() <= 0) {
             GenericRequestHandler handler = new GenericRequestHandler(this.context);
             return handler.handle(params, headers);
         }

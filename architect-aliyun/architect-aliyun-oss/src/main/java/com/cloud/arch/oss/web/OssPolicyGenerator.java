@@ -51,9 +51,11 @@ public record OssPolicyGenerator(OSSClient client, OssCloudProperties properties
 
             callbackVars = new LinkedHashMap<>();
             callbackVars.put("x:scene", scene.value());
-            if (req.getUploadBy() != null) {
-                bodySb.append("&uploadBy=${x:upload_by}");
-                callbackVars.put("x:upload_by", String.valueOf(req.getUploadBy()));
+            if (req.getUploader() != null && req.getUploaderType() != null) {
+                bodySb.append("&uploader=${x:uploader}");
+                bodySb.append("&uploaderType=${x:uploader_type}");
+                callbackVars.put("x:uploader", String.valueOf(req.getUploader()));
+                callbackVars.put("x:uploader_type", String.valueOf(req.getUploaderType()));
             }
             if (StringUtils.isNotBlank(req.getReplaceUrl())) {
                 String oldObjectKey = extractObjectKey(req.getReplaceUrl());

@@ -14,9 +14,13 @@ public class OssPolicyReq {
      */
     private String   fileName;
     /**
-     * 上传用户标识
+     * 上传者标识
      */
-    private Long     uploadBy;
+    private Long     uploader;
+    /**
+     * 上传者类型
+     */
+    private Integer  uploaderType;
     /**
      * 旧文件的链接
      */
