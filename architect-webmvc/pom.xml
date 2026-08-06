@@ -15,7 +15,7 @@
     <modules>
         <module>architect-webmvc-commons</module>
         <module>architect-webmvc-jackson</module>
-        <module>architect-webmvc-fastjson2</module>
+<!--        <module>architect-webmvc-fastjson2</module>-->
         <module>architect-webmvc-security</module>
         <module>architect-webmvc-webtoken</module>
         <module>architect-webmvc-boot-starter</module>
