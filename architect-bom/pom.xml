@@ -24,8 +24,8 @@
         <commons-collections.version>4.5.0</commons-collections.version>
         <commons-codec.version>1.21.0</commons-codec.version>
         <commons-io.version>2.21.0</commons-io.version>
-        <fory.version>1.4.0</fory.version>
-        <fastjson2.version>2.0.61</fastjson2.version>
+        <fory.version>1.5.0</fory.version>
+        <fastjson2.version>2.0.64</fastjson2.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <mybatis.version>4.0.1</mybatis.version>
         <mybatis-plus.version>3.5.16</mybatis-plus.version>
