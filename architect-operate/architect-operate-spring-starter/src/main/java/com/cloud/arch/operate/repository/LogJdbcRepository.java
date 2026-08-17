@@ -1,5 +1,6 @@
 package com.cloud.arch.operate.repository;
 
+import com.cloud.arch.operate.core.ILogStorage;
 import com.cloud.arch.operate.core.OperationLog;
 import com.cloud.arch.utils.IdWorker;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -9,11 +10,11 @@ import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class LogJdbcRepository {
+public class LogJdbcRepository implements ILogStorage {
 
     private static final String INSERT_SQL =
-            "insert into arch_oper_log(id,tenant_id,app_no,biz_group,title,type,target,method,req_uri,op_id,op_name,op_ip,op_location,state,params,error,taken_time,gmt_create) "
-                    + "values(:id,:tenantId,:appNo,:bizGroup,:title,:type,:target,:method,:reqUri,:opId,:opName,inet_aton(:opIp),:opLocation,:state,:params,:error,:takenTime,:gmtCreate)";
+            "insert into arch_oper_log(id,tenant_id,app_no,biz_group,title,type,target,method,req_uri,op_id,op_name,op_ip,op_location,state,params,error,taken_time,gmt_create) " +
+            "values(:id,:tenantId,:appNo,:bizGroup,:title,:type,:target,:method,:reqUri,:opId,:opName,inet_aton(:opIp),:opLocation,:state,:params,:error,:takenTime,:gmtCreate)";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -21,6 +22,7 @@ public class LogJdbcRepository {
         this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     }
 
+    @Override
     public void save(List<OperationLog> records) {
         MapSqlParameterSource[] parameterSources = records.stream()
                                                           .map(this::buildParameter)
@@ -48,4 +50,5 @@ public class LogJdbcRepository {
                                           .addValue("takenTime", log.getTakenTime())
                                           .addValue("gmtCreate", LocalDateTime.now());
     }
+
 }
