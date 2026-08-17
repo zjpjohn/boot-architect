@@ -3,7 +3,6 @@ package com.cloud.arch.operate.core;
 import com.cloud.arch.Ip2RegionSearcher;
 import com.cloud.arch.IpRegionResult;
 import com.cloud.arch.operate.props.OperateLogProperties;
-import com.cloud.arch.operate.repository.LogJdbcRepository;
 import com.cloud.arch.trigger.ConsumerListener;
 import com.cloud.arch.utils.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
