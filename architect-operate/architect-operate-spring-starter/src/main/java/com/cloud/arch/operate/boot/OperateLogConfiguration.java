@@ -22,7 +22,8 @@ import javax.sql.DataSource;
 public class OperateLogConfiguration {
 
     @Bean
-    public LogJdbcRepository logJdbcRepository(DataSource dataSource) {
+    @ConditionalOnMissingBean(ILogStorage.class)
+    public ILogStorage logJdbcRepository(DataSource dataSource) {
         return new LogJdbcRepository(dataSource);
     }
 
@@ -44,22 +45,14 @@ public class OperateLogConfiguration {
         return new DefaultTenantResolver();
     }
 
+
     @Bean
-    public OperationLogHandle operationLogHandle(OperateLogProperties properties,
-                                                 LogJdbcRepository logJdbcRepository,
-                                                 Ip2RegionSearcher ipRegionSearcher,
-                                                 IOperatorResolver operatorResolver,
-                                                 ITenantResolver tenantResolver) {
-        return new OperationLogHandle(logJdbcRepository,
-                                      properties,
-                                      ipRegionSearcher,
-                                      operatorResolver,
-                                      tenantResolver);
+    public OperationLogHandle operationLogHandle(OperateLogProperties properties, ILogStorage logStorage, Ip2RegionSearcher ipRegionSearcher, IOperatorResolver operatorResolver, ITenantResolver tenantResolver) {
+        return new OperationLogHandle(logStorage, properties, ipRegionSearcher, operatorResolver, tenantResolver);
     }
 
     @Bean
-    public AsyncLogDispatcher asyncLogDispatcher(OperateLogProperties properties,
-                                                 OperationLogHandle operationLogHandle) {
+    public AsyncLogDispatcher asyncLogDispatcher(OperateLogProperties properties, OperationLogHandle operationLogHandle) {
         return new AsyncLogDispatcher(properties, operationLogHandle);
     }
 

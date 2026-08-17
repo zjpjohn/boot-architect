@@ -2,10 +2,11 @@ package com.cloud.arch.operate.core;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class OperationLog {
+public class OperationLog implements Serializable {
 
     /**
      * 操作日志流水号
