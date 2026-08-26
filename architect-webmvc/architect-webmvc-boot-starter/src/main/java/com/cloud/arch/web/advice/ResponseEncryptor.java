@@ -30,17 +30,14 @@ public class ResponseEncryptor {
     /**
      * 加密body体中数据
      */
-    public static BodyData<Object> encrypt(WebmvcProperties properties,
-                                           Object data,
-                                           String message,
-                                           ServerHttpResponse response) {
+    public static BodyData<Object> encrypt(WebmvcProperties properties, Object data, String message, ServerHttpResponse response) {
         if (data == null) {
             return new BodyData<>(message, HttpStatus.OK.value(), null);
         }
         String                         body    = convertBody(data);
         WebmvcProperties.EncryptConfig encrypt = properties.getEncrypt();
         String                         mode    = encrypt.getMode().toLowerCase();
-        if (DEFAULT_MODE.equals(mode)) {
+        if (DEFAULT_MODE.equalsIgnoreCase(mode)) {
             return encryptCbc(encrypt.getPadding(), encrypt.getHeader(), body, message, response);
         }
         return encryptEcb(encrypt.getPadding(), encrypt.getHeader(), body, message, response);
@@ -49,17 +46,13 @@ public class ResponseEncryptor {
     /**
      * CBC加密模式加密
      */
-    private static BodyData<Object> encryptCbc(String padding,
-                                               String header,
-                                               String body,
-                                               String message,
-                                               ServerHttpResponse response) {
+    private static BodyData<Object> encryptCbc(String padding, String header, String body, String message, ServerHttpResponse response) {
         String key         = AESKit.genKey();
         String ivr         = AESKit.genIv();
         String headerValue = encryptHeader(key, ivr);
         response.getHeaders().set(header, headerValue);
         String type = padding.toLowerCase();
-        if (DEFAULT_PADDING.equals(type)) {
+        if (DEFAULT_PADDING.equalsIgnoreCase(type)) {
             String encrypt = AESKit.CBC.pkc7Enc(body, key, ivr);
             return new BodyData<>(message, HttpStatus.OK.value(), encrypt);
         }
@@ -70,16 +63,12 @@ public class ResponseEncryptor {
     /**
      * ECB加密模式加密
      */
-    private static BodyData<Object> encryptEcb(String padding,
-                                               String header,
-                                               String body,
-                                               String message,
-                                               ServerHttpResponse response) {
+    private static BodyData<Object> encryptEcb(String padding, String header, String body, String message, ServerHttpResponse response) {
         String key         = AESKit.genKey();
         String headerValue = encryptHeader(key);
         response.getHeaders().set(header, headerValue);
         String type = padding.toLowerCase();
-        if (DEFAULT_PADDING.equals(type)) {
+        if (DEFAULT_PADDING.equalsIgnoreCase(type)) {
             String encrypt = AESKit.ECB.pkc7Enc(body, key);
             return new BodyData<>(message, HttpStatus.OK.value(), encrypt);
         }
@@ -93,13 +82,13 @@ public class ResponseEncryptor {
      * @param data 响应数据
      */
     private static String convertBody(Object data) {
-        if (data instanceof Short
-                || data instanceof Integer
-                || data instanceof Long
-                || data instanceof Double
-                || data instanceof Float
-                || data instanceof BigInteger
-                || data instanceof BigDecimal) {
+        if (data instanceof Short ||
+            data instanceof Integer ||
+            data instanceof Long ||
+            data instanceof Double ||
+            data instanceof Float ||
+            data instanceof BigInteger ||
+            data instanceof BigDecimal) {
             return data.toString();
         }
         if (data instanceof String value) {
