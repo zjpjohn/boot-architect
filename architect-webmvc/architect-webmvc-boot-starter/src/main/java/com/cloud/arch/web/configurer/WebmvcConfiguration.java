@@ -8,6 +8,7 @@ import com.cloud.arch.web.custom.CustomErrorAttributes;
 import com.cloud.arch.web.custom.CustomWebMvcRegistrations;
 import com.cloud.arch.web.custom.DictionaryEndpoint;
 import com.cloud.arch.web.dict.DictionaryFactory;
+import com.cloud.arch.web.fastjson.FastJsonRegister;
 import com.cloud.arch.web.props.WebShareProperties;
 import com.cloud.arch.web.props.WebmvcProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,14 @@ public class WebmvcConfiguration {
     @Bean
     public CustomWebMvcRegistrations customWebMvcRegistrations(UniformResponseBodyAdvice responseAdvice, WebmvcProperties properties) {
         return new CustomWebMvcRegistrations(responseAdvice, properties);
+    }
+
+    /**
+     * fastjson2扩展Enum序列化和反序列化
+     */
+    @Bean
+    public FastJsonRegister fastJsonRegister() {
+        return new FastJsonRegister();
     }
 
     @Configuration
