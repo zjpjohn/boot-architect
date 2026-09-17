@@ -1,6 +1,7 @@
 package com.cloud.arch.enums;
 
 import com.google.common.collect.Maps;
+import org.atteo.classindex.IndexSubclasses;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Optional;
 /**
  * 统一枚举接口
  */
+@IndexSubclasses
 public interface Value<T extends Comparable<T>> {
 
     /**
