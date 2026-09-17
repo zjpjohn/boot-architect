@@ -1,9 +1,9 @@
 package com.cloud.arch.web.advice;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import com.cloud.arch.encrypt.AESKit;
 import com.cloud.arch.web.domain.BodyData;
+import com.cloud.arch.web.fastjson.FastJsonRegister;
 import com.cloud.arch.web.props.WebmvcProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -94,7 +94,13 @@ public class ResponseEncryptor {
         if (data instanceof String value) {
             return value;
         }
-        return JSON.toJSONString(data, JSONWriter.Feature.WriteLongAsString, JSONWriter.Feature.BrowserCompatible);
+        // 显式使用枚举专用 provider，保证 Value 枚举输出 {label,value}，同时不污染全局 provider
+        try (JSONWriter writer = JSONWriter.of(FastJsonRegister.writerProvider(),
+                                               JSONWriter.Feature.WriteLongAsString,
+                                               JSONWriter.Feature.BrowserCompatible)) {
+            writer.writeAny(data);
+            return writer.toString();
+        }
     }
 
     /**
